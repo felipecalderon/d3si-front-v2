@@ -1,85 +1,45 @@
 import React from "react";
-import { ArrowRightLeft, CreditCard, HandCoins, Wallet } from "lucide-react";
+import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react";
+import StatCard from "@/components/dashboard/StatCard";
+import GaugeChart from "@/components/dashboard/GaugeChart";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import Navbar from "@/components/Navbar/Navbar";
 
 export default function HomePage() {
  return (
     <main className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-blue-900 text-white flex flex-col p-4">
-        <div className="mb-6">
-          <img src="/logo.png" alt="Logo" className="mb-4" />
-          <p className="text-sm">¡Hola<br /><strong>Alejandro Contreras!</strong></p>
-        </div>
+    <Sidebar />
+    <section className="flex-1 p-6 overflow-auto">
+        <Navbar />
 
-        <select className="text-black mb-4 p-2 rounded">
-          <option>Tiendas Principales</option>
-          <option>Terceros</option>
-        </select>
+<div className="grid grid-cols-3 gap-6 items-start">
+  {/* Columna izquierda: Tarjetas principales */}
+  <div className="flex flex-col gap-4">
+    <StatCard icon={<FileText />} label="Boletas Emitidas" value="128" />
+    <StatCard icon={<FileCheck2 />} label="Facturas Emitidas" value="31" />
+    <StatCard icon={<DollarSign />} label="Facturación" value="$45.846.410" />
+  </div>
 
-        <nav className="flex flex-col gap-2">
-          {["Caja", "Inventario", "Facturas", "Cotizar", "Crear OC", "UTI", "Control de Mando", "Estado de Resultados"].map((item) => (
-            <button
-              key={item}
-              className="bg-blue-700 hover:bg-blue-600 text-left px-4 py-2 rounded"
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
+{/* Columna centro: Gráfica */}
+<div className="flex justify-center items-center h-full">
+  <div className="w-full max-w-sm mx-auto">
+    <GaugeChart />
+  </div>
+</div>
 
-        <button className="mt-auto bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded">
-          Cerrar Sesión
-        </button>
-      </aside>
 
-      {/* Dashboard */}
-      <section className="flex-1 p-6 overflow-auto">
-        <header className="flex justify-between items-center mb-6">
-          <img src="/logo-d3si.png" alt="D3SI AVACCO" className="h-10" />
-          <div className="flex items-center gap-4">
-            <p className="font-semibold text-orange-600">Alejandro Contreras</p>
-            <img src="/user.jpg" alt="User" className="w-10 h-10 rounded-full" />
-          </div>
-        </header>
 
-        {/* Tarjetas principales */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Boletas Emitidas</p>
-            <p className="text-2xl font-bold">128</p>
-          </div>
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Facturas Emitidas</p>
-            <p className="text-2xl font-bold">31</p>
-          </div>
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Facturación</p>
-            <p className="text-2xl font-bold">$45.846.410</p>
-          </div>
-        </div>
+  {/* Columna derecha: Tarjetas de ventas */}
+  <div className="flex flex-col gap-4">
+    <StatCard icon={<DollarSign />} label="Ventas del día" value="$435.670" color="text-green-600" />
+    <StatCard icon={<DollarSign />} label="Ventas de ayer" value="$635.800" color="text-yellow-600" />
+    <StatCard icon={<DollarSign />} label="Ventas Semana móvil" value="$3.535.800" color="text-red-600" />
+  </div>
+</div>
 
-        {/* Ventas */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Ventas del día</p>
-            <p className="text-xl font-bold text-green-600">$435.670</p>
-          </div>
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Ventas de ayer</p>
-            <p className="text-xl font-bold text-yellow-600">$635.800</p>
-          </div>
-          <div className="bg-white p-4 shadow rounded text-center">
-            <p>Ventas Semana móvil</p>
-            <p className="text-xl font-bold text-red-600">$3.535.800</p>
-          </div>
-          <div className="bg-white p-4 shadow rounded flex flex-col items-center justify-center">
-            <p>Meta del mes</p>
-            <p className="text-xl font-bold text-blue-600">$60MM</p>
-          </div>
-        </div>
 
         {/* Totales por método */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-4 gap-4 mb-4 mt-5">
           <div className="bg-white p-4 shadow rounded text-center">
             <ArrowRightLeft className="mx-auto mb-2" />
             <p>Débito</p>
