@@ -1,10 +1,12 @@
-import { Button } from "@/components/ui/button"
+import LoginPage from "./login/page"
 
 export default function Home() {
     return (
         <div className="">
-            <p>Hola, mundo</p>
-            <Button>Botón de shadcn de prueba</Button>
+            <p>PAGINA INICIAL
+                DAR CLIC EN LOGIN PARA ENTRAR AL HOME
+            </p>
+            <LoginPage></LoginPage>
         </div>
     )
 }
