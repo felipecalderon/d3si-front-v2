@@ -11,6 +11,23 @@ export default function Sidebar() {
         router.push("/")
     }
 
+    const navItems = [
+        { label: "Caja", route: "/home" },
+        { label: "Inventario", route: "/inventory" },
+        { label: "Facturas" },
+        { label: "Cotizar" },
+        { label: "Crear OC" },
+        { label: "UTI" },
+        { label: "Control de Mando" },
+        { label: "Estado de Resultados" },
+    ]
+
+    const handleNav = (route?: string) => {
+        if (route) {
+            router.push(route)
+        }
+    }
+
     return (
         <aside className="w-64 bg-blue-900 text-white flex flex-col p-4">
             <div className="mb-6">
@@ -28,18 +45,13 @@ export default function Sidebar() {
             </select>
 
             <nav className="flex flex-col gap-2">
-                {[
-                    "Caja",
-                    "Inventario",
-                    "Facturas",
-                    "Cotizar",
-                    "Crear OC",
-                    "UTI",
-                    "Control de Mando",
-                    "Estado de Resultados",
-                ].map((item) => (
-                    <button key={item} className="bg-blue-700 hover:bg-blue-600 text-left px-4 py-2 rounded">
-                        {item}
+                {navItems.map((item) => (
+                    <button
+                        key={item.label}
+                        className="bg-blue-700 hover:bg-blue-600 text-left px-4 py-2 rounded"
+                        onClick={() => handleNav(item.route)}
+                    >
+                        {item.label}
                     </button>
                 ))}
             </nav>

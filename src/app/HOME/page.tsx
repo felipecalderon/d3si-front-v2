@@ -73,11 +73,69 @@ export default function HomePage() {
                         <p className="text-lg font-bold">$435.670</p>
                     </div>
                 </div>
+                {/* Filtros y botón */}
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex gap-4">
+                        <select className="px-4 py-2 bg-white rounded shadow border">
+                            <option>Filtrar por mes</option>
+                            <option>Enero</option>
+                            <option>Febrero</option>
+                            <option>Marzo</option>
+                            <option>Abril</option>
+                            <option>Mayo</option>
+                            <option>Junio</option>
+                            <option>Julio</option>
+                            <option>Agosto</option>
+                            <option>Septiembre</option>
+                            <option>Octubre</option>
+                            <option>Noviembre</option>
+                            <option>Diciembre</option>
+                        </select>
+                        <select className="px-4 py-2 bg-white rounded shadow border">
+                            <option>Filtrar por año</option>
+                            <option>2025</option>
+                            <option>2024</option>
+                            <option>2023</option>
+                        </select>
+                    </div>
 
-                <div className="flex justify-end">
                     <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded">
                         Vender 🛍️
                     </button>
+                </div>
+                {/* Tabla de ventas */}
+                <div className="bg-white rounded shadow overflow-auto">
+                    <table className="min-w-full text-sm text-gray-700">
+                        <thead className="bg-gray-200 text-left">
+                            <tr>
+                                <th className="p-3">Sucursal</th>
+                                <th className="p-3">Fecha de Venta</th>
+                                <th className="p-3">Venta con IVA</th>
+                                <th className="p-3">Productos</th>
+                                <th className="p-3">Tipo de Pago</th>
+                                <th className="p-3">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-t">
+                                <td className="p-3">D3SI AVOCCO, Purén</td>
+                                <td className="p-3">16-05-2025 - 10:02hrs</td>
+                                <td className="p-3">$65.990</td>
+                                <td className="p-3">[TXL] 1x casaca oneill cotele cafe</td>
+                                <td className="p-3">Débito</td>
+                                <td className="p-3">Pagado</td>
+                            </tr>
+                            <tr className="border-t">
+                                <td className="p-3">D3SI AVOCCO, Purén</td>
+                                <td className="p-3">15-05-2025 - 17:22hrs</td>
+                                <td className="p-3">$29.990</td>
+                                <td className="p-3">[T48] 1x jeans potros ultra slim 09</td>
+                                <td className="p-3">Crédito</td>
+                                <td className="p-3">Pagado</td>
+                            </tr>
+                            {/* Puedes agregar más filas estáticas o dinámicas aquí */}
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </main>
