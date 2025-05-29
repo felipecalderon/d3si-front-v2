@@ -13,7 +13,7 @@ export default function LoginForm() {
         e.preventDefault()
         console.log("Login with:", { email, password })
         // Aquí irá la lógica real de login (fetch, auth, etc.)
-        router.push("/HOME")
+        router.push("/home")
     }
 
     return (
