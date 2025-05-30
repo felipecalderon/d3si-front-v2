@@ -9,7 +9,7 @@ export async function login(email: string, password: string) {
         body: JSON.stringify({ email, password }),
     })
 
-    if (!res.ok) throw new Error("Login fallido")
+    // if (!res.ok) throw new Error("Login fallido")
 
     return res.json()
 }

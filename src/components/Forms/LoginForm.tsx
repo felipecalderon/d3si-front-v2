@@ -3,17 +3,28 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button"
+import { login } from "@/lib/api"
+import { useAuth } from "@/stores/user.store"
+import { toast } from "sonner"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
+    const { setUser } = useAuth()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         console.log("Login with:", { email, password })
         // Aquí irá la lógica real de login (fetch, auth, etc.)
-        router.push("/home")
+        const data = await login(email, password)
+        console.log(data)
+        if (data.error) {
+            toast.error(data.error)
+        } else {
+            setUser(data)
+            router.push("home")
+        }
     }
 
     return (
