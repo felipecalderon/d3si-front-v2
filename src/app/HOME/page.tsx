@@ -1,7 +1,7 @@
 import React from "react"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
-import StatCard from "@/components/dashboard/StatCard"
-import GaugeChart from "@/components/dashboard/GaugeChart"
+import StatCard from "@/components/Dashboard/StatCard"
+import GaugeChart from "@/components/Dashboard/GaugeChart"
 import Sidebar from "@/components/Sidebar/Sidebar"
 import Navbar from "@/components/Navbar/Navbar"
 
