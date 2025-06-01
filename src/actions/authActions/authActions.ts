@@ -1,29 +1,31 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL!
+import { fetcher } from "@/lib/fetcher"
+import { API_URL } from "@/lib/enviroments"
+
+type AuthResponse = {
+    token: string
+    user: {
+        id: string
+        email: string
+        //Se pueden agregar mas campos según sea necesario (cuando el backend devuelva mas datos)
+    }
+}
 
 export async function login(email: string, password: string) {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    return await fetcher<AuthResponse>(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
     })
-
-    // if (!res.ok) throw new Error("Login fallido")
-
-    return res.json()
 }
 
 export async function register(email: string, password: string) {
-    const res = await fetch(`${API_URL}/auth/register`, {
+    return await fetcher<AuthResponse>(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
     })
-
-    if (!res.ok) throw new Error("Registro fallido")
-
-    return res.json()
 }
