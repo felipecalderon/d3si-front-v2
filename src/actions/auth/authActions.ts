@@ -10,8 +10,12 @@ type AuthResponse = {
     }
 }
 
+type ErrorMessage = {
+    error: string
+}
+
 export async function login(email: string, password: string) {
-    return await fetcher<AuthResponse>(`${API_URL}/auth/login`, {
+    return await fetcher<AuthResponse & ErrorMessage>(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
