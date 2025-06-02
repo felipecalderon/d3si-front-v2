@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createMassiveProducts } from "@/actions/productsActions/createMassiveProducts"
+import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 
 type Size = {
     sizeNumber: string

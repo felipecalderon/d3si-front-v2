@@ -1,6 +1,6 @@
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
-import { IProduct } from "@/interfaces/IProduct"
+import { IProduct } from "@/interfaces/products/IProduct"
 
 /**
  * Actualiza un producto en la base de datos mediante una petición HTTP PUT.

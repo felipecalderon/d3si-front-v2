@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button"
-import { login } from "@/actions/authActions/authActions"
+import { login } from "@/actions/auth/authActions"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 

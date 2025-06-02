@@ -1,4 +1,4 @@
-import { IProduct } from "@/interfaces/IProduct"
+import { IProduct } from "@/interfaces/products/IProduct"
 import { API_URL } from "@/lib/enviroments"
 import { fetcher } from "@/lib/fetcher"
 

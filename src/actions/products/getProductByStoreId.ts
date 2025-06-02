@@ -1,6 +1,6 @@
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
-import { IStoreProduct } from "@/interfaces/IStoreProduct"
+import { IStoreProduct } from "@/interfaces/stores/IStoreProduct"
 
 /**
  * Obtiene todos los productos asociados a una tienda específica desde la base de datos.

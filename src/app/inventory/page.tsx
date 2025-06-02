@@ -2,12 +2,12 @@ import React from "react"
 //import { MoreVertical } from "lucide-react"
 import Sidebar from "@/components/Sidebar/Sidebar"
 import Navbar from "@/components/Navbar/Navbar"
-import { getAllProducts } from "@/actions/productsActions/getAllProducts"
-import { ProductAPI } from "@/types/products"
+import { getAllProducts } from "@/actions/products/getAllProducts"
+import { IProduct } from "@/interfaces/products/IProduct"
 import InventoryActions from "@/components/Inventory/InventoryActions"
 
 export default async function InventoryPage() {
-    const rawProducts: ProductAPI[] = await getAllProducts()
+    const rawProducts: IProduct[] = await getAllProducts()
 
     return (
         <div className="flex min-h-screen bg-gray-100">
