@@ -1,6 +1,5 @@
 "use client"
 import React, { useState, useMemo, useEffect } from "react"
-//import { MoreVertical } from "lucide-react"
 import Sidebar from "@/components/Sidebar/Sidebar"
 import Navbar from "@/components/Navbar/Navbar"
 import { getAllProducts } from "@/actions/products/getAllProducts"
