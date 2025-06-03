@@ -2,6 +2,7 @@
 
 import React from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export default function Sidebar() {
     const router = useRouter()
@@ -31,7 +32,7 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-blue-900 text-white flex flex-col p-4">
             <div className="mb-6">
-                <img src="/logo.png" alt="Logo" className="mb-4" />
+                <Image src="/brand/two-brands.png" width={200} height={120} alt="Logo" className="mb-4" />
                 <p className="text-sm">
                     ¡Hola
                     <br />
