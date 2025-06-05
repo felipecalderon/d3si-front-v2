@@ -21,7 +21,7 @@ export default function Sidebar() {
         { label: "Facturas" },
         { label: "Cotizar" },
         { label: "Crear OC" },
-        { label: "UTI" },
+        { label: "UTI", route: "/usuarios" },
         { label: "Control de Mando" },
         { label: "Estado de Resultados" },
     ]
