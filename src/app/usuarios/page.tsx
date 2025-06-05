@@ -2,7 +2,7 @@ import RegistroForm from '@/components/Forms/RegistroForm'
 import TiendasForm from '@/components/Forms/TiendasForm'
 import Sidebar from '@/components/Sidebar/Sidebar'
 import UsuariosList from '@/components/Usuario/UsuariosList'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 export default function UsuariosPage() {
   return (

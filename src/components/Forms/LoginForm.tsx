@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "../ui/button"
 import { login } from "@/actions/auth/authActions"
+import { getAllUsers } from "@/actions/users/getAllUsers"
+import { getAllStores } from "@/actions/stores/getAllStores"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 
@@ -11,19 +13,37 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
-    const { setUser } = useAuth()
+    const { setUser, setUsers, setStores } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Login with:", { email, password })
-        // Aquí irá la lógica real de login (fetch, auth, etc.)
-        const data = await login(email, password)
-        console.log(data)
-        if (data.error) {
-            toast.error(data.error)
-        } else {
-            setUser(data)
-            router.push("home")
+
+        try {
+            const data = await login(email, password)
+
+            if (data.error) {
+                toast.error(data.error)
+                return
+            }
+
+            // 1. Guardar usuario autenticado
+            setUser(data.user)
+
+            // 2. Cargar y guardar usuarios y tiendas
+            const [usuarios, tiendas] = await Promise.all([
+                getAllUsers(),
+                getAllStores(),
+            ])
+
+            setUsers(usuarios)
+            setStores(tiendas)
+
+            toast.success("Inicio de sesión exitoso")
+            router.push("/home")
+
+        } catch (err) {
+            console.error(err)
+            toast.error("Error inesperado al iniciar sesión")
         }
     }
 

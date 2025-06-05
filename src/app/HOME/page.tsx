@@ -76,7 +76,7 @@ export default function HomePage() {
                 {/* Filtros y botón */}
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex gap-4">
-                        <select className="px-4 py-2 bg-white rounded shadow border">
+                        <select title="meses" className="px-4 py-2 bg-white rounded shadow border">
                             <option>Filtrar por mes</option>
                             <option>Enero</option>
                             <option>Febrero</option>
@@ -91,7 +91,7 @@ export default function HomePage() {
                             <option>Noviembre</option>
                             <option>Diciembre</option>
                         </select>
-                        <select className="px-4 py-2 bg-white rounded shadow border">
+                        <select title="años" className="px-4 py-2 bg-white rounded shadow border">
                             <option>Filtrar por año</option>
                             <option>2025</option>
                             <option>2024</option>
