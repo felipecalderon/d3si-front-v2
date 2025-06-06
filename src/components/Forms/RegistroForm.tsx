@@ -6,35 +6,35 @@ import { Button } from "../ui/button"
 import { register } from "@/actions/auth/authActions"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
+import { getAllUsers } from "@/actions/users/getAllUsers"
 
 export default function RegistroForm() {
     const [nombre, setNombre] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [typeOfUser, setTypeOfUser] = useState("")
+    const [role, setRole] = useState("")
 
     const router = useRouter()
-    const { setUser } = useAuth()
+    const { setUsers, users } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Registro with:", { nombre, email, password, typeOfUser })
-        
+        console.log("Registro with:", { nombre, email, role, password })
         try {
-            const data = await register(nombre, email, password, typeOfUser)
-            console.log(data)
+            const data = await register(nombre, email, role, password)
             
-            // if (data.error) {
-            //     toast.error(data.error)
-            // } else {
-            //     toast.success("Usuario creado exitosamente")
-            //     setUser(data)
-            //     // Limpiar formulario
-            //     setNombre("")
-            //     setEmail("")
-            //     setPassword("")
-            //     setTypeOfUser("")
-            // }
+            if (data.error) {
+                toast.error(data.error)
+            } else {
+                toast.success("Usuario creado exitosamente")
+                const [usuarios] = await Promise.all([getAllUsers()])
+                setUsers(usuarios)
+                // Limpiar formulario
+                setNombre("")
+                setEmail("")
+                setPassword("")
+                setRole("")
+            }
         } catch (error) {
             toast.error("Error al crear usuario")
             console.error(error)
@@ -91,20 +91,21 @@ export default function RegistroForm() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="typeOfUser">
+                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="role">
                         Tipo de Usuario
                     </label>
                     <select
-                        id="typeOfUser"
-                        value={typeOfUser}
-                        onChange={(e) => setTypeOfUser(e.target.value)}
+                        id="role"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
-                    >
+                    > 
                         <option value="">Seleccionar tipo</option>
-                        <option value="Franquiciado">Franquiciado</option>
-                        <option value="Administrador">Administrador</option>
-                        <option value="Empleado">Empleado</option>
+                        <option value="admin">Admin</option>
+                        <option value="store_manager">Store Manager</option>
+                        <option value="consignado">Consignado</option>
+                        <option value="tercero">Tercero</option>
                     </select>
                 </div>
 

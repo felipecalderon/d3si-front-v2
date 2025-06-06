@@ -24,12 +24,22 @@ export async function login(email: string, password: string) {
     })
 }
 
-export async function register(nombre: string, email: string, password: string, typeOfUser: string) {
-    return await fetcher<AuthResponse>(`${API_URL}/auth/register`, {
+export async function register(name: string, email: string, role: string, password: string) {
+    return await fetcher<AuthResponse & ErrorMessage>(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nombre, email, password, typeOfUser }),
+        body: JSON.stringify({ name, email, role ,password}),
+    })
+}
+
+export async function deleteUser(email: string) {
+    return await fetcher<AuthResponse & ErrorMessage>(`${API_URL}/users/${email}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email}),
     })
 }

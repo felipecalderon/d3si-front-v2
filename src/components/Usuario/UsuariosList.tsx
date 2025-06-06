@@ -1,36 +1,36 @@
 "use client"
-
-import { useState, useEffect } from "react"
+import { useAuth } from "@/stores/user.store"
 import { Button } from "../ui/button"
 import { toast } from "sonner"
+import { Toaster } from 'react-hot-toast'
+import { useState } from "react"
 import { IUser } from "@/interfaces/users/IUser"
+import { deleteUser } from "@/actions/auth/authActions"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 
-export default function UsuariosList() {
-  const [usuarios, setUsuarios] = useState<IUser[]>([])
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const users = await getAllUsers()
-        setUsuarios(users)
-      } catch (error) {
-        toast.error("Error al cargar usuarios")
-      }
-    }
-    fetchUsers()
-  }, [])
-
-  const handleEdit = (usuario: IUser) => {
-    toast.info(`Editando usuario: ${usuario.name}`)
+export default function usersList() {
+  const { users , setUsers} = useAuth()
+  const [confirmingEmail, setConfirmingEmail] = useState<string | null>(null)
+  
+  const handleEdit = () => {
     // lógica para editar
   }
 
-  const handleDelete = (usuario: IUser) => {
-    if (confirm(`¿Estás seguro de eliminar al usuario ${usuario.name}?`)) {
-      setUsuarios((prev) => prev.filter(u => u.userID !== usuario.userID))
-      toast.success(`Usuario ${usuario.name} eliminado`)
-    }
+  const handleDelete = async (email: string) => {
+    try{
+     const data = await deleteUser(email)
+                  
+      if (data.error) {
+        toast.error(data.error)
+      } else {
+        toast.success("Usuario eliminado exitosamente")
+        const [usuarios] = await Promise.all([getAllUsers()])
+        setUsers(usuarios)
+      }
+    } catch (error) {
+          toast.error("Error al crear usuario")
+          console.error(error)
+      }
   }
 
   return (
@@ -46,7 +46,7 @@ export default function UsuariosList() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {usuarios.map((usuario) => (
+            {users.map((usuario: IUser) => (
               <tr key={usuario.userID} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{usuario.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{usuario.email}</td>
@@ -55,8 +55,38 @@ export default function UsuariosList() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex gap-2">
-                    <Button onClick={() => handleEdit(usuario)} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded">Editar</Button>
-                    <Button onClick={() => handleDelete(usuario)} variant="destructive" className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs rounded">Eliminar</Button>
+                    {confirmingEmail === usuario.email ? (
+                      <>
+                        <Button
+                          onClick={() => handleDelete(usuario.email)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs rounded"
+                        >
+                          Confirmar
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmingEmail(null)}
+                          className="bg-gray-200 text-gray-800 px-3 py-1 text-xs rounded hover:bg-gray-300"
+                        >
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={() => handleEdit()}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded"
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmingEmail(usuario.email)}
+                          variant="destructive"
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs rounded"
+                        >
+                          Eliminar
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -65,7 +95,7 @@ export default function UsuariosList() {
         </table>
       </div>
 
-      {usuarios.length === 0 && (
+      {users.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           No hay usuarios registrados
         </div>
