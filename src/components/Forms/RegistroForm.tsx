@@ -7,6 +7,7 @@ import { register } from "@/actions/auth/authActions"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { getAllUsers } from "@/actions/users/getAllUsers"
+import { useTienda } from "@/stores/tienda.store"
 
 export default function RegistroForm() {
     const [nombre, setNombre] = useState("")
@@ -15,14 +16,14 @@ export default function RegistroForm() {
     const [role, setRole] = useState("")
 
     const router = useRouter()
-    const { setUsers, users } = useAuth()
+    const { setUsers, users } = useTienda()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         console.log("Registro with:", { nombre, email, role, password })
         try {
             const data = await register(nombre, email, role, password)
-            
+
             if (data.error) {
                 toast.error(data.error)
             } else {
@@ -100,7 +101,7 @@ export default function RegistroForm() {
                         onChange={(e) => setRole(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
-                    > 
+                    >
                         <option value="">Seleccionar tipo</option>
                         <option value="admin">Admin</option>
                         <option value="store_manager">Store Manager</option>
@@ -109,8 +110,8 @@ export default function RegistroForm() {
                     </select>
                 </div>
 
-                <Button 
-                    type="submit" 
+                <Button
+                    type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors"
                 >
                     Crear Usuario

@@ -8,12 +8,14 @@ import { getAllUsers } from "@/actions/users/getAllUsers"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
+import { useTienda } from "@/stores/tienda.store"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
-    const { setUser, setUsers, setStores } = useAuth()
+    const { setUser } = useAuth()
+    const { setStores, setUsers } = useTienda()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -30,17 +32,13 @@ export default function LoginForm() {
             setUser(data.user)
 
             // 2. Cargar y guardar usuarios y tiendas
-            const [usuarios, tiendas] = await Promise.all([
-                getAllUsers(),
-                getAllStores(),
-            ])
+            const [usuarios, tiendas] = await Promise.all([getAllUsers(), getAllStores()])
 
             setUsers(usuarios)
             setStores(tiendas)
 
             toast.success("Inicio de sesión exitoso")
             router.push("/home")
-
         } catch (err) {
             console.error(err)
             toast.error("Error inesperado al iniciar sesión")
