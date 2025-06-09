@@ -1,7 +1,7 @@
 import RegistroForm from '@/components/Forms/RegistroForm'
 import TiendasForm from '@/components/Forms/TiendasForm'
+import ListTable from '@/components/ListTable/ListTable'
 import Sidebar from '@/components/Sidebar/Sidebar'
-import UsuariosList from '@/components/Usuario/UsuariosList'
 import React, { useEffect, useState } from 'react'
 
 export default function UsuariosPage() {
@@ -30,8 +30,7 @@ export default function UsuariosPage() {
 
             {/* Lista de Usuarios */}
             <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Usuarios Registrados</h2>
-            <UsuariosList />
+            <ListTable />
             </div>
         </div>
     </div>
