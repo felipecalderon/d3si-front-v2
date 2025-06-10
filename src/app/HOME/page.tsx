@@ -4,6 +4,7 @@ import StatCard from "@/components/dashboard/StatCard"
 import GaugeChart from "@/components/dashboard/GaugeChart"
 import Sidebar from "@/components/Sidebar/Sidebar"
 import Navbar from "@/components/Navbar/Navbar"
+import Link from "next/link"
 
 export default function HomePage() {
     return (
@@ -98,10 +99,11 @@ export default function HomePage() {
                             <option>2023</option>
                         </select>
                     </div>
-
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded">
-                        Vender 🛍️
-                    </button>
+                    <Link href="/createsale">
+                        <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded">
+                            Vender 🛍️
+                        </button>
+                    </Link>
                 </div>
                 {/* Tabla de ventas */}
                 <div className="bg-white rounded shadow overflow-auto">
