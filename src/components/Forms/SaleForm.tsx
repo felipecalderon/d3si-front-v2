@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { getProductById } from "@/actions/products/getProductById"
 import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
 import { ScanInput } from "@/components/CreateSale/ScanInput"
@@ -17,9 +17,8 @@ export const SaleForm = () => {
         if (!codigo) return
         const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52" //Datos agregados manualmente para pruebas
         try {
-            const productosEncontrados = await getProductById(storeID, codigo)
-            const producto = productosEncontrados[0]
-            if (!producto) {
+            const productoEncontrado = await getProductById(storeID, codigo)
+            if (!productoEncontrado) {
                 toast("Producto no encontrado")
                 return
             }
@@ -34,12 +33,12 @@ export const SaleForm = () => {
                 return [
                     ...prev,
                     {
-                        storeProductID: producto.storeProductID,
-                        nombre: producto.nombre,
-                        precio: producto.precio,
-                        storeID: producto.storeID,
+                        storeProductID: productoEncontrado.variationID,
+                        nombre: productoEncontrado.sku,
+                        precio: Number(productoEncontrado.priceList),
+                        storeID: "",
                         cantidad: 1,
-                    },
+                    } as IProductoEnVenta,
                 ]
             })
 
@@ -80,6 +79,10 @@ export const SaleForm = () => {
     const handleDelete = (id: string) => {
         setProductos((prev) => prev.filter((prod) => prod.storeProductID !== id))
     }
+
+    useEffect(() => {
+        console.log(productos)
+    }, [productos])
 
     return (
         <>

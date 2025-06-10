@@ -1,10 +1,11 @@
 import { getProductByStoreId } from "@/actions/products/getProductByStoreId"
 
-export const getProductById = async (storeId: string, productId: string) => {
+export const getProductById = async (storeId: string, skuInput: string) => {
     const products = await getProductByStoreId(storeId)
-    const product = products.find((p) => p.storeProductID === productId)
+    const flatProducts = products.flatMap((p) => p.ProductVariations)
+    const product = flatProducts.find((p) => p.sku === skuInput)
 
-    if (!product) throw new Error("Product not found")
+    // if (!product) throw new Error("Product not found")
     return product
 }
 
