@@ -7,7 +7,7 @@ import { useAuth } from "@/stores/user.store"
 
 export default function Sidebar() {
     const router = useRouter()
-    const { logout }= useAuth()
+    const { logout } = useAuth()
 
     const handleLogout = () => {
         // Aquí se podra limpiar el estado de autenticación cuando exista
@@ -17,11 +17,11 @@ export default function Sidebar() {
 
     const navItems = [
         { label: "Caja", route: "/home" },
-        { label: "Inventario", route: "/inventory" },
+        { label: "Inventario", route: "/home/inventory" },
         { label: "Facturas" },
         { label: "Cotizar" },
         { label: "Crear OC" },
-        { label: "UTI", route: "/usuarios" },
+        { label: "UTI", route: "/home/usuarios" },
         { label: "Control de Mando" },
         { label: "Estado de Resultados" },
     ]

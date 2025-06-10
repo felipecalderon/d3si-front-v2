@@ -1,4 +1,3 @@
-"use client"
 import { SaleForm } from "@/components/Forms/SaleForm"
 
 const CreateSale = () => {

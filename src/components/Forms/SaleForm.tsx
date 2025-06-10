@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react"
 import { getProductById } from "@/actions/products/getProductById"
 import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
