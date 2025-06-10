@@ -11,3 +11,15 @@ export interface CreateMassiveProductPayload {
         }>
     }>
 }
+
+export interface ErrorState {
+    name?: string
+    image?: string
+    sizes: Array<{
+        sizeNumber?: string
+        priceList?: string
+        priceCost?: string
+        sku?: string
+        stockQuantity?: string
+    }>
+}
