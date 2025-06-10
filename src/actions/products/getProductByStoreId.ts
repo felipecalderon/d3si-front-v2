@@ -1,6 +1,7 @@
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
 import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
+import { IProduct } from "@/interfaces/products/IProduct"
 
 /**
  * Obtiene todos los productos asociados a una tienda específica desde la base de datos.
@@ -13,7 +14,7 @@ import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
  * const products = await getProductByStoreId("7741f0f0-e0db-43ad-83bc-1ce9e70b76aa");
  */
 
-export const getProductByStoreId = async (id: string): Promise<IProductoEnVenta[]> => {
-    const storeProduct: IProductoEnVenta[] = await fetcher(`${API_URL}/store?storeID=${id}`)
+export const getProductByStoreId = async (id: string): Promise<IProduct[]> => {
+    const storeProduct: IProduct[] = await fetcher(`${API_URL}/store?storeID=${id}`)
     return storeProduct
 }

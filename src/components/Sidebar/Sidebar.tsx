@@ -3,22 +3,25 @@
 import React from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { useAuth } from "@/stores/user.store"
 
 export default function Sidebar() {
     const router = useRouter()
+    const { logout } = useAuth()
 
     const handleLogout = () => {
         // Aquí se podra limpiar el estado de autenticación cuando exista
         router.push("/")
+        logout()
     }
 
     const navItems = [
         { label: "Caja", route: "/home" },
-        { label: "Inventario", route: "/inventory" },
+        { label: "Inventario", route: "/home/inventory" },
         { label: "Facturas" },
         { label: "Cotizar" },
         { label: "Crear OC" },
-        { label: "UTI" },
+        { label: "UTI", route: "/home/usuarios" },
         { label: "Control de Mando" },
         { label: "Estado de Resultados" },
     ]
@@ -40,7 +43,7 @@ export default function Sidebar() {
                 </p>
             </div>
 
-            <select className="text-black mb-4 p-2 rounded">
+            <select title="select" className="text-black mb-4 p-2 rounded">
                 <option>Tiendas Principales</option>
                 <option>Terceros</option>
             </select>
