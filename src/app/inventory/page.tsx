@@ -1,13 +1,49 @@
-import React from "react"
-//import { MoreVertical } from "lucide-react"
+"use client"
+import React, { useState, useMemo, useEffect } from "react"
 import Sidebar from "@/components/Sidebar/Sidebar"
 import Navbar from "@/components/Navbar/Navbar"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import InventoryActions from "@/components/Inventory/InventoryActions"
 
-export default async function InventoryPage() {
-    const rawProducts: IProduct[] = await getAllProducts()
+export default function InventoryPage() {
+    const [search, setSearch] = useState("")
+    const [rawProducts, setRawProducts] = useState<IProduct[]>([])
+
+    useEffect(() => {
+        getAllProducts().then(setRawProducts)
+    }, [])
+
+    // Calcular el total de stock central sumando todas las variaciones
+    const totalStockCentral = useMemo(
+        () =>
+            rawProducts.reduce(
+                (total, product) =>
+                    total + product.ProductVariations.reduce((sum, variation) => sum + variation.stockQuantity, 0),
+                0
+            ),
+        [rawProducts]
+    )
+
+    // Ordenar productos: los que coinciden con el filtro van arriba
+    const orderedProducts = useMemo(() => {
+        if (!search.trim()) return rawProducts
+        const lower = search.toLowerCase()
+        return [
+            ...rawProducts.filter(
+                (product) =>
+                    product.name.toLowerCase().includes(lower) ||
+                    product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
+            ),
+            ...rawProducts.filter(
+                (product) =>
+                    !(
+                        product.name.toLowerCase().includes(lower) ||
+                        product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
+                    )
+            ),
+        ]
+    }, [search, rawProducts])
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -20,10 +56,12 @@ export default async function InventoryPage() {
                             type="text"
                             placeholder="Buscar producto aquí..."
                             className="border px-4 py-2 rounded w-1/3"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
                         />
                         <InventoryActions />
                         <p className="text-sm">
-                            Hay un total de <strong>{rawProducts.length}</strong> productos.
+                            Hay un total de <strong>{totalStockCentral}</strong> productos en stock central.
                         </p>
                     </div>
 
@@ -41,7 +79,7 @@ export default async function InventoryPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rawProducts.map((product) => {
+                                {orderedProducts.map((product) => {
                                     const totalStockQuantity = product.ProductVariations.reduce(
                                         (total, v) => total + v.stockQuantity,
                                         0
