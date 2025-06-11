@@ -1,3 +1,4 @@
+// src/app/home/inventory/page.tsx
 /* eslint-disable @next/next/no-img-element */
 "use client"
 import React, { useState, useMemo, useEffect } from "react"
@@ -6,10 +7,14 @@ import { IProduct } from "@/interfaces/products/IProduct"
 import InventoryActions from "@/components/Inventory/InventoryActions"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { AddSizeModal } from "@/components/Modals/AddSizeModal"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
     const [rawProducts, setRawProducts] = useState<IProduct[]>([])
+
+    // Estado para controlar qué producto tiene abierto el modal
+    const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
 
     useEffect(() => {
         getAllProducts().then(setRawProducts)
@@ -46,10 +51,6 @@ export default function InventoryPage() {
 
     function handleEditSize(product: IProduct) {
         console.log("Editar talla de:", product)
-    }
-
-    function handleAddSize(product: IProduct) {
-        console.log("Agregar talla a:", product)
     }
 
     function handleDeleteProduct(product: IProduct) {
@@ -117,9 +118,14 @@ export default function InventoryPage() {
                                                             <DropdownMenuItem onClick={() => handleEditSize(product)}>
                                                                 Editar talla
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => handleAddSize(product)}>
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setAddSizeModalProductID(product.productID)
+                                                                }
+                                                            >
                                                                 Agregar talla
                                                             </DropdownMenuItem>
+
                                                             <DropdownMenuItem
                                                                 onClick={() => handleDeleteProduct(product)}
                                                                 className="text-red-600"
@@ -128,6 +134,14 @@ export default function InventoryPage() {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
+
+                                                    <AddSizeModal
+                                                        productID={product.productID}
+                                                        open={addSizeModalProductID === product.productID}
+                                                        onOpenChange={(open) => {
+                                                            if (!open) setAddSizeModalProductID(null)
+                                                        }}
+                                                    />
 
                                                     {/* Imagen */}
                                                     <img
