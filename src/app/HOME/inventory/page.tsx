@@ -8,6 +8,8 @@ import InventoryActions from "@/components/Inventory/InventoryActions"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { AddSizeModal } from "@/components/Modals/AddSizeModal"
+import { deleteProduct } from "@/actions/products/deleteProduct"
+import { toast } from "sonner"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
@@ -54,7 +56,19 @@ export default function InventoryPage() {
     }
 
     function handleDeleteProduct(product: IProduct) {
-        console.log("Eliminar producto:", product)
+        const confirm = window.confirm(
+            `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede revertir.`
+        )
+        if (!confirm) return
+
+        toast.promise(deleteProduct(product.productID), {
+            loading: "Eliminando producto...",
+            success: () => {
+                setRawProducts((prev) => prev.filter((p) => p.productID !== product.productID))
+                return "Producto eliminado con éxito"
+            },
+            error: "Hubo un error al eliminar el producto",
+        })
     }
 
     return (
