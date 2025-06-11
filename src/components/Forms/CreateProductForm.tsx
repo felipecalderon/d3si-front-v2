@@ -99,6 +99,12 @@ export default function CreateProductForm() {
         setErrors(validate(newFormData))
     }
 
+    const calculateMarkup = (priceCost: number, priceList: number): string => {
+        if (priceCost === 0) return "N/A"
+        const markup = ((priceList - priceCost) / priceCost) * 100
+        return `${markup.toFixed(2)}%`
+    }
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -169,6 +175,11 @@ export default function CreateProductForm() {
                                 <p className="text-red-500 text-xs">{errors.sizes[index]?.priceCost}</p>
                             )}
                         </div>
+
+                        <div className="col-span-5 text-right text-sm text-gray-600 italic">
+                            Markup: {calculateMarkup(size.priceCost, size.priceList)}
+                        </div>
+
                         <div>
                             <label className="block text-xs font-medium mb-1 text-gray-600">SKU</label>
                             <input
