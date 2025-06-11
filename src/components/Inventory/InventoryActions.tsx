@@ -8,7 +8,7 @@ export default function InventoryActions() {
     return (
         <div className="flex gap-2">
             <button
-                onClick={() => router.push("/inventory/create")}
+                onClick={() => router.push("/home/inventory/create")}
                 className="bg-green-600 text-white px-4 py-2 rounded"
             >
                 Crear Producto
