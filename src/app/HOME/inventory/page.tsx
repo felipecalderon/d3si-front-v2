@@ -1,8 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 import React, { useState, useMemo, useEffect } from "react"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import InventoryActions from "@/components/Inventory/InventoryActions"
+import { MoreVertical } from "lucide-react"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
@@ -12,7 +15,6 @@ export default function InventoryPage() {
         getAllProducts().then(setRawProducts)
     }, [])
 
-    // Calcular el total de stock central sumando todas las variaciones
     const totalStockCentral = useMemo(
         () =>
             rawProducts.reduce(
@@ -23,7 +25,6 @@ export default function InventoryPage() {
         [rawProducts]
     )
 
-    // Ordenar productos: los que coinciden con el filtro van arriba
     const orderedProducts = useMemo(() => {
         if (!search.trim()) return rawProducts
         const lower = search.toLowerCase()
@@ -42,6 +43,18 @@ export default function InventoryPage() {
             ),
         ]
     }, [search, rawProducts])
+
+    function handleEditSize(product: IProduct) {
+        console.log("Editar talla de:", product)
+    }
+
+    function handleAddSize(product: IProduct) {
+        console.log("Agregar talla a:", product)
+    }
+
+    function handleDeleteProduct(product: IProduct) {
+        console.log("Eliminar producto:", product)
+    }
 
     return (
         <main className="p-6 flex-1">
@@ -92,11 +105,35 @@ export default function InventoryPage() {
                                                 rowSpan={product.ProductVariations.length}
                                                 className="py-1 px-3 text-left w-1/4 max-w-0"
                                             >
-                                                <div className="flex flex-col items-center">
+                                                <div className="relative w-full flex flex-col items-center">
+                                                    {/* Botón de menú */}
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="absolute top-1 left-1 p-1 rounded hover:bg-gray-100">
+                                                                <MoreVertical className="w-5 h-5 text-gray-600" />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="start">
+                                                            <DropdownMenuItem onClick={() => handleEditSize(product)}>
+                                                                Editar talla
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleAddSize(product)}>
+                                                                Agregar talla
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDeleteProduct(product)}
+                                                                className="text-red-600"
+                                                            >
+                                                                Eliminar producto
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+
+                                                    {/* Imagen */}
                                                     <img
                                                         src={product.image}
                                                         alt={product.name}
-                                                        className="w-40 h-30 object-cover"
+                                                        className="w-40 h-30 object-cover rounded"
                                                     />
                                                     <span className="font-medium text-center">{product.name}</span>
                                                     <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
@@ -127,7 +164,6 @@ export default function InventoryPage() {
                                             </span>
                                         </td>
                                         <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            {/* Aquí podrías poner stock agregado si tienes */}
                                             {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0}
                                         </td>
                                     </tr>
