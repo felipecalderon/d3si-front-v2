@@ -20,6 +20,22 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
   const { users, stores, setUsers, setStores } = useTienda()
   const [currentView, setCurrentView] = useState<ViewType>(defaultView)
   const [isLoading, setIsLoading] = useState(false)
+  const [showSkeleton, setShowSkeleton] = useState(false)
+
+  /**
+   * Controla si se muestra el skeleton solo si tarda en cargar.
+   * Mostrar skeleton si tarda más de 300ms.
+  */
+  
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (isLoading) {
+      timer = setTimeout(() => setShowSkeleton(true), 300) 
+    } else {
+      setShowSkeleton(false)
+    }
+    return () => clearTimeout(timer)
+  }, [isLoading])
 
   useEffect(() => {
     if (defaultView !== 'initial') {
@@ -30,7 +46,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
 
   const loadData = async (view: ViewType) => {
     if (view === 'initial') return
-    
+
     setIsLoading(true)
     try {
       if (view === 'users') {
@@ -63,7 +79,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
           Selecciona qué quieres gestionar para ver el listado correspondiente
         </p>
       </div>
-      
+
       <div className="flex justify-center gap-0">
         <Button
           onClick={() => handleViewChange('users')}
@@ -78,10 +94,12 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
           Gestionar Tiendas
         </Button>
       </div>
-      
-      <div className="mt-8">
-        <TableSkeleton />
-      </div>
+
+      {showSkeleton && (
+        <div className="mt-8">
+          <TableSkeleton />
+        </div>
+      )}
     </div>
   )
 
@@ -90,44 +108,14 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
       return renderInitialView()
     }
 
-    if (isLoading) {
-      return (
-        <div>
-          <div className="flex justify-center gap-0 mb-6">
-            <Button
-              onClick={() => handleViewChange('users')}
-              className={`px-6 py-3 rounded-l-md rounded-r-none font-medium ${
-                currentView === 'users' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Gestionar Usuarios
-            </Button>
-            <Button
-              onClick={() => handleViewChange('stores')}
-              className={`px-6 py-3 rounded-r-md rounded-l-none font-medium ${
-                currentView === 'stores' 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Gestionar Tiendas
-            </Button>
-          </div>
-          <TableSkeleton />
-        </div>
-      )
-    }
-
     return (
       <div>
         <div className="flex justify-center gap-0 mb-6">
           <Button
             onClick={() => handleViewChange('users')}
             className={`px-6 py-3 rounded-l-md rounded-r-none font-medium ${
-              currentView === 'users' 
-                ? 'bg-blue-600 text-white' 
+              currentView === 'users'
+                ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
@@ -136,8 +124,8 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
           <Button
             onClick={() => handleViewChange('stores')}
             className={`px-6 py-3 rounded-r-md rounded-l-none font-medium ${
-              currentView === 'stores' 
-                ? 'bg-green-600 text-white' 
+              currentView === 'stores'
+                ? 'bg-green-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
@@ -145,8 +133,13 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
           </Button>
         </div>
 
-        {currentView === 'users' && <UsersTable users={users} />}
-        {currentView === 'stores' && <StoresTable stores={stores} />}
+        {showSkeleton ? (
+          <TableSkeleton />
+        ) : currentView === 'users' ? (
+          <UsersTable users={users} />
+        ) : (
+          <StoresTable stores={stores} />
+        )}
       </div>
     )
   }
