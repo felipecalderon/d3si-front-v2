@@ -69,7 +69,7 @@ export default function GestorUserTiendaForm({ usuario, onCancel }: GestorUserTi
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-2 py-1 text-sm border bg-transparent border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Nombre del usuario"
                     required
                 />
@@ -85,7 +85,7 @@ export default function GestorUserTiendaForm({ usuario, onCancel }: GestorUserTi
                     title="tiendas"
                     value={tiendaSeleccionada}
                     onChange={(e) => setTiendaSeleccionada(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-2 py-1 text-sm border bg-transparent border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                     <option value="">Sin tienda asignada</option>
                     {stores.map((store: IStore) => (

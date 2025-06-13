@@ -3,6 +3,15 @@ import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, Do
 import StatCard from "@/components/dashboard/StatCard"
 import GaugeChart from "@/components/dashboard/GaugeChart"
 import Link from "next/link"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+
 
 export default function HomePage() {
     return (
@@ -37,22 +46,22 @@ export default function HomePage() {
 
             {/* Totales por método */}
             <div className="grid grid-cols-4 gap-4 mb-4 mt-5">
-                <div className="bg-white p-4 shadow rounded text-center">
+                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
                     <ArrowRightLeft className="mx-auto mb-2" />
                     <p>Débito</p>
                     <p className="text-sm">152 Pares - $11.1MM</p>
                 </div>
-                <div className="bg-white p-4 shadow rounded text-center">
+                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
                     <CreditCard className="mx-auto mb-2" />
                     <p>Crédito</p>
                     <p className="text-sm">40 Pares - $1.6MM</p>
                 </div>
-                <div className="bg-white p-4 shadow rounded text-center">
+                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
                     <HandCoins className="mx-auto mb-2" />
                     <p>Efectivo</p>
                     <p className="text-sm">192 Pares - $12.7MM</p>
                 </div>
-                <div className="bg-white p-4 shadow rounded text-center">
+                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
                     <Wallet className="mx-auto mb-2" />
                     <p>Total Caja</p>
                     <p className="text-lg font-bold">$435.670</p>
@@ -61,7 +70,7 @@ export default function HomePage() {
             {/* Filtros y botón */}
             <div className="flex justify-between items-center mb-4">
                 <div className="flex gap-4">
-                    <select title="meses" className="px-4 py-2 bg-white rounded shadow border">
+                    <select title="meses" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
                         <option>Filtrar por mes</option>
                         <option>Enero</option>
                         <option>Febrero</option>
@@ -76,7 +85,7 @@ export default function HomePage() {
                         <option>Noviembre</option>
                         <option>Diciembre</option>
                     </select>
-                    <select title="años" className="px-4 py-2 bg-white rounded shadow border">
+                    <select title="años" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
                         <option>Filtrar por año</option>
                         <option>2025</option>
                         <option>2024</option>
@@ -90,38 +99,37 @@ export default function HomePage() {
                 </Link>
             </div>
             {/* Tabla de ventas */}
-            <div className="bg-white rounded shadow overflow-auto">
-                <table className="min-w-full text-sm text-gray-700">
-                    <thead className="bg-gray-200 text-left">
-                        <tr>
-                            <th className="p-3">Sucursal</th>
-                            <th className="p-3">Fecha de Venta</th>
-                            <th className="p-3">Venta con IVA</th>
-                            <th className="p-3">Productos</th>
-                            <th className="p-3">Tipo de Pago</th>
-                            <th className="p-3">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-t">
-                            <td className="p-3">D3SI AVOCCO, Purén</td>
-                            <td className="p-3">16-05-2025 - 10:02hrs</td>
-                            <td className="p-3">$65.990</td>
-                            <td className="p-3">[TXL] 1x casaca oneill cotele cafe</td>
-                            <td className="p-3">Débito</td>
-                            <td className="p-3">Pagado</td>
-                        </tr>
-                        <tr className="border-t">
-                            <td className="p-3">D3SI AVOCCO, Purén</td>
-                            <td className="p-3">15-05-2025 - 17:22hrs</td>
-                            <td className="p-3">$29.990</td>
-                            <td className="p-3">[T48] 1x jeans potros ultra slim 09</td>
-                            <td className="p-3">Crédito</td>
-                            <td className="p-3">Pagado</td>
-                        </tr>
-                        {/* Puedes agregar más filas estáticas o dinámicas aquí */}
-                    </tbody>
-                </table>
+             <div className="dark:bg-slate-700 bg-white rounded shadow overflow-auto">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Sucursal</TableHead>
+                        <TableHead>Fecha de Venta</TableHead>
+                        <TableHead>Venta con IVA</TableHead>
+                        <TableHead>Productos</TableHead>
+                        <TableHead>Tipo de Pago</TableHead>
+                        <TableHead>Estado</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    <TableRow>
+                        <TableCell>D3SI AVOCCO, Purén</TableCell>
+                        <TableCell>16-05-2025 - 10:02hrs</TableCell>
+                        <TableCell>$65.990</TableCell>
+                        <TableCell>[TXL] 1x casaca oneill cotele cafe</TableCell>
+                        <TableCell>Débito</TableCell>
+                        <TableCell className="text-green-600 font-medium">Pagado</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>D3SI AVOCCO, Purén</TableCell>
+                        <TableCell>15-05-2025 - 17:22hrs</TableCell>
+                        <TableCell>$29.990</TableCell>
+                        <TableCell>[T48] 1x jeans potros ultra slim 09</TableCell>
+                        <TableCell>Crédito</TableCell>
+                        <TableCell className="text-green-600 font-medium">Pagado</TableCell>
+                    </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </>
     )

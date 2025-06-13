@@ -10,16 +10,28 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AddSizeModal } from "@/components/Modals/AddSizeModal"
 import { deleteProduct } from "@/actions/products/deleteProduct"
 import { toast } from "sonner"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import TableSkeleton from "@/components/ListTable/TableSkeleton"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
+    const [isLoading, setIsLoading] = useState(true)
     const [rawProducts, setRawProducts] = useState<IProduct[]>([])
 
     // Estado para controlar qué producto tiene abierto el modal
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
 
     useEffect(() => {
-        getAllProducts().then(setRawProducts)
+        getAllProducts() 
+        .then(setRawProducts)
+        .finally(() => setIsLoading(false))
     }, [])
 
     const totalStockCentral = useMemo(
@@ -77,7 +89,7 @@ export default function InventoryPage() {
                 <input
                     type="text"
                     placeholder="Buscar producto aquí..."
-                    className="border px-4 py-2 rounded w-1/3"
+                    className="border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded w-1/3"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -86,121 +98,120 @@ export default function InventoryPage() {
                     Hay un total de <strong>{totalStockCentral}</strong> productos en stock central.
                 </p>
             </div>
+             {isLoading ? (
+                <TableSkeleton />
+            ) : (
+            <div className="dark:bg-slate-800 bg-white shadow rounded overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead>CÓDIGO EAN</TableHead>
+                        <TableHead>TALLA</TableHead>
+                        <TableHead>PRECIO COSTO</TableHead>
+                        <TableHead>PRECIO PLAZA</TableHead>
+                        <TableHead>STOCK CENTRAL</TableHead>
+                        <TableHead>STOCK AGREGADO</TableHead>
+                        </TableRow>
+                    </TableHeader>
 
-            <div className="bg-white shadow rounded overflow-x-auto">
-                <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-200">
-                        <tr>
-                            <th className="p-3">Producto</th>
-                            <th className="p-3">CÓDIGO EAN</th>
-                            <th className="p-3">TALLA</th>
-                            <th className="p-3">PRECIO COSTO</th>
-                            <th className="p-3">PRECIO PLAZA</th>
-                            <th className="p-3">STOCK CENTRAL</th>
-                            <th className="p-3">STOCK AGREGADO</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <TableBody>
                         {orderedProducts.map((product) => {
-                            const totalStockQuantity = product.ProductVariations.reduce(
-                                (total, v) => total + v.stockQuantity,
-                                0
+                        const totalStockQuantity = product.ProductVariations.reduce(
+                            (total, v) => total + v.stockQuantity,
+                            0
+                        )
+                        return product.ProductVariations.map((variation, index) => {
+                            const esPrimero = index === 0
+                            return (
+                            <TableRow
+                                key={variation.variationID}
+                                className={`group ${
+                                esPrimero ? "border-t-2 dark:border-t-gray-700 border-t-blue-300" : "border-t"
+                                } text-base border-gray-200 dark:text-gray-300 text-gray-800`}
+                            >
+                                {esPrimero && (
+                                <TableCell
+                                    rowSpan={product.ProductVariations.length}
+                                    className="py-1 px-3 text-left w-1/4 max-w-0"
+                                >
+                                    <div className="relative w-full flex flex-col items-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                        <button title="boton" className="absolute top-1 rounded-sm left-1 p-1 dark:hover:bg-gray-900 hover:bg-gray-100">
+                                            <MoreVertical className="w-5 h-5 text-gray-600" />
+                                        </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start">
+                                        <DropdownMenuItem onClick={() => handleEditSize(product)}>
+                                            Editar talla
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                            setAddSizeModalProductID(product.productID)
+                                            }
+                                        >
+                                            Agregar talla
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => handleDeleteProduct(product)}
+                                            className="text-red-600"
+                                        >
+                                            Eliminar producto
+                                        </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <AddSizeModal
+                                        productID={product.productID}
+                                        open={addSizeModalProductID === product.productID}
+                                        onOpenChange={(open) => {
+                                        if (!open) setAddSizeModalProductID(null)
+                                        }}
+                                    />
+
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className="w-40 h-30 object-cover rounded"
+                                    />
+                                    <span className="font-medium text-center">{product.name}</span>
+                                    <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
+                                        {totalStockQuantity}
+                                    </p>
+                                    </div>
+                                </TableCell>
+                                )}
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">{variation.sku}</TableCell>
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">{variation.sizeNumber}</TableCell>
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                ${Number(variation.priceCost).toLocaleString("es-CL")}
+                                </TableCell>
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                ${Number(variation.priceList).toLocaleString("es-CL")}
+                                </TableCell>
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                <span
+                                    className={
+                                    variation.stockQuantity === 0
+                                        ? "text-red-500"
+                                        : "font-bold text-green-600"
+                                    }
+                                >
+                                    {variation.stockQuantity}
+                                </span>
+                                </TableCell>
+                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0}
+                                </TableCell>
+                            </TableRow>
                             )
-                            return product.ProductVariations.map((variation, index) => {
-                                const esPrimero = index === 0
-                                return (
-                                    <tr
-                                        key={variation.variationID}
-                                        className={`group ${
-                                            esPrimero ? "border-t-4 border-t-blue-300" : "border-t"
-                                        } text-base border-gray-200 text-gray-800`}
-                                    >
-                                        {esPrimero && (
-                                            <td
-                                                rowSpan={product.ProductVariations.length}
-                                                className="py-1 px-3 text-left w-1/4 max-w-0"
-                                            >
-                                                <div className="relative w-full flex flex-col items-center">
-                                                    {/* Botón de menú */}
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button className="absolute top-1 left-1 p-1 rounded hover:bg-gray-100">
-                                                                <MoreVertical className="w-5 h-5 text-gray-600" />
-                                                            </button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="start">
-                                                            <DropdownMenuItem onClick={() => handleEditSize(product)}>
-                                                                Editar talla
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    setAddSizeModalProductID(product.productID)
-                                                                }
-                                                            >
-                                                                Agregar talla
-                                                            </DropdownMenuItem>
-
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleDeleteProduct(product)}
-                                                                className="text-red-600"
-                                                            >
-                                                                Eliminar producto
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-
-                                                    <AddSizeModal
-                                                        productID={product.productID}
-                                                        open={addSizeModalProductID === product.productID}
-                                                        onOpenChange={(open) => {
-                                                            if (!open) setAddSizeModalProductID(null)
-                                                        }}
-                                                    />
-
-                                                    {/* Imagen */}
-                                                    <img
-                                                        src={product.image}
-                                                        alt={product.name}
-                                                        className="w-40 h-30 object-cover rounded"
-                                                    />
-                                                    <span className="font-medium text-center">{product.name}</span>
-                                                    <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
-                                                        {totalStockQuantity}
-                                                    </p>
-                                                </div>
-                                            </td>
-                                        )}
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">{variation.sku}</td>
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            {variation.sizeNumber}
-                                        </td>
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            ${Number(variation.priceCost).toLocaleString("es-CL")}
-                                        </td>
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            ${Number(variation.priceList).toLocaleString("es-CL")}
-                                        </td>
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            <span
-                                                className={
-                                                    variation.stockQuantity === 0
-                                                        ? "text-red-500"
-                                                        : "font-bold text-green-600"
-                                                }
-                                            >
-                                                {variation.stockQuantity}
-                                            </span>
-                                        </td>
-                                        <td className="py-1 px-2 text-center hover:bg-gray-100">
-                                            {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0}
-                                        </td>
-                                    </tr>
-                                )
-                            })
+                        })
                         })}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
+            )}
         </main>
     )
 }

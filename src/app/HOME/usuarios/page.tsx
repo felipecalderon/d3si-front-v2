@@ -8,7 +8,7 @@ export default function UsuariosPage() {
         <div className=" flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
+                <h1 className="text-2xl font-bold dark:text-white text-gray-900">Gestión de Usuarios</h1>
                 <p className="text-gray-600 mt-2">Administra usuarios y tiendas del sistema</p>
             </div>
 

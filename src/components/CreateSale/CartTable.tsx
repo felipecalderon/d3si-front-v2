@@ -2,6 +2,14 @@
 
 import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
 import ProductRow from "@/components/CreateSale/ProductRow"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table"
 
 interface CartTableProps {
     productos: IProductoEnVenta[]
@@ -9,22 +17,22 @@ interface CartTableProps {
 }
 
 export const CartTable = ({ productos, onDelete }: CartTableProps) => (
-    <div className="overflow-x-auto mb-6">
-        <table className="min-w-full bg-white border border-gray-300 rounded-lg">
-            <thead className="bg-gray-100 text-gray-700 font-semibold">
-                <tr>
-                    <th className="p-3 text-left">Producto</th>
-                    <th className="p-3 text-center">Cantidad</th>
-                    <th className="p-3 text-right">Precio</th>
-                    <th className="p-3 text-right">Subtotal</th>
-                    <th className="p-3 text-center">Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {productos.map((producto) => (
-                    <ProductRow key={producto.storeProductID} producto={producto} onDelete={onDelete} />
-                ))}
-            </tbody>
-        </table>
-    </div>
+  <div className="overflow-x-auto mb-6 rounded-lg border ">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-left">Producto</TableHead>
+          <TableHead className="text-center">Cantidad</TableHead>
+          <TableHead className="text-right">Precio</TableHead>
+          <TableHead className="text-right">Subtotal</TableHead>
+          <TableHead className="text-center">Acción</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {productos.map((producto) => (
+          <ProductRow key={producto.storeProductID} producto={producto} onDelete={onDelete} />
+        ))}
+      </TableBody>
+    </Table>
+  </div>
 )
