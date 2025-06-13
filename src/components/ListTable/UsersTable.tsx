@@ -57,10 +57,10 @@ export default function UsersTable({ users }: UsersTableProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="dark:bg-slate-800 bg-white rounded-lg shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow className="bg-gray-50 dark:bg-slate-700">
             <TableHead className="font-medium text-gray-500 uppercase tracking-wider">NOMBRE</TableHead>
             <TableHead className="font-medium text-gray-500 uppercase tracking-wider">CORREO</TableHead>
             <TableHead className="font-medium text-gray-500 uppercase tracking-wider">TIENDAS</TableHead>
@@ -79,13 +79,13 @@ export default function UsersTable({ users }: UsersTableProps) {
                 </TableCell>
               ) : (
                 <>
-                  <TableCell className="font-medium text-gray-900">
+                  <TableCell className="font-medium dark:text-white text-gray-900">
                     {usuario.name}
                   </TableCell>
                   <TableCell className="text-blue-600">
                     {usuario.email}
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-gray-500 dark:text-white">
                     {usuario.Stores?.map((store) => store.name).join(", ") || "Sin tiendas"}
                   </TableCell>
                   <TableCell>

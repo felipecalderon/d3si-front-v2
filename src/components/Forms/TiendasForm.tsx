@@ -6,7 +6,15 @@ import { toast } from "sonner"
 import { IUser } from "@/interfaces/users/IUser"
 import { useTienda } from "@/stores/tienda.store"
 import { createStore } from "@/actions/stores/createStore"
+import { Input } from "@/components/ui/input"
 import { getAllStores } from "@/actions/stores/getAllStores"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function TiendasForm() {
     const { users, setStores } = useTienda()
@@ -68,14 +76,14 @@ export default function TiendasForm() {
         }
     }
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold mb-6 text-gray-800 text-center">Crear nueva Tienda</h2>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm max-w-2xl mx-auto">
+            <h2 className="text-xl font-semibold mb-6 dark:text-white text-gray-800 text-start">Crear nueva Tienda</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Primera fila: RUT y Nombre */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="rut">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="rut">
                             RUT
                         </label>
                         <input
@@ -84,13 +92,13 @@ export default function TiendasForm() {
                             value={rut}
                             onChange={(e) => setRut(e.target.value)}
                             placeholder="76.600.001-2"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="nombre">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="nombre">
                             Nombre
                         </label>
                         <input
@@ -99,7 +107,7 @@ export default function TiendasForm() {
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
                             placeholder="La tiendita"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
@@ -108,7 +116,7 @@ export default function TiendasForm() {
                 {/* Segunda fila: Email y Markup */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="email">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="email">
                             Email
                         </label>
                         <input
@@ -117,13 +125,13 @@ export default function TiendasForm() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="tiendita@gmail.com"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="markup">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="markup">
                             Markup
                         </label>
                         <input
@@ -132,7 +140,7 @@ export default function TiendasForm() {
                             value={markup}
                             onChange={(e) => setMarkup(e.target.value)}
                             placeholder="Ej: 1.8"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
@@ -141,7 +149,7 @@ export default function TiendasForm() {
                 {/* Tercera fila: Sucursal y Ciudad */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="sucursal">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="sucursal">
                             Sucursal o sector
                         </label>
                         <input
@@ -150,13 +158,13 @@ export default function TiendasForm() {
                             value={sucursal}
                             onChange={(e) => setSucursal(e.target.value)}
                             placeholder="Mall Portal Temuco"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="ciudad">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="ciudad">
                             Ciudad
                         </label>
                         <input
@@ -165,7 +173,7 @@ export default function TiendasForm() {
                             value={ciudad}
                             onChange={(e) => setCiudad(e.target.value)}
                             placeholder="Temuco"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
@@ -174,7 +182,7 @@ export default function TiendasForm() {
                 {/* Cuarta fila: Dirección y Teléfono */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="direccion">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="direccion">
                             Dirección (calle y número)
                         </label>
                         <input
@@ -183,13 +191,13 @@ export default function TiendasForm() {
                             value={direccion}
                             onChange={(e) => setDireccion(e.target.value)}
                             placeholder="Ej: Calle Nombre 111"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="telefono">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="telefono">
                             Teléfono
                         </label>
                         <input
@@ -198,7 +206,7 @@ export default function TiendasForm() {
                             value={telefono}
                             onChange={(e) => setTelefono(e.target.value)}
                             placeholder="9 8484 8686"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             required
                         />
                     </div>
@@ -207,42 +215,45 @@ export default function TiendasForm() {
                 {/* Quinta fila: Tipo de tienda y Gestor */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="tipoTienda">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="tipoTienda">
                             Tipo de tienda
                         </label>
-                        <select
-                            id="tipoTienda"
+                        <Select
                             value={tipoTienda}
-                            onChange={(e) => setTipoTienda(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onValueChange={(value) => setTipoTienda(value)}
                             required
-                        >
-                            <option value="">Seleccionar tipo</option>
-                            <option value="admin">Admin</option>
-                            <option value="store_manager">Store Manager</option>
-                            <option value="consignado">Consignado</option>
-                            <option value="tercero">Tercero</option>
-                        </select>
+                            >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecciona tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="store_manager">Store Manager</SelectItem>
+                                <SelectItem value="consignado">Consignado</SelectItem>
+                                <SelectItem value="tercero">Tercero</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="gestorTienda">
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="gestorTienda">
                             Gestor de la tienda
                         </label>
-                        <select
-                            id="gestorTienda"
+                        <Select
                             value={gestorTienda}
-                            onChange={(e) => setGestorTienda(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onValueChange={(value) => setGestorTienda(value)}
                             required
-                        >
-                            <option value="">Selecciona gestor</option>
-                            {users.map((u: IUser) => (
-                                <option key={u.userID} value={u.name}>
-                                    {u.name}
-                                </option>
-                            ))}
-                        </select>
+                            >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecciona gestor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {users.map((u: IUser) => (
+                                    <SelectItem value={u.name}>{u.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
                     </div>
                 </div>
 

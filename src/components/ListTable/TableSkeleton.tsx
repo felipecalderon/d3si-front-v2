@@ -2,11 +2,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TableSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <div className="min-w-full">
           {/* Header skeleton */}
-          <div className="bg-gray-50 border-b px-6 py-3">
+          <div className="bg-gray-50 dark:bg-slate-700 border-b px-6 py-3">
             <div className="flex space-x-8">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-4 w-24" />

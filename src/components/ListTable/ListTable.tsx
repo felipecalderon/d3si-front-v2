@@ -70,9 +70,9 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
   }
 
   const renderInitialView = () => (
-    <div className="bg-white rounded-lg shadow-sm p-8">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-8">
       <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+        <h3 className="text-xl font-semibold dark:text-white text-gray-800 mb-2">
           Gestión de Usuarios y Tiendas
         </h3>
         <p className="text-gray-600">
@@ -83,7 +83,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
       <div className="flex justify-center gap-0">
         <Button
           onClick={() => handleViewChange('users')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-l-md rounded-r-none font-medium"
+          className="bg-blue-600 hover:bg-blue-700  text-white px-6 py-3 rounded-l-md rounded-r-none font-medium"
         >
           Gestionar Usuarios
         </Button>
@@ -146,7 +146,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-xl text-center font-semibold dark:text-white text-gray-800 mb-4">
         {currentView === 'users' && 'Usuarios Registrados'}
         {currentView === 'stores' && 'Tiendas Registradas'}
         {currentView === 'initial' && 'Panel de Gestión'}

@@ -51,17 +51,17 @@ export default function StoresTable() {
 
   if (stores.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-8">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-8">
         <div className="text-center text-gray-500">No hay tiendas registradas</div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow className="bg-gray-50 dark:bg-slate-700">
             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Nombre</TableHead>
             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">RUT</TableHead>
             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Ciudad</TableHead>
@@ -78,10 +78,10 @@ export default function StoresTable() {
 
             return (
               <TableRow key={store.storeID} className="hover:bg-gray-50">
-                <TableCell className="font-medium text-gray-900">{store.name}</TableCell>
-                <TableCell className="text-gray-600">{store.rut}</TableCell>
-                <TableCell className="text-gray-600">{store.city}</TableCell>
-                <TableCell className="text-gray-600">{store.phone}</TableCell>
+                <TableCell className="font-medium text-gray-900 dark:text-white">{store.name}</TableCell>
+                <TableCell className="text-gray-600 dark:text-white">{store.rut}</TableCell>
+                <TableCell className="text-gray-600 dark:text-white">{store.city}</TableCell>
+                <TableCell className="text-gray-600 dark:text-white">{store.phone}</TableCell>
                 <TableCell className="text-blue-600">{gestor?.name || "Sin gestor"}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">

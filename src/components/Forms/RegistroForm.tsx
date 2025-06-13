@@ -8,6 +8,14 @@ import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 import { useTienda } from "@/stores/tienda.store"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 export default function RegistroForm() {
     const [nombre, setNombre] = useState("")
@@ -43,11 +51,11 @@ export default function RegistroForm() {
     }
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Crear usuarios</h2>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+            <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-800">Crear usuarios</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="nombre">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="nombre">
                         Nombre
                     </label>
                     <input
@@ -55,14 +63,14 @@ export default function RegistroForm() {
                         type="text"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Ingresa el nombre"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="email">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="email">
                         Email
                     </label>
                     <input
@@ -70,14 +78,14 @@ export default function RegistroForm() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="ejemplo@gmail.com"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="password">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="password">
                         Clave
                     </label>
                     <input
@@ -85,29 +93,28 @@ export default function RegistroForm() {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border bg-transparent border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="••••••••"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="role">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="role">
                         Tipo de Usuario
                     </label>
-                    <select
-                        id="role"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                    >
-                        <option value="">Seleccionar tipo</option>
-                        <option value="admin">Admin</option>
-                        <option value="store_manager">Store Manager</option>
-                        <option value="consignado">Consignado</option>
-                        <option value="tercero">Tercero</option>
-                    </select>
+                    <Select value={role} onValueChange={(value) => setRole(value)} required>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="store_manager">Store Manager</SelectItem>
+                            <SelectItem value="consignado">Consignado</SelectItem>
+                            <SelectItem value="tercero">Tercero</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                 </div>
 
                 <Button
