@@ -1,7 +1,6 @@
 // src/components/Inventory/inventoryActions.tsx
 "use client"
 
-import { saveAs } from "file-saver"
 import * as XLSX from "xlsx"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { useRouter } from "next/navigation"
@@ -15,7 +14,6 @@ export default function InventoryActions({ products }: { products: IProduct[] })
             return
         }
 
-        // Transformamos la estructura
         const excelData = products.flatMap((product) =>
             product.ProductVariations.map((variation) => ({
                 Producto: product.name,
@@ -32,9 +30,7 @@ export default function InventoryActions({ products }: { products: IProduct[] })
         const workbook = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario")
 
-        const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
-        const blob = new Blob([buffer], { type: "application/octet-stream" })
-        saveAs(blob, "inventario.xlsx")
+        XLSX.writeFile(workbook, "inventario.xlsx") // ✅ descarga directa
     }
 
     return (
