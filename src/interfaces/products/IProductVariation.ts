@@ -14,8 +14,8 @@ export interface IProductVariation {
     variationID: string
     productID: string
     sizeNumber: string
-    priceList: string
-    priceCost: string
+    priceList: number
+    priceCost: number
     sku: string
     stockQuantity: number
     Stores: IStore[]

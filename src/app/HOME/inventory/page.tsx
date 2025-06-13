@@ -93,7 +93,7 @@ export default function InventoryPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <InventoryActions />
+                <InventoryActions products={rawProducts} />
                 <p className="text-sm">
                     Hay un total de <strong>{totalStockCentral}</strong> productos en stock central.
                 </p>
