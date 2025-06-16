@@ -4,6 +4,7 @@
 import * as XLSX from "xlsx"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { useRouter } from "next/navigation"
+import { exportInventoryToExcel } from "@/utils/exportInventoryToExcel"
 
 export default function InventoryActions({ products }: { products: IProduct[] }) {
     const router = useRouter()
@@ -13,24 +14,7 @@ export default function InventoryActions({ products }: { products: IProduct[] })
             alert("No hay productos para exportar.")
             return
         }
-
-        const excelData = products.flatMap((product) =>
-            product.ProductVariations.map((variation) => ({
-                Producto: product.name,
-                Talla: variation.sizeNumber,
-                SKU: variation.sku,
-                PrecioCosto: variation.priceCost,
-                PrecioPlaza: variation.priceList,
-                StockCentral: variation.stockQuantity,
-                StockAgregado: variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0,
-            }))
-        )
-
-        const worksheet = XLSX.utils.json_to_sheet(excelData)
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario")
-
-        XLSX.writeFile(workbook, "inventario.xlsx") // ✅ descarga directa
+        exportInventoryToExcel(products)
     }
 
     return (
