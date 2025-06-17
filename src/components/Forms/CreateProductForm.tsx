@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Size, CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { ErrorState } from "@/interfaces/products/IMassiveProducts"
+import { Input } from "@/components/ui/input"
 
 export default function CreateProductForm() {
     const router = useRouter()
@@ -101,31 +102,30 @@ export default function CreateProductForm() {
 
     const calculateMarkup = (priceCost: number, priceList: number): string => {
         if (priceCost === 0) return "N/A"
-        const markup = ((priceList - priceCost) / priceCost) * 100
-        return `${markup.toFixed(2)}%`
+        const markup = (priceList - priceCost) / priceCost
+        return markup.toFixed(2)
     }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
                 <label className="block font-semibold mb-2 dark:text-gray-400 text-gray-700">Nombre del producto</label>
-                <input
+                <Input
                     type="text"
                     placeholder="Nombre"
                     value={formData.name}
                     onChange={(e) => handleFieldChange("name", e.target.value)}
-                    className="w-full border dark:border-gray-700  border-gray-300 px-4 py-2 rounded-lg dark:bg-slate-700 bg-gray-50 focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                 />
+
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             <div>
                 <label className="block font-semibold mb-2 dark:text-gray-400 text-gray-700">URL de Imagen</label>
-                <input
+                <Input
                     type="text"
                     placeholder="URL de Imagen"
                     value={formData.image}
                     onChange={(e) => handleFieldChange("image", e.target.value)}
-                    className="w-full border dark:border-gray-700  border-gray-300 px-4 py-2 rounded-lg dark:bg-slate-700 bg-gray-50 focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                 />
                 {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
             </div>
@@ -137,70 +137,74 @@ export default function CreateProductForm() {
                         className="relative grid grid-cols-5 gap-3 border dark:border-gray-700  border-gray-200 dark:bg-slate-700 bg-gray-50 p-4 rounded-lg shadow-sm"
                     >
                         <div>
-                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">Talla</label>
-                            <input
+                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">
+                                Talla
+                            </label>
+                            <Input
                                 type="text"
                                 placeholder="Talla"
                                 value={size.sizeNumber ?? ""}
                                 onChange={(e) => handleChange(index, "sizeNumber", e.target.value)}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full dark:bg-slate-600 bg-white focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                             />
                             {errors.sizes[index]?.sizeNumber && (
                                 <p className="text-red-500 text-xs mt-1">{errors.sizes[index]?.sizeNumber}</p>
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">Precio Lista</label>
-                            <input
-                                type="number"
-                                placeholder="Precio Lista"
-                                value={size.priceList}
-                                onChange={(e) => handleChange(index, "priceList", Number(e.target.value))}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full dark:bg-slate-600 bg-white focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
-                            />
-                            {errors.sizes[index]?.priceList && (
-                                <p className="text-red-500 text-xs">{errors.sizes[index]?.priceList}</p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">Precio Costo</label>
-                            <input
+                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">
+                                Precio Costo
+                            </label>
+                            <Input
                                 type="number"
                                 placeholder="Precio Costo"
                                 value={size.priceCost}
                                 onChange={(e) => handleChange(index, "priceCost", Number(e.target.value))}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full dark:bg-slate-600 bg-white focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                             />
                             {errors.sizes[index]?.priceCost && (
                                 <p className="text-red-500 text-xs">{errors.sizes[index]?.priceCost}</p>
                             )}
                         </div>
-
+                        <div>
+                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">
+                                Precio Lista
+                            </label>
+                            <Input
+                                type="number"
+                                placeholder="Precio Lista"
+                                value={size.priceList}
+                                onChange={(e) => handleChange(index, "priceList", Number(e.target.value))}
+                            />
+                            {errors.sizes[index]?.priceList && (
+                                <p className="text-red-500 text-xs">{errors.sizes[index]?.priceList}</p>
+                            )}
+                        </div>
                         <div className="col-span-5 text-right text-sm dark:text-gray-400 text-gray-600 italic">
-                            Markup: {calculateMarkup(size.priceCost, size.priceList)}
+                            Markup (índice): {calculateMarkup(size.priceCost, size.priceList)}
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">SKU</label>
-                            <input
+                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">
+                                SKU
+                            </label>
+                            <Input
                                 type="text"
                                 placeholder="SKU"
                                 value={size.sku}
                                 onChange={(e) => handleChange(index, "sku", e.target.value)}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full dark:bg-slate-600 bg-white focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                             />
                             {errors.sizes[index]?.sku && (
                                 <p className="text-red-500 text-xs">{errors.sizes[index]?.sku}</p>
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">Stock</label>
-                            <input
+                            <label className="block text-xs font-medium mb-1 dark:text-gray-400 text-gray-600">
+                                Stock
+                            </label>
+                            <Input
                                 type="number"
                                 placeholder="Stock"
                                 value={size.stockQuantity}
                                 onChange={(e) => handleChange(index, "stockQuantity", Number(e.target.value))}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full dark:bg-slate-600 bg-white focus:outline-none focus:ring-2 focus:bg-blue-600 transition"
                             />
                             {errors.sizes[index]?.stockQuantity && (
                                 <p className="text-red-500 text-xs">{errors.sizes[index]?.stockQuantity}</p>
