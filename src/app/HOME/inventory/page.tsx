@@ -3,6 +3,7 @@
 "use client"
 import React, { useState, useMemo, useEffect } from "react"
 import { getAllProducts } from "@/actions/products/getAllProducts"
+import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import InventoryActions from "@/components/Inventory/InventoryActions"
 import { MoreVertical } from "lucide-react"
@@ -10,28 +11,24 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AddSizeModal } from "@/components/Modals/AddSizeModal"
 import { deleteProduct } from "@/actions/products/deleteProduct"
 import { toast } from "sonner"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
     const [isLoading, setIsLoading] = useState(true)
     const [rawProducts, setRawProducts] = useState<IProduct[]>([])
-
-    // Estado para controlar qué producto tiene abierto el modal
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
+    const [editingField, setEditingField] = useState<{
+        sku: string
+        field: "priceCost" | "priceList" | "stockQuantity"
+    } | null>(null)
+    const [editValue, setEditValue] = useState<string>("")
 
     useEffect(() => {
-        getAllProducts() 
-        .then(setRawProducts)
-        .finally(() => setIsLoading(false))
+        getAllProducts()
+            .then(setRawProducts)
+            .finally(() => setIsLoading(false))
     }, [])
 
     const totalStockCentral = useMemo(
@@ -83,6 +80,53 @@ export default function InventoryPage() {
         })
     }
 
+    async function handleSaveEdit(product: IProduct, variationID: string) {
+        const variation = product.ProductVariations.find((v) => v.variationID === variationID)
+        if (!variation) return
+
+        const updated = {
+            name: product.name,
+            image: product.image,
+            genre: product.genre,
+            sizes: [
+                {
+                    sku: variation.sku,
+                    sizeNumber: variation.sizeNumber,
+                    priceList: editingField!.field === "priceList" ? parseFloat(editValue) : variation.priceList,
+                    priceCost: editingField!.field === "priceCost" ? parseFloat(editValue) : variation.priceCost,
+                    stockQuantity:
+                        editingField!.field === "stockQuantity" ? parseFloat(editValue) : variation.stockQuantity,
+                },
+            ],
+        }
+
+        toast.promise(createMassiveProducts({ products: [updated] }), {
+            loading: "Actualizando producto...",
+            success: () => {
+                setRawProducts((prev) =>
+                    prev.map((p) =>
+                        p.productID === product.productID
+                            ? {
+                                  ...p,
+                                  ProductVariations: p.ProductVariations.map((v) =>
+                                      v.variationID === variationID
+                                          ? {
+                                                ...v,
+                                                [editingField!.field]: parseFloat(editValue),
+                                            }
+                                          : v
+                                  ),
+                              }
+                            : p
+                    )
+                )
+                setEditingField(null)
+                return "Campo actualizado"
+            },
+            error: "Error al actualizar",
+        })
+    }
+
     return (
         <main className="p-6 flex-1">
             <div className="flex items-center justify-between mb-4">
@@ -98,119 +142,155 @@ export default function InventoryPage() {
                     Hay un total de <strong>{totalStockCentral}</strong> productos en stock central.
                 </p>
             </div>
-             {isLoading ? (
+            {isLoading ? (
                 <TableSkeleton />
             ) : (
-            <div className="dark:bg-slate-800 bg-white shadow rounded overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead>CÓDIGO EAN</TableHead>
-                        <TableHead>TALLA</TableHead>
-                        <TableHead>PRECIO COSTO</TableHead>
-                        <TableHead>PRECIO PLAZA</TableHead>
-                        <TableHead>STOCK CENTRAL</TableHead>
-                        <TableHead>STOCK AGREGADO</TableHead>
-                        </TableRow>
-                    </TableHeader>
-
-                    <TableBody>
-                        {orderedProducts.map((product) => {
-                        const totalStockQuantity = product.ProductVariations.reduce(
-                            (total, v) => total + v.stockQuantity,
-                            0
-                        )
-                        return product.ProductVariations.map((variation, index) => {
-                            const esPrimero = index === 0
-                            return (
-                            <TableRow
-                                key={variation.variationID}
-                                className={`group ${
-                                esPrimero ? "border-t-2 dark:border-t-gray-700 border-t-blue-300" : "border-t"
-                                } text-base border-gray-200 dark:text-gray-300 text-gray-800`}
-                            >
-                                {esPrimero && (
-                                <TableCell
-                                    rowSpan={product.ProductVariations.length}
-                                    className="py-1 px-3 text-left w-1/4 max-w-0"
-                                >
-                                    <div className="relative w-full flex flex-col items-center">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                        <button title="boton" className="absolute top-1 rounded-sm left-1 p-1 dark:hover:bg-gray-900 hover:bg-gray-100">
-                                            <MoreVertical className="w-5 h-5 text-gray-600" />
-                                        </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="start">
-                                        <DropdownMenuItem onClick={() => handleEditSize(product)}>
-                                            Editar talla
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() =>
-                                            setAddSizeModalProductID(product.productID)
-                                            }
-                                        >
-                                            Agregar talla
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => handleDeleteProduct(product)}
-                                            className="text-red-600"
-                                        >
-                                            Eliminar producto
-                                        </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
-                                    <AddSizeModal
-                                        productID={product.productID}
-                                        open={addSizeModalProductID === product.productID}
-                                        onOpenChange={(open) => {
-                                        if (!open) setAddSizeModalProductID(null)
-                                        }}
-                                    />
-
-                                    <img
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="w-40 h-30 object-cover rounded"
-                                    />
-                                    <span className="font-medium text-center">{product.name}</span>
-                                    <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
-                                        {totalStockQuantity}
-                                    </p>
-                                    </div>
-                                </TableCell>
-                                )}
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">{variation.sku}</TableCell>
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">{variation.sizeNumber}</TableCell>
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                ${Number(variation.priceCost).toLocaleString("es-CL")}
-                                </TableCell>
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                ${Number(variation.priceList).toLocaleString("es-CL")}
-                                </TableCell>
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                <span
-                                    className={
-                                    variation.stockQuantity === 0
-                                        ? "text-red-500"
-                                        : "font-bold text-green-600"
-                                    }
-                                >
-                                    {variation.stockQuantity}
-                                </span>
-                                </TableCell>
-                                <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0}
-                                </TableCell>
+                <div className="dark:bg-slate-800 bg-white shadow rounded overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead>CÓDIGO EAN</TableHead>
+                                <TableHead>TALLA</TableHead>
+                                <TableHead>PRECIO COSTO</TableHead>
+                                <TableHead>PRECIO PLAZA</TableHead>
+                                <TableHead>STOCK CENTRAL</TableHead>
+                                <TableHead>STOCK AGREGADO</TableHead>
                             </TableRow>
-                            )
-                        })
-                        })}
-                    </TableBody>
-                </Table>
-            </div>
+                        </TableHeader>
+
+                        <TableBody>
+                            {orderedProducts.map((product) => {
+                                const totalStockQuantity = product.ProductVariations.reduce(
+                                    (total, v) => total + v.stockQuantity,
+                                    0
+                                )
+                                return product.ProductVariations.map((variation, index) => {
+                                    const esPrimero = index === 0
+                                    return (
+                                        <TableRow
+                                            key={variation.variationID}
+                                            className={`group ${
+                                                esPrimero
+                                                    ? "border-t-2 dark:border-t-gray-700 border-t-blue-300"
+                                                    : "border-t"
+                                            } text-base border-gray-200 dark:text-gray-300 text-gray-800`}
+                                        >
+                                            {esPrimero && (
+                                                <TableCell
+                                                    rowSpan={product.ProductVariations.length}
+                                                    className="py-1 px-3 text-left w-1/4 max-w-0"
+                                                >
+                                                    <div className="relative w-full flex flex-col items-center">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button
+                                                                    title="boton"
+                                                                    className="absolute top-1 rounded-sm left-1 p-1 dark:hover:bg-gray-900 hover:bg-gray-100"
+                                                                >
+                                                                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="start">
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleEditSize(product)}
+                                                                >
+                                                                    Editar talla
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        setAddSizeModalProductID(product.productID)
+                                                                    }
+                                                                >
+                                                                    Agregar talla
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleDeleteProduct(product)}
+                                                                    className="text-red-600"
+                                                                >
+                                                                    Eliminar producto
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+
+                                                        <AddSizeModal
+                                                            productID={product.productID}
+                                                            open={addSizeModalProductID === product.productID}
+                                                            onOpenChange={(open) => {
+                                                                if (!open) setAddSizeModalProductID(null)
+                                                            }}
+                                                        />
+
+                                                        <img
+                                                            src={product.image}
+                                                            alt={product.name}
+                                                            className="w-40 h-30 object-cover rounded"
+                                                        />
+                                                        <span className="font-medium text-center">{product.name}</span>
+                                                        <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
+                                                            {totalStockQuantity}
+                                                        </p>
+                                                    </div>
+                                                </TableCell>
+                                            )}
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                                {variation.sku}
+                                            </TableCell>
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                                {variation.sizeNumber}
+                                            </TableCell>
+
+                                            {(
+                                                ["priceCost", "priceList", "stockQuantity"] as Array<
+                                                    "priceCost" | "priceList" | "stockQuantity"
+                                                >
+                                            ).map((field) => (
+                                                <TableCell
+                                                    key={field}
+                                                    className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingField({ sku: variation.sku, field })
+                                                        setEditValue(String(variation[field]))
+                                                    }}
+                                                >
+                                                    {editingField?.sku === variation.sku &&
+                                                    editingField?.field === field ? (
+                                                        <input
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() =>
+                                                                handleSaveEdit(product, variation.variationID)
+                                                            }
+                                                            className="w-20 px-2 py-1 rounded border"
+                                                            autoFocus
+                                                        />
+                                                    ) : field === "stockQuantity" ? (
+                                                        <span
+                                                            className={
+                                                                variation.stockQuantity === 0
+                                                                    ? "text-red-500"
+                                                                    : "font-bold text-green-600"
+                                                            }
+                                                        >
+                                                            {variation[field]}
+                                                        </span>
+                                                    ) : (
+                                                        `$${Number(variation[field]).toLocaleString("es-CL")}`
+                                                    )}
+                                                </TableCell>
+                                            ))}
+
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
+                                                {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ??
+                                                    0}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
             )}
         </main>
     )
