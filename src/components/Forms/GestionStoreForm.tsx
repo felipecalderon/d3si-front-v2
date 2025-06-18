@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "../ui/button"
 import { toast } from "sonner"
@@ -12,10 +12,12 @@ import { updateStore } from "@/actions/stores/updateStore"
 import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
 import ModalUserTienda from "../Modals/ModalUserTienda"
-import { Store, User, Plus, Trash2, Save, X, Building, Phone, MapPin, Hash } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@radix-ui/react-select"
-import { Label } from "recharts"
+import { Store, User, Plus, Trash2, Save, X, Building, Phone, MapPin, Hash, Map, MapPinned, UserRoundCheck, AtSign} from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Label } from "@/components/ui/label"
 import { Input } from "../ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { getAllUsers } from "@/actions/users/getAllUsers"
 
 interface GestionStoreFormProps {
   isOpen: boolean
@@ -24,13 +26,19 @@ interface GestionStoreFormProps {
 }
 
 export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionStoreFormProps) {
-  const { users, stores, setStores } = useTienda()
+    const { users,stores, setStores, setUsers } = useTienda()
   
-  const [nombre, setNombre] = useState(tienda.name)
-  const [rut, setRut] = useState(tienda.rut)
-  const [ciudad, setCiudad] = useState(tienda.city)
-  const [telefono, setTelefono] = useState(tienda.phone)
-  const [gestoresAsignados, setGestoresAsignados] = useState(
+    const [nombre, setNombre] = useState(tienda.name)
+    const [rut, setRut] = useState(tienda.rut)
+    const [location, setlocation] = useState(tienda.location)
+    const [ciudad, setCiudad] = useState(tienda.city)
+    const [address, setAddress] = useState(tienda.address)
+    const [telefono, setTelefono] = useState(tienda.phone)
+    const [role, setRole] = useState(tienda.role)
+    const [roleSelected, setRoleSelected] = useState(role || "");
+    const [email, setEmail] = useState(tienda.email)
+    const [isAdminLocal, setIsAdminLocal] = useState<boolean>(role === "admin")
+    const [gestoresAsignados, setGestoresAsignados] = useState(
     users.filter(user => user.Stores?.some(s => s.storeID === tienda.storeID)) || []
   )
   const [selectedUserId, setSelectedUserId] = useState("")
@@ -41,55 +49,89 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
     !gestoresAsignados.some(gestor => gestor.userID === user.userID)
   )
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    console.log(tienda)
-    try {
-      // Actualizar datos básicos de la tienda si cambiaron
-    //   if (nombre !== tienda.name || rut !== tienda.rut || ciudad !== tienda.city || telefono !== tienda.phone) {
-    //     await updateStore(tienda.storeID, {
-    //       name: nombre,
-    //       rut: rut,
-    //       city: ciudad,
-    //       phone: telefono
-    //     })
-    //   }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsLoading(true)
+        try {
+             if ( !nombre.trim() || !location.trim() || !ciudad.trim() || !address.trim() || !telefono.trim() || !roleSelected.trim() || !email.trim()
+        ) {
+            toast.error("Por favor, completa todos los campos obligatorios.");
+            return;
+        }
+        console.log(isAdminLocal)
+        try {
+            await updateStore(
+                tienda.storeID, 
+                nombre.trim(),
+                location.trim(),
+                ciudad.trim(),
+                address.trim(),
+                telefono.trim(),
+                roleSelected.trim(),
+                email.trim(),
+                isAdminLocal
+            );
+        } catch (error) {
+            console.log(error)
+        }
+        toast.success("Tienda actualizada exitosamente")
+    
+        // Cargar y guardar usuarios y tiendas
+        const [usuarios, tiendas] = await Promise.all([getAllUsers(), getAllStores()])
 
-      // Aquí puedes agregar lógica para sincronizar gestores
-      // Esta implementación es simplificada
-      
-      toast.success("Tienda actualizada exitosamente")
-      
-      // Actualizar la lista de tiendas
-      const tiendas = await getAllStores()
-      setStores(tiendas)
-      
-      onClose()
-    } catch (error) {
-      toast.error("Error al actualizar tienda")
-      console.error(error)
-    } finally {
-      setIsLoading(false)
+        setUsers(usuarios)
+        setStores(tiendas)
+    
+        onClose()
+        } catch (error) {
+        toast.error("Error al actualizar tienda")
+        console.error(error)
+        } finally {
+        setIsLoading(false)
+        }
     }
-  }
-
-  const handleAgregarGestor = () => {
-    if (!selectedUserId) return
-
-    const usuario = users.find(u => u.userID === selectedUserId)
-    if (usuario) {
-      setGestoresAsignados(prev => [...prev, usuario])
-      setSelectedUserId("")
+    useEffect(() => {
+        setIsAdminLocal(role === "admin")
+    }, [role])
+    const handleAgregarGestor = async () => {
+        if (!selectedUserId) return
+        
+        const usuario = users.find(u => u.userID === selectedUserId)
+        if (usuario) {
+            try {
+                await addUserStore(selectedUserId, tienda.storeID);
+            } catch (error) {
+                console.log(error)
+            }
+            setGestoresAsignados(prev => [...prev, usuario])
+            // console.log("userID: " + selectedUserId + "        tiendaID:" + tienda.storeID)
+            setSelectedUserId("")
+        }
     }
-  }
 
-  const handleEliminarGestor = (userId: string) => {
-    setGestoresAsignados(prev => prev.filter(gestor => gestor.userID !== userId))
+    const rolTraducido = (rol: string) => {
+        switch (rol) {
+            case "admin": return "Admin";
+            case "store_manager": return "Store Manager";
+            case "consignado": return "Consignado";
+            case "tercero": return "Tercero";
+            default: return "Selecciona tipo";
+        }
+    };
+
+  const handleEliminarGestor = async (userId: string) => {
+    if (userId) {
+        try {
+            await removeUserFromStore(userId, tienda.storeID);
+        } catch (error) {
+            console.log(error)
+        }
+        setGestoresAsignados(prev => prev.filter(gestor => gestor.userID !== userId))
+    }
   }
 
   const validateForm = () => {
-    return nombre.trim() !== "" && rut.trim() !== "" && ciudad.trim() !== "" && telefono.trim() !== ""
+    return nombre.trim() !== "" && location.trim() !== "" && ciudad.trim() !== "" && telefono.trim() !== ""
   }
 
   return (
@@ -123,27 +165,39 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                     className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
                     />
                 </div>
-
                 <div>
                     <Label className="text-sm font-medium mb-2 flex items-center gap-1">
                     <Hash className="w-4 h-4" />
-                    RUT *
+                    Rut
                     </Label>
                     <Input
-                    id="rut"
+                    id="nombre"
                     type="text"
                     value={rut}
+                    placeholder="Nombre de la tienda"
                     disabled
-                    onChange={(e) => setRut(e.target.value)}
-                    placeholder="RUT de la tienda"
+                    className="bg-slate-100E dark:bg-slate-800"
+                    />
+                </div>
+                <div>
+                    <Label className="text-sm font-medium mb-2 flex items-center gap-1">
+                    <Map className="w-4 h-4" />
+                    location *
+                    </Label>
+                    <Input
+                    id="location"
+                    type="text"
+                    value={location}
+                    onChange={(e) => setlocation(e.target.value)}
+                    placeholder="location de la tienda"
                     required
-                    className="bg-slate-100  dark:bg-slate-800"
+                    className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
                     />
                 </div>
 
                 <div>
                     <Label className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
+                    <MapPinned className="w-4 h-4" />
                     Ciudad *
                     </Label>
                     <Input
@@ -152,6 +206,22 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                     value={ciudad}
                     onChange={(e) => setCiudad(e.target.value)}
                     placeholder="Ciudad"
+                    required
+                    className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
+                    />
+                </div>
+
+                <div>
+                    <Label className="text-sm font-medium mb-2 flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    direccion *
+                    </Label>
+                    <Input
+                    id="location"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="direccion de tienda"
                     required
                     className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
                     />
@@ -171,6 +241,70 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                     required
                     className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
                     />
+                </div>
+                <div>
+                    <label htmlFor="role" className="text-sm flex font-medium text-gray-700 dark:text-white mb-1">
+                        <UserRoundCheck className="w-4 h-4 mr-1" />
+                        Tipo de rol
+                    </label>
+                    <Select
+                        value={roleSelected}
+                        onValueChange={(value) => setRoleSelected(value)}
+                        required
+                        >
+                        <SelectTrigger className="w-full bg-slate-100 dark:bg-slate-800 dark:border-sky-50 dark:border p-2 rounded-md text-sm text-slate-700 dark:text-white">
+                            <SelectValue placeholder={rolTraducido(role)} />
+                        </SelectTrigger>
+
+                        <SelectContent className="dark:bg-gray-800 p-2 rounded-md bg-slate-300">
+                            <SelectItem value={role} disabled className="opacity-50 cursor-not-allowed">
+                                {rolTraducido(role)}
+                            </SelectItem>
+                            {["admin", "store_manager", "consignado", "tercero"]
+                                .filter((r) => r !== role)
+                                .map((r) => (
+                                <SelectItem key={r} value={r}>
+                                    {rolTraducido(r)}
+                                </SelectItem>
+                                ))}
+                        </SelectContent>
+                    </Select>
+
+                </div>
+                <div>
+                    <Label className="text-sm font-medium mb-2 flex items-center gap-1">
+                    <AtSign className="w-4 h-4" />
+                    Email *
+                    </Label>
+                    <Input
+                    id="telefono"
+                    type="tel"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    required
+                    className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
+                    />
+                </div>
+                <div className="mt-4">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white mb-1 block">
+                        ¿Es administrador?
+                    </label>
+
+                    <RadioGroup
+                        value={isAdminLocal ? "yes" : "no"}
+                        onValueChange={(value) => setIsAdminLocal(value === "yes")}
+                        className="flex gap-4 mt-1"
+                    >
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="r1" />
+                        <label htmlFor="r1" className="text-sm text-gray-700 dark:text-white">Sí</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="r2" />
+                        <label htmlFor="r2" className="text-sm text-gray-700 dark:text-white">No</label>
+                        </div>
+                    </RadioGroup>
                 </div>
             </div>
         </div>

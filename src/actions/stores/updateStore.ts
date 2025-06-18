@@ -18,17 +18,13 @@ import { API_URL } from "@/lib/enviroments"
 }
  */
 
-
-export const updateStore = async ( UserID: string,storeID: string ): Promise<void> => {
-   try {
-    await fetcher<void>(`${API_URL}/store/adduser`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify( {userID: UserID, storeID:storeID} ), 
-    });
-  } catch (error) {
-    console.error("Error updating product", error);
-  }
-};
+export async function updateStore(storeID: string ,name: string, location: string, city: string, address: string, phone: string, role: string, email: string, isAdminStore: boolean) {
+    const store = await fetcher(`${API_URL}/store/${storeID}`,{
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, location, city, address, phone, role, email, isAdminStore }),
+    })
+    return store
+}

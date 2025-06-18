@@ -14,6 +14,8 @@ import {
 import GestionStoreForm from "../Forms/GestionStoreForm"
 import { IStore } from "@/interfaces/stores/IStore"
 import { Edit, Trash2, Store as StoreIcon } from "lucide-react"
+import { deleteStore } from "@/actions/stores/deleteStore"
+import { getAllStores } from "@/actions/stores/getAllStores"
 
 export default function StoresTable() {
   const { stores, users, setStores } = useTienda()
@@ -28,26 +30,15 @@ export default function StoresTable() {
   const handleCloseModal = () => {
     setEditingStore(null)
   }
-
   const handleDelete = async (storeId: string) => {
-    // Ejemplo de implementación para más adelante
-    /*
     try {
-      const data = await deleteStore(storeId)
-
-      if (data.error) {
-        toast.error(data.error)
-      } else {
-        toast.success("Tienda eliminada exitosamente")
-        const updatedStores = await getAllStores()
-        setStores(updatedStores)
-        setConfirmingId(null)
-      }
+      await deleteStore(storeId)
+      // Cargar y guardar usuarios y tiendas
+      const tiendas = await getAllStores()
+      setStores(tiendas)
     } catch (error) {
-      toast.error("Error al eliminar la tienda")
       console.error(error)
     }
-    */
   }
 
   if (stores.length === 0) {
