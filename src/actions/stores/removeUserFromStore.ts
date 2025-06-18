@@ -12,23 +12,22 @@ import { API_URL } from "@/lib/enviroments"
  * @throws {Error} - En caso de error, se muestra un mensaje en la consola.
  *
  * @example
- * await updateUser = {
+ * await addUser = {
     UserID: string,
     storeID: string
 }
  */
 
-export const updateUserStore = async ( UserID: string,storeID: string ): Promise<void> => {
-   try {
-    await fetcher<void>(`${API_URL}/store/adduser`, {
-      method: "POST",
+export const removeUserFromStore = async (userID: string, storeID: string): Promise<void> => {
+  try {
+    await fetcher<void>(`${API_URL}/store/adduser?userID=${userID}&storeID=${storeID}`, {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify( {userID: UserID, storeID:storeID} ), 
+      body: JSON.stringify({ userID, storeID }),
     });
   } catch (error) {
-    console.error("Error updating product", error);
+    console.error("Error removing user from store:", error);
   }
 };
-
