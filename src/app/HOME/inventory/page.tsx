@@ -322,7 +322,7 @@ export default function InventoryPage() {
                                                     ) : field === "stockQuantity" ? (
                                                         <span
                                                             className={
-                                                                variation.stockQuantity === 0
+                                                                variation.stockQuantity < 20
                                                                     ? "text-red-500"
                                                                     : "font-bold text-green-600"
                                                             }
