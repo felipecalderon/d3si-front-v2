@@ -13,6 +13,7 @@ import { deleteProduct } from "@/actions/products/deleteProduct"
 import { toast } from "sonner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
+import { Input } from "@/components/ui/input"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
@@ -21,7 +22,7 @@ export default function InventoryPage() {
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
     const [editingField, setEditingField] = useState<{
         sku: string
-        field: "priceCost" | "priceList" | "stockQuantity"
+        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
     } | null>(null)
     const [editValue, setEditValue] = useState<string>("")
 
@@ -60,10 +61,6 @@ export default function InventoryPage() {
         ]
     }, [search, rawProducts])
 
-    function handleEditSize(product: IProduct) {
-        console.log("Editar talla de:", product)
-    }
-
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
             `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede revertir.`
@@ -91,7 +88,7 @@ export default function InventoryPage() {
             sizes: [
                 {
                     sku: variation.sku,
-                    sizeNumber: variation.sizeNumber,
+                    sizeNumber: editingField!.field === "sizeNumber" ? editValue : variation.sizeNumber,
                     priceList: editingField!.field === "priceList" ? parseFloat(editValue) : variation.priceList,
                     priceCost: editingField!.field === "priceCost" ? parseFloat(editValue) : variation.priceCost,
                     stockQuantity:
@@ -112,7 +109,10 @@ export default function InventoryPage() {
                                       v.variationID === variationID
                                           ? {
                                                 ...v,
-                                                [editingField!.field]: parseFloat(editValue),
+                                                [editingField!.field]:
+                                                    editingField!.field === "sizeNumber"
+                                                        ? editValue
+                                                        : parseFloat(editValue),
                                             }
                                           : v
                                   ),
@@ -130,10 +130,10 @@ export default function InventoryPage() {
     return (
         <main className="p-6 flex-1">
             <div className="flex items-center justify-between mb-4">
-                <input
+                <Input
                     type="text"
                     placeholder="Buscar producto aquí..."
-                    className="border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded w-1/3"
+                    className="w-[50%] mr-1 border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -193,11 +193,6 @@ export default function InventoryPage() {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="start">
                                                                 <DropdownMenuItem
-                                                                    onClick={() => handleEditSize(product)}
-                                                                >
-                                                                    Editar talla
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
                                                                     onClick={() =>
                                                                         setAddSizeModalProductID(product.productID)
                                                                     }
@@ -215,9 +210,27 @@ export default function InventoryPage() {
 
                                                         <AddSizeModal
                                                             productID={product.productID}
+                                                            name={product.name}
+                                                            image={product.image}
+                                                            genre={product.genre}
                                                             open={addSizeModalProductID === product.productID}
                                                             onOpenChange={(open) => {
                                                                 if (!open) setAddSizeModalProductID(null)
+                                                            }}
+                                                            onAddSize={(newSize) => {
+                                                                setRawProducts((prev) =>
+                                                                    prev.map((p) =>
+                                                                        p.productID === product.productID
+                                                                            ? {
+                                                                                  ...p,
+                                                                                  ProductVariations: [
+                                                                                      ...p.ProductVariations,
+                                                                                      newSize,
+                                                                                  ],
+                                                                              }
+                                                                            : p
+                                                                    )
+                                                                )
                                                             }}
                                                         />
 
@@ -236,8 +249,29 @@ export default function InventoryPage() {
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
                                                 {variation.sku}
                                             </TableCell>
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                                {variation.sizeNumber}
+                                            <TableCell
+                                                className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => {
+                                                    setEditingField({ sku: variation.sku, field: "sizeNumber" })
+                                                    setEditValue(variation.sizeNumber)
+                                                }}
+                                            >
+                                                {editingField?.sku === variation.sku &&
+                                                editingField?.field === "sizeNumber" ? (
+                                                    <div className="flex justify-center">
+                                                        <Input
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() =>
+                                                                handleSaveEdit(product, variation.variationID)
+                                                            }
+                                                            className="w-[40%] px-2 py-1 rounded border"
+                                                            autoFocus
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    variation.sizeNumber
+                                                )}
                                             </TableCell>
 
                                             {(
@@ -255,15 +289,17 @@ export default function InventoryPage() {
                                                 >
                                                     {editingField?.sku === variation.sku &&
                                                     editingField?.field === field ? (
-                                                        <input
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            onBlur={() =>
-                                                                handleSaveEdit(product, variation.variationID)
-                                                            }
-                                                            className="w-20 px-2 py-1 rounded border"
-                                                            autoFocus
-                                                        />
+                                                        <div className="flex justify-center">
+                                                            <Input
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                onBlur={() =>
+                                                                    handleSaveEdit(product, variation.variationID)
+                                                                }
+                                                                className="w-[40%] px-2 py-1 rounded border"
+                                                                autoFocus
+                                                            />
+                                                        </div>
                                                     ) : field === "stockQuantity" ? (
                                                         <span
                                                             className={
