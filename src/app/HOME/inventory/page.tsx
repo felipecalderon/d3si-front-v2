@@ -1,4 +1,3 @@
-// src/app/home/inventory/page.tsx
 /* eslint-disable @next/next/no-img-element */
 "use client"
 import React, { useState, useMemo, useEffect } from "react"
@@ -29,11 +28,6 @@ export default function InventoryPage() {
     } | null>(null)
     const [editValue, setEditValue] = useState<string>("")
 
-    /*  useEffect(() => {
-    getAllProducts()
-      .then(setRawProducts)
-      .finally(() => setIsLoading(false))
-  }, [])*/
     useEffect(() => {
         async function fetchData() {
             const [productsData, storesData] = await Promise.all([getAllProducts(), getAllStores()])
@@ -48,24 +42,6 @@ export default function InventoryPage() {
         return stores.filter((s) => s.isAdminStore).map((s) => s.storeID)
     }, [stores])
 
-    // Total stock central sumando solo las cantidades de StoreProducts que son adminStore
-    /*const totalStockCentral = useMemo(
-    () =>
-      rawProducts.reduce(
-        (total, product) =>
-          total +
-          product.ProductVariations.reduce(
-            (sum, variation) =>
-              sum +
-              (variation.StoreProducts
-                ?.filter((sp) => sp.Store?.isAdminStore)
-                .reduce((acc, sp) => acc + sp.quantity, 0) ?? 0),
-            0
-          ),
-        0
-      ),
-    [rawProducts]
-  )*/
     const totalStockCentral = useMemo(
         () =>
             rawProducts.reduce(
