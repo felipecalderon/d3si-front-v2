@@ -13,6 +13,7 @@ import { deleteProduct } from "@/actions/products/deleteProduct"
 import { toast } from "sonner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
+import { Input } from "@/components/ui/input"
 
 export default function InventoryPage() {
     const [search, setSearch] = useState("")
@@ -129,10 +130,10 @@ export default function InventoryPage() {
     return (
         <main className="p-6 flex-1">
             <div className="flex items-center justify-between mb-4">
-                <input
+                <Input
                     type="text"
                     placeholder="Buscar producto aquí..."
-                    className="border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded w-1/3"
+                    className="w-[50%] mr-1 border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -239,13 +240,17 @@ export default function InventoryPage() {
                                             >
                                                 {editingField?.sku === variation.sku &&
                                                 editingField?.field === "sizeNumber" ? (
-                                                    <input
-                                                        value={editValue}
-                                                        onChange={(e) => setEditValue(e.target.value)}
-                                                        onBlur={() => handleSaveEdit(product, variation.variationID)}
-                                                        className="w-20 px-2 py-1 rounded border"
-                                                        autoFocus
-                                                    />
+                                                    <div className="flex justify-center">
+                                                        <Input
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() =>
+                                                                handleSaveEdit(product, variation.variationID)
+                                                            }
+                                                            className="w-[40%] px-2 py-1 rounded border"
+                                                            autoFocus
+                                                        />
+                                                    </div>
                                                 ) : (
                                                     variation.sizeNumber
                                                 )}
@@ -266,15 +271,17 @@ export default function InventoryPage() {
                                                 >
                                                     {editingField?.sku === variation.sku &&
                                                     editingField?.field === field ? (
-                                                        <input
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            onBlur={() =>
-                                                                handleSaveEdit(product, variation.variationID)
-                                                            }
-                                                            className="w-20 px-2 py-1 rounded border"
-                                                            autoFocus
-                                                        />
+                                                        <div className="flex justify-center">
+                                                            <Input
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                onBlur={() =>
+                                                                    handleSaveEdit(product, variation.variationID)
+                                                                }
+                                                                className="w-[40%] px-2 py-1 rounded border"
+                                                                autoFocus
+                                                            />
+                                                        </div>
                                                     ) : field === "stockQuantity" ? (
                                                         <span
                                                             className={
