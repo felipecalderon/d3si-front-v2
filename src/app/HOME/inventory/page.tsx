@@ -210,6 +210,9 @@ export default function InventoryPage() {
 
                                                         <AddSizeModal
                                                             productID={product.productID}
+                                                            name={product.name}
+                                                            image={product.image}
+                                                            genre={product.genre}
                                                             open={addSizeModalProductID === product.productID}
                                                             onOpenChange={(open) => {
                                                                 if (!open) setAddSizeModalProductID(null)

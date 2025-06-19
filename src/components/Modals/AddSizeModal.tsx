@@ -5,25 +5,29 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { fetcher } from "@/lib/fetcher"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DialogTitle, DialogDescription } from "@radix-ui/react-dialog"
+import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 
 interface AddSizeModalProps {
     productID: string
+    name: string
+    image: string
+    genre: string
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export function AddSizeModal({ productID, open, onOpenChange }: AddSizeModalProps) {
+export function AddSizeModal({ open, onOpenChange, name, image, genre }: AddSizeModalProps) {
     const [form, setForm] = useState({
         sizeNumber: "",
         priceList: "",
+        priceCost: "",
         sku: "",
         stockQuantity: "",
-        markup: "",
     })
+
     const [isLoading, setIsLoading] = useState(false)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,23 +37,36 @@ export function AddSizeModal({ productID, open, onOpenChange }: AddSizeModalProp
     const handleSubmit = async () => {
         setIsLoading(true)
         try {
-            const body = new URLSearchParams({
-                parentProductID: productID,
-                ...form,
-            })
+            const payload = {
+                products: [
+                    {
+                        name,
+                        image,
+                        genre,
+                        sizes: [
+                            {
+                                sizeNumber: form.sizeNumber,
+                                priceList: parseFloat(form.priceList),
+                                priceCost: parseFloat(form.priceCost),
+                                sku: form.sku,
+                                stockQuantity: parseInt(form.stockQuantity),
+                            },
+                        ],
+                    },
+                ],
+            }
+            console.log("Payload enviado al backend:", payload)
+            const res = await createMassiveProducts(payload)
+            console.log("Respuesta del backend:", res)
 
-            await fetcher("/products/calzado", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body,
-            })
-
-            toast.success("Talla agregada exitosamente")
-            setForm({ sizeNumber: "", priceList: "", sku: "", stockQuantity: "", markup: "" })
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
+            if (res.success) {
+                toast.success("Talla agregada exitosamente")
+                setForm({ sizeNumber: "", priceCost: "", priceList: "", sku: "", stockQuantity: "" })
+                onOpenChange(false)
+            } else {
+                toast.error(res.error ?? "Error desconocido al agregar talla")
+            }
+        } catch {
             toast.error("Error al agregar talla")
         } finally {
             setIsLoading(false)
@@ -59,31 +76,33 @@ export function AddSizeModal({ productID, open, onOpenChange }: AddSizeModalProp
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
-                <DialogTitle className="text-lg font-semibold mb-4">Agregar Talla</DialogTitle>
-                <DialogDescription className="text-sm text-gray-500 mb-4">
+                <DialogTitle className="text-lg font-semibold mb-4 text-black">Agregar Talla</DialogTitle>
+                <DialogDescription className="text-sm mb-4 text-black">
                     Ingresa los datos para agregar una nueva talla al producto.
                 </DialogDescription>
                 <div className="space-y-3">
                     <div>
-                        <Label>Talla</Label>
+                        <Label className="text-black">Talla</Label>
                         <Input name="sizeNumber" value={form.sizeNumber} onChange={handleChange} />
                     </div>
                     <div>
-                        <Label>Precio Lista</Label>
-                        <Input name="priceList" value={form.priceList} onChange={handleChange} />
+                        <Label className="text-black">Precio Costo</Label>
+                        <Input name="priceCost" value={form.priceCost} onChange={handleChange} />
                     </div>
                     <div>
-                        <Label>SKU</Label>
+                        <Label className="text-black">Precio Lista</Label>
+                        <Input name="priceList" value={form.priceList} onChange={handleChange} />
+                    </div>
+
+                    <div>
+                        <Label className="text-black">SKU</Label>
                         <Input name="sku" value={form.sku} onChange={handleChange} />
                     </div>
                     <div>
-                        <Label>Stock</Label>
+                        <Label className="text-black">Stock</Label>
                         <Input name="stockQuantity" value={form.stockQuantity} onChange={handleChange} />
                     </div>
-                    <div>
-                        <Label>Markup</Label>
-                        <Input name="markup" value={form.markup} onChange={handleChange} />
-                    </div>
+
                     <Button onClick={handleSubmit} disabled={isLoading} className="w-full mt-3">
                         {isLoading ? "Agregando..." : "Agregar talla"}
                     </Button>
