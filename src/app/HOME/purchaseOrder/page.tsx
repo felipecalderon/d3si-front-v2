@@ -10,12 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function InventoryPage() {
+export default function PurchaseOrderPage() {
     const [search, setSearch] = useState("")
     const [isLoading, setIsLoading] = useState(true)
     const [rawProducts, setRawProducts] = useState<IProduct[]>([])
     const [stores, setStores] = useState<IStore[]>([])
+    const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
 
     useEffect(() => {
@@ -70,7 +72,21 @@ export default function InventoryPage() {
                     <Button>Agregar calzados</Button>
                     <Button variant="destructive">Quitar calzados</Button>
                 </div>
-                <p>Gestionando orden de compra para - se incluira listado de tienda</p>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">Gestionando orden de compra para:</span>
+                    <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                        <SelectTrigger className="w-[250px]">
+                            <SelectValue placeholder="Seleccionar tienda" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {stores.map((store) => (
+                                <SelectItem key={store.storeID} value={store.storeID}>
+                                    {store.name} - {store.city}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             {isLoading ? (
                 <TableSkeleton />
