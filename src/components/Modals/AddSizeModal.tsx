@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DialogTitle, DialogDescription } from "@radix-ui/react-dialog"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
+import { IProduct } from "@/interfaces/products/IProduct"
 
 interface AddSizeModalProps {
     productID: string
@@ -17,9 +18,10 @@ interface AddSizeModalProps {
     genre: string
     open: boolean
     onOpenChange: (open: boolean) => void
+    onAddSize: (newSize: IProduct["ProductVariations"][0]) => void
 }
 
-export function AddSizeModal({ open, onOpenChange, name, image, genre }: AddSizeModalProps) {
+export function AddSizeModal({ open, onOpenChange, name, image, genre, onAddSize, productID }: AddSizeModalProps) {
     const [form, setForm] = useState({
         sizeNumber: "",
         priceList: "",
@@ -55,12 +57,22 @@ export function AddSizeModal({ open, onOpenChange, name, image, genre }: AddSize
                     },
                 ],
             }
-            console.log("Payload enviado al backend:", payload)
             const res = await createMassiveProducts(payload)
-            console.log("Respuesta del backend:", res)
 
             if (res.success) {
                 toast.success("Talla agregada exitosamente")
+                onAddSize({
+                    productID,
+                    sizeNumber: form.sizeNumber,
+                    priceCost: parseFloat(form.priceCost),
+                    priceList: parseFloat(form.priceList),
+                    sku: form.sku,
+                    stockQuantity: parseInt(form.stockQuantity),
+                    variationID: crypto.randomUUID(),
+                    StoreProducts: [],
+                    Stores: [], // si tu modelo lo permite; si no, añade lo que corresponda
+                })
+
                 setForm({ sizeNumber: "", priceCost: "", priceList: "", sku: "", stockQuantity: "" })
                 onOpenChange(false)
             } else {

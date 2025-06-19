@@ -217,6 +217,21 @@ export default function InventoryPage() {
                                                             onOpenChange={(open) => {
                                                                 if (!open) setAddSizeModalProductID(null)
                                                             }}
+                                                            onAddSize={(newSize) => {
+                                                                setRawProducts((prev) =>
+                                                                    prev.map((p) =>
+                                                                        p.productID === product.productID
+                                                                            ? {
+                                                                                  ...p,
+                                                                                  ProductVariations: [
+                                                                                      ...p.ProductVariations,
+                                                                                      newSize,
+                                                                                  ],
+                                                                              }
+                                                                            : p
+                                                                    )
+                                                                )
+                                                            }}
                                                         />
 
                                                         <img
