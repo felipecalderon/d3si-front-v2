@@ -323,7 +323,7 @@ export default function InventoryPage() {
                                                         <span
                                                             className={
                                                                 variation.stockQuantity < 20
-                                                                    ? "text-red-500"
+                                                                    ? "font-bold text-red-500"
                                                                     : "font-bold text-green-600"
                                                             }
                                                         >
