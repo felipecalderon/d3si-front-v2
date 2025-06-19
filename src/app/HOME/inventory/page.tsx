@@ -4,7 +4,9 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
+import { getAllStores } from "@/actions/stores/getAllStores"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { IStore } from "@/interfaces/stores/IStore"
 import InventoryActions from "@/components/Inventory/InventoryActions"
 import { MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -19,6 +21,7 @@ export default function InventoryPage() {
     const [search, setSearch] = useState("")
     const [isLoading, setIsLoading] = useState(true)
     const [rawProducts, setRawProducts] = useState<IProduct[]>([])
+    const [stores, setStores] = useState<IStore[]>([])
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
     const [editingField, setEditingField] = useState<{
         sku: string
@@ -26,12 +29,43 @@ export default function InventoryPage() {
     } | null>(null)
     const [editValue, setEditValue] = useState<string>("")
 
+    /*  useEffect(() => {
+    getAllProducts()
+      .then(setRawProducts)
+      .finally(() => setIsLoading(false))
+  }, [])*/
     useEffect(() => {
-        getAllProducts()
-            .then(setRawProducts)
-            .finally(() => setIsLoading(false))
+        async function fetchData() {
+            const [productsData, storesData] = await Promise.all([getAllProducts(), getAllStores()])
+            setRawProducts(productsData)
+            setStores(storesData)
+            setIsLoading(false)
+        }
+        fetchData()
     }, [])
 
+    const adminStoreIDs = useMemo(() => {
+        return stores.filter((s) => s.isAdminStore).map((s) => s.storeID)
+    }, [stores])
+
+    // Total stock central sumando solo las cantidades de StoreProducts que son adminStore
+    /*const totalStockCentral = useMemo(
+    () =>
+      rawProducts.reduce(
+        (total, product) =>
+          total +
+          product.ProductVariations.reduce(
+            (sum, variation) =>
+              sum +
+              (variation.StoreProducts
+                ?.filter((sp) => sp.Store?.isAdminStore)
+                .reduce((acc, sp) => acc + sp.quantity, 0) ?? 0),
+            0
+          ),
+        0
+      ),
+    [rawProducts]
+  )*/
     const totalStockCentral = useMemo(
         () =>
             rawProducts.reduce(
@@ -161,12 +195,21 @@ export default function InventoryPage() {
 
                         <TableBody>
                             {orderedProducts.map((product) => {
+                                // Suma total del stock central para este producto
                                 const totalStockQuantity = product.ProductVariations.reduce(
                                     (total, v) => total + v.stockQuantity,
                                     0
                                 )
+
                                 return product.ProductVariations.map((variation, index) => {
                                     const esPrimero = index === 0
+
+                                    // Stock agregado = suma de StoreProducts en sucursales (no admin)
+                                    const stockAgregado =
+                                        variation.StoreProducts?.filter(
+                                            (sp) => !adminStoreIDs.includes(sp.storeID)
+                                        ).reduce((sum, sp) => sum + sp.quantity, 0) ?? 0
+
                                     return (
                                         <TableRow
                                             key={variation.variationID}
@@ -308,7 +351,7 @@ export default function InventoryPage() {
                                                                     : "font-bold text-green-600"
                                                             }
                                                         >
-                                                            {variation[field]}
+                                                            {variation.stockQuantity}
                                                         </span>
                                                     ) : (
                                                         `$${Number(variation[field]).toLocaleString("es-CL")}`
@@ -317,8 +360,7 @@ export default function InventoryPage() {
                                             ))}
 
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                                {variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ??
-                                                    0}
+                                                {stockAgregado}
                                             </TableCell>
                                         </TableRow>
                                     )
