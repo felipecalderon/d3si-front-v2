@@ -21,7 +21,7 @@ export default function InventoryPage() {
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
     const [editingField, setEditingField] = useState<{
         sku: string
-        field: "priceCost" | "priceList" | "stockQuantity"
+        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
     } | null>(null)
     const [editValue, setEditValue] = useState<string>("")
 
@@ -60,10 +60,6 @@ export default function InventoryPage() {
         ]
     }, [search, rawProducts])
 
-    function handleEditSize(product: IProduct) {
-        console.log("Editar talla de:", product)
-    }
-
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
             `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede revertir.`
@@ -91,7 +87,7 @@ export default function InventoryPage() {
             sizes: [
                 {
                     sku: variation.sku,
-                    sizeNumber: variation.sizeNumber,
+                    sizeNumber: editingField!.field === "sizeNumber" ? editValue : variation.sizeNumber,
                     priceList: editingField!.field === "priceList" ? parseFloat(editValue) : variation.priceList,
                     priceCost: editingField!.field === "priceCost" ? parseFloat(editValue) : variation.priceCost,
                     stockQuantity:
@@ -112,7 +108,10 @@ export default function InventoryPage() {
                                       v.variationID === variationID
                                           ? {
                                                 ...v,
-                                                [editingField!.field]: parseFloat(editValue),
+                                                [editingField!.field]:
+                                                    editingField!.field === "sizeNumber"
+                                                        ? editValue
+                                                        : parseFloat(editValue),
                                             }
                                           : v
                                   ),
@@ -193,11 +192,6 @@ export default function InventoryPage() {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="start">
                                                                 <DropdownMenuItem
-                                                                    onClick={() => handleEditSize(product)}
-                                                                >
-                                                                    Editar talla
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
                                                                     onClick={() =>
                                                                         setAddSizeModalProductID(product.productID)
                                                                     }
@@ -236,8 +230,25 @@ export default function InventoryPage() {
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
                                                 {variation.sku}
                                             </TableCell>
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                                {variation.sizeNumber}
+                                            <TableCell
+                                                className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => {
+                                                    setEditingField({ sku: variation.sku, field: "sizeNumber" })
+                                                    setEditValue(variation.sizeNumber)
+                                                }}
+                                            >
+                                                {editingField?.sku === variation.sku &&
+                                                editingField?.field === "sizeNumber" ? (
+                                                    <input
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        className="w-20 px-2 py-1 rounded border"
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    variation.sizeNumber
+                                                )}
                                             </TableCell>
 
                                             {(
