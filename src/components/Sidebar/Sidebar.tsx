@@ -61,7 +61,7 @@ export default function Sidebar() {
     const navItems = [
         { label: "Caja", route: "/home", icon: <FaHome /> },
         { label: "Inventario", route: "/home/inventory", icon: <FaBox /> },
-        { label: "Facturas", icon: <FaFileInvoice /> },
+        { label: "Facturas", route: "/home/invoices", icon: <FaFileInvoice /> },
         { label: "Cotizar", icon: <FaCalculator /> },
         { label: "Crear OC", route: "/home/purchaseOrder", icon: <FaPlusCircle /> },
         { label: "UTI", route: "/home/usuarios", icon: <FaUsers /> },

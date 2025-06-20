@@ -11,6 +11,8 @@ import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createOrder } from "@/actions/orders/purchaseOrder"
+import { useRouter } from "next/navigation"
 
 export default function PurchaseOrderPage() {
     const [search, setSearch] = useState("")
@@ -57,6 +59,8 @@ export default function PurchaseOrderPage() {
             }, 0),
         [pedido, rawProducts]
     )
+
+    const router = useRouter()
 
     return (
         <main className="p-6 flex-1">
@@ -160,6 +164,75 @@ export default function PurchaseOrderPage() {
                     </Table>
                     <div className="flex justify-end mt-4 px-6">
                         <p className="text-lg font-bold">Subtotal general: ${subtotal.toLocaleString("es-CL")}</p>
+                    </div>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4 px-6 gap-4">
+                        <div className="bg-slate-100 dark:bg-slate-900 p-4 rounded w-full md:w-1/2 text-sm space-y-2">
+                            <p>
+                                <strong>Total de productos:</strong>{" "}
+                                {Object.values(pedido).reduce((acc, curr) => acc + curr, 0)}
+                            </p>
+                            <p>
+                                <strong>Total neto:</strong> ${subtotal.toLocaleString("es-CL")}
+                            </p>
+                            <p>
+                                <strong>IVA (19%):</strong> ${(subtotal * 0.19).toLocaleString("es-CL")}
+                            </p>
+                            <p>
+                                <strong>Total:</strong> ${(subtotal * 1.19).toLocaleString("es-CL")}
+                            </p>
+                        </div>
+
+                        <Button
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={async () => {
+                                if (!selectedStoreID) {
+                                    alert("Selecciona una tienda antes de continuar.")
+                                    return
+                                }
+
+                                //este userID es hardcodeado, se debe obtener del contexto de usuario o sesión
+                                const userID = "2f13abf6-bbb6-402b-a5b2-e368a89c79e9"
+
+                                const orderedProducts = Object.entries(pedido)
+                                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                    .filter(([_, qty]) => qty > 0)
+                                    .map(([sku, quantityOrdered]) => {
+                                        const variation = rawProducts
+                                            .flatMap((p) => p.ProductVariations)
+                                            .find((v) => v.sku === sku)
+
+                                        return variation
+                                            ? {
+                                                  variationID: variation.variationID,
+                                                  quantityOrdered,
+                                              }
+                                            : null
+                                    })
+                                    .filter(Boolean) as {
+                                    variationID: string
+                                    quantityOrdered: number
+                                }[]
+
+                                if (orderedProducts.length === 0) {
+                                    alert("Debes agregar al menos un producto con cantidad mayor a 0.")
+                                    return
+                                }
+
+                                const res = await createOrder({
+                                    storeID: selectedStoreID,
+                                    userID,
+                                    products: orderedProducts,
+                                })
+
+                                if (res.success) {
+                                    router.push("/home/invoices")
+                                } else {
+                                    alert(res.error)
+                                }
+                            }}
+                        >
+                            ➡ Proceder a generar orden de compra
+                        </Button>
                     </div>
                 </div>
             )}
