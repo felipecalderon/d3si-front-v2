@@ -1,7 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
-
 interface OrderProduct {
     variationID: string
     quantityOrdered: number
@@ -30,7 +28,7 @@ export const createOrder = async (data: CreateOrderData) => {
             }
         }
 
-        redirect("/home/invoices")
+        return { success: true }
     } catch (err) {
         console.error("Error al crear la orden:", err)
         return {

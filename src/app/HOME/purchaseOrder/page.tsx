@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createOrder } from "@/actions/orders/purchaseOrder"
+import { useRouter } from "next/navigation"
 
 export default function PurchaseOrderPage() {
     const [search, setSearch] = useState("")
@@ -58,6 +59,8 @@ export default function PurchaseOrderPage() {
             }, 0),
         [pedido, rawProducts]
     )
+
+    const router = useRouter()
 
     return (
         <main className="p-6 flex-1">
@@ -186,7 +189,8 @@ export default function PurchaseOrderPage() {
                                     alert("Selecciona una tienda antes de continuar.")
                                     return
                                 }
-                                //por ahora userID es fijo, luego se puede obtener del contexto o autenticación
+
+                                //este userID es hardcodeado, se debe obtener del contexto de usuario o sesión
                                 const userID = "2f13abf6-bbb6-402b-a5b2-e368a89c79e9"
 
                                 const orderedProducts = Object.entries(pedido)
@@ -214,11 +218,17 @@ export default function PurchaseOrderPage() {
                                     return
                                 }
 
-                                await createOrder({
+                                const res = await createOrder({
                                     storeID: selectedStoreID,
                                     userID,
                                     products: orderedProducts,
                                 })
+
+                                if (res.success) {
+                                    router.push("/home/invoices")
+                                } else {
+                                    alert(res.error)
+                                }
                             }}
                         >
                             ➡ Proceder a generar orden de compra
