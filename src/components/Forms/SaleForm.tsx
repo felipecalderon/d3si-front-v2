@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { getProductById } from "@/actions/products/getProductById"
 import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
 import { ScanInput } from "@/components/CreateSale/ScanInput"
@@ -12,34 +12,44 @@ export const SaleForm = () => {
     const [productos, setProductos] = useState<IProductoEnVenta[]>([])
     const [codigo, setCodigo] = useState("")
     const [tipoPago, setTipoPago] = useState("EFECTIVO")
+    const [resumen, setResumen] = useState<IProductoEnVenta[]>([])
+    const [isAdding] = useState(false)
 
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!codigo) return
-        const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52" //Datos agregados manualmente para pruebas
+
+        const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+
         try {
             const productoEncontrado = await getProductById(storeID, codigo)
+
             if (!productoEncontrado) {
                 toast("Producto no encontrado")
                 return
             }
 
+            const idProducto = productoEncontrado.storeProductID 
+
             setProductos((prev) => {
-                const index = prev.findIndex((p) => p.storeProductID === codigo)
+                const index = prev.findIndex((p) => p.storeProductID === idProducto)
+
                 if (index !== -1) {
                     const updated = [...prev]
                     updated[index].cantidad += 1
                     return updated
                 }
+
                 return [
                     ...prev,
                     {
-                        storeProductID: productoEncontrado.variationID,
-                        nombre: productoEncontrado.sku,
+                        storeProductID: idProducto,
+                        nombre: productoEncontrado.name,
                         precio: Number(productoEncontrado.priceList),
-                        storeID: "",
+                        storeID: storeID,
+                        image: productoEncontrado.image || "",
                         cantidad: 1,
-                    } as IProductoEnVenta,
+                    },
                 ]
             })
 
@@ -55,25 +65,35 @@ export const SaleForm = () => {
     const handleSubmit = async () => {
         if (productos.length === 0) {
             toast("Agregá al menos un producto.")
-            return
+            return false
         }
 
         try {
+            const storeID = productos[0]?.storeID || ""
+
+            const productosParaBackend = productos.map((prod) => ({
+                storeProductID: prod.storeProductID,
+                quantitySold: prod.cantidad,
+            }))
+
             const res = await postSale({
-                products: productos,
-                tipoPago,
-                storeID: "",
+                storeID,
+                products: productosParaBackend,
             })
 
             if (res) {
                 toast("Venta registrada con éxito")
+                setResumen(productos)
                 setProductos([])
+                return true
             } else {
                 toast("Error al registrar la venta")
+                return false
             }
         } catch (err) {
             console.error(err)
             toast("Error al enviar la venta")
+            return false
         }
     }
 
@@ -81,15 +101,27 @@ export const SaleForm = () => {
         setProductos((prev) => prev.filter((prod) => prod.storeProductID !== id))
     }
 
-    useEffect(() => {
+    /*useEffect(() => {
         console.log(productos)
-    }, [productos])
+    }, [productos])*/
+
+    const handleCantidadChange = (id: string, cantidad: number) => {
+        setProductos((prev) => {
+            return prev.map((prod) => (prod.storeProductID === id ? { ...prod, cantidad } : prod))
+        })
+    }
 
     return (
         <>
-            <ScanInput codigo={codigo} setCodigo={setCodigo} handleAddProduct={handleAddProduct} />
-            <CartTable productos={productos} onDelete={handleDelete} />
-            <TotalAndButtons tipoPago={tipoPago} setTipoPago={setTipoPago} total={total} handleSubmit={handleSubmit} />
+            <ScanInput codigo={codigo} setCodigo={setCodigo} handleAddProduct={handleAddProduct} isAdding={isAdding} />
+            <CartTable productos={productos} onDelete={handleDelete} onCantidadChange={handleCantidadChange} />
+            <TotalAndButtons
+                tipoPago={tipoPago}
+                setTipoPago={setTipoPago}
+                total={total}
+                handleSubmit={handleSubmit}
+                resumen={resumen}
+            />
         </>
     )
 }
