@@ -9,9 +9,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { getSales } from "@/actions/sales/getSales"
 import dynamic from "next/dynamic"
 
-
-
-// Ajusta según lo que devuelve tu backend
 interface Sale {
     saleID: string
     total: number
