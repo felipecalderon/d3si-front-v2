@@ -1,37 +1,75 @@
-import React from "react"
+"use client"
+
+import React, { useEffect, useState } from "react"
+import Link from "next/link"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
 import StatCard from "@/components/dashboard/StatCard"
-import GaugeChart from "@/components/dashboard/GaugeChart"
-import Link from "next/link"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table"
+//import GaugeChart from "@/components/dashboard/GaugeChart"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { getSales } from "@/actions/sales/getSales"
+import dynamic from "next/dynamic"
 
 
-export default function HomePage() {
+
+// Ajusta según lo que devuelve tu backend
+interface Sale {
+    saleID: string
+    total: number
+    status: string
+    createdAt: string
+    paymentType?: string
+    Store?: {
+        name: string
+    }
+    SaleProducts?: {
+        quantitySold: number
+        unitPrice: number
+        StoreProduct?: {
+            ProductVariation?: {
+                Product?: {
+                    name: string
+                }
+            }
+        }
+    }[]
+}
+
+const HomePage = () => {
+    const DynamicGaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), { ssr: false })
+    const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52" // ID hardcodeado por ahora
+    const [sales, setSales] = useState<Sale[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchSales = async () => {
+            try {
+                const data = (await getSales(storeID)) as Sale[]
+                setSales(data)
+            } catch (error) {
+                console.error("Error fetching sales:", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchSales()
+    }, [])
+
     return (
         <>
             <div className="grid grid-cols-3 gap-6 items-start">
-                {/* Columna izquierda: Tarjetas principales */}
                 <div className="flex flex-col gap-4">
                     <StatCard icon={<FileText />} label="Boletas Emitidas" value="128" />
                     <StatCard icon={<FileCheck2 />} label="Facturas Emitidas" value="31" />
                     <StatCard icon={<DollarSign />} label="Facturación" value="$45.846.410" />
                 </div>
 
-                {/* Columna centro: Gráfica */}
                 <div className="flex justify-center items-center h-full">
                     <div className="w-full max-w-sm mx-auto">
-                        <GaugeChart />
+                        <DynamicGaugeChart />
                     </div>
                 </div>
 
-                {/* Columna derecha: Tarjetas de ventas */}
                 <div className="flex flex-col gap-4">
                     <StatCard icon={<DollarSign />} label="Ventas del día" value="$435.670" color="text-green-600" />
                     <StatCard icon={<DollarSign />} label="Ventas de ayer" value="$635.800" color="text-yellow-600" />
@@ -44,7 +82,6 @@ export default function HomePage() {
                 </div>
             </div>
 
-            {/* Totales por método */}
             <div className="grid grid-cols-4 gap-4 mb-4 mt-5">
                 <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
                     <ArrowRightLeft className="mx-auto mb-2" />
@@ -67,7 +104,7 @@ export default function HomePage() {
                     <p className="text-lg font-bold">$435.670</p>
                 </div>
             </div>
-            {/* Filtros y botón */}
+
             <div className="flex justify-between items-center mb-4">
                 <div className="flex gap-4">
                     <select title="meses" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
@@ -98,39 +135,71 @@ export default function HomePage() {
                     </button>
                 </Link>
             </div>
+
             {/* Tabla de ventas */}
-             <div className="dark:bg-slate-700 bg-white rounded shadow overflow-auto">
+            <div className="dark:bg-slate-700 bg-white rounded shadow overflow-auto">
                 <Table>
                     <TableHeader>
-                    <TableRow>
-                        <TableHead>Sucursal</TableHead>
-                        <TableHead>Fecha de Venta</TableHead>
-                        <TableHead>Venta con IVA</TableHead>
-                        <TableHead>Productos</TableHead>
-                        <TableHead>Tipo de Pago</TableHead>
-                        <TableHead>Estado</TableHead>
-                    </TableRow>
+                        <TableRow>
+                            <TableHead>Sucursal</TableHead>
+                            <TableHead>Fecha de Venta</TableHead>
+                            <TableHead>Venta con IVA</TableHead>
+                            <TableHead>Productos</TableHead>
+                            <TableHead>Estado</TableHead>
+                        </TableRow>
                     </TableHeader>
                     <TableBody>
-                    <TableRow>
-                        <TableCell>D3SI AVOCCO, Purén</TableCell>
-                        <TableCell>16-05-2025 - 10:02hrs</TableCell>
-                        <TableCell>$65.990</TableCell>
-                        <TableCell>[TXL] 1x casaca oneill cotele cafe</TableCell>
-                        <TableCell>Débito</TableCell>
-                        <TableCell className="text-green-600 font-medium">Pagado</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>D3SI AVOCCO, Purén</TableCell>
-                        <TableCell>15-05-2025 - 17:22hrs</TableCell>
-                        <TableCell>$29.990</TableCell>
-                        <TableCell>[T48] 1x jeans potros ultra slim 09</TableCell>
-                        <TableCell>Crédito</TableCell>
-                        <TableCell className="text-green-600 font-medium">Pagado</TableCell>
-                    </TableRow>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={6}>Cargando ventas...</TableCell>
+                            </TableRow>
+                        ) : sales.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6}>No hay ventas para mostrar.</TableCell>
+                            </TableRow>
+                        ) : (
+                            sales.map((sale) => {
+                                const storeName = sale.Store?.name || "Sucursal"
+
+                                const productsDescription =
+                                    Array.isArray(sale.SaleProducts) && sale.SaleProducts.length > 0
+                                        ? sale.SaleProducts.map((sp) => {
+                                            const productName =
+                                                sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                            const quantity = sp.quantitySold ?? "-"
+                                            const price = sp.unitPrice ?? "-"
+                                            return `${quantity} x ${productName} ($${price})`
+                                        }).join(", ")
+                                        : "-"
+
+                                return (
+                                    <TableRow key={sale.saleID}>
+                                        <TableCell>{storeName}</TableCell>
+                                        <TableCell>
+                                            {new Date(sale.createdAt).toLocaleString("es-AR", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </TableCell>
+                                        <TableCell>
+                                            {typeof sale.total === "number"
+                                                ? `$${sale.total.toLocaleString("es-AR")}`
+                                                : "Sin dato"}
+                                        </TableCell>
+                                        <TableCell>{productsDescription}</TableCell>
+                                        <TableCell className="text-green-600 font-medium">{sale.status}</TableCell>
+                                    </TableRow>
+                                )
+                            })
+                        )}
                     </TableBody>
                 </Table>
             </div>
         </>
     )
 }
+
+export default HomePage
