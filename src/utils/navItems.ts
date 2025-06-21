@@ -35,6 +35,7 @@ export const navItems = [
   },
   { 
     label: "Control de Mando", 
+    route: "/home/controlDeMando", 
     icon: FaChartLine 
   },
   { 
