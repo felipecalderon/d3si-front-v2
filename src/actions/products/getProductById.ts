@@ -2,11 +2,19 @@ import { getProductByStoreId } from "@/actions/products/getProductByStoreId"
 
 export const getProductById = async (storeId: string, skuInput: string) => {
     const products = await getProductByStoreId(storeId)
-    const flatProducts = products.flatMap((p) => p.ProductVariations)
-    const product = flatProducts.find((p) => p.sku === skuInput)
 
-    // if (!product) throw new Error("Product not found")
-    return product
+    for (const product of products) {
+        const variation = product.ProductVariations.find((v) => v.sku === skuInput)
+        if (variation) {
+            return {
+                ...variation,
+                name: product.name,
+                image: product.image || "",
+            }
+        }
+    }
+
+    return null
 }
 
 /**

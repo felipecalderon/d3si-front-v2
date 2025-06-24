@@ -1,6 +1,7 @@
 import { IProductVariation } from "./IProductVariation"
 
 export interface IProduct {
+    genre: string
     productID: string
     name: string
     image: string
