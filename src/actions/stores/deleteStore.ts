@@ -11,7 +11,6 @@ export async function deleteStore(storeID: string) {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
-        },
-        body: JSON.stringify({storeID}),
+        }
     })
 }

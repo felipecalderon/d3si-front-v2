@@ -3,36 +3,23 @@
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { useAuth } from "@/stores/user.store"
 import { useTienda } from "@/stores/tienda.store"
 import { getAllStores } from "@/actions/stores/getAllStores"
-import { Skeleton } from "../ui/skeleton"
 import { Collapsible } from "@/components/Animations/Collapsible"
 import { SidebarTransition } from "@/components/Animations/SidebarTransition"
 import { Switch } from "../ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import {
-    FaHome,
-    FaBox,
-    FaFileInvoice,
-    FaCalculator,
-    FaPlusCircle,
-    FaUsers,
-    FaChartLine,
-    FaChartBar,
-    FaBars,
-    FaTimes,
-    FaMoon,
-    FaSun,
-} from "react-icons/fa"
+import { navItems } from "@/utils/navItems"
+import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa"
+import { motion } from "framer-motion"
 
 export default function Sidebar() {
     const router = useRouter()
     const { stores, setStores } = useTienda()
-    const [isLoading, setIsLoading] = useState<boolean>(true)
     const [storeSelected, setStoreSelected] = useState<{ storeID: string; name: string } | null>(null)
     const [isCollapsed, setIsCollapsed] = useState(false)
     const [isDarkMode, setIsDarkMode] = useState(false)
+    const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
 
     // Theme toggle handler
     const handleThemeToggle = (checked: boolean) => {
@@ -51,23 +38,17 @@ export default function Sidebar() {
                 }
             } catch (error) {
                 console.error("Error loading data:", error)
-            } finally {
-                setIsLoading(false)
             }
         }
         cargarTiendas()
     }, [setStores])
 
-    const navItems = [
-        { label: "Caja", route: "/home", icon: <FaHome /> },
-        { label: "Inventario", route: "/home/inventory", icon: <FaBox /> },
-        { label: "Facturas", route: "/home/invoices", icon: <FaFileInvoice /> },
-        { label: "Cotizar", icon: <FaCalculator /> },
-        { label: "Crear OC", route: "/home/purchaseOrder", icon: <FaPlusCircle /> },
-        { label: "UTI", route: "/home/usuarios", icon: <FaUsers /> },
-        { label: "Control de Mando", icon: <FaChartLine /> },
-        { label: "Estado de Resultados", icon: <FaChartBar /> },
-    ]
+    const toggleSection = (sectionId: string) => {
+        setOpenSections((prev) => ({
+            ...prev,
+            [sectionId]: !prev[sectionId],
+        }))
+    }
 
     return (
         <SidebarTransition isCollapsed={isCollapsed}>
@@ -76,14 +57,12 @@ export default function Sidebar() {
                 <div className="flex justify-between items-center p-4">
                     {!isCollapsed && (
                         <div className="relative w-[200px] h-[120px]">
-                            {/* Imagen para tema claro */}
                             <Image
                                 src="/brand/two-brands-color.png"
                                 alt="Logo Light"
                                 fill
                                 className="block dark:hidden object-contain"
                             />
-                            {/* Imagen para tema oscuro */}
                             <Image
                                 src="/brand/two-brands.png"
                                 alt="Logo Dark"
@@ -131,25 +110,69 @@ export default function Sidebar() {
 
                 {/* Navigation */}
                 <nav className="flex-1 px-2 py-4 space-y-1">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.label}
-                            onClick={() => router.push(item.route || "#")}
-                            className={`flex items-center w-full p-3 rounded-lg transition-colors ${
-                                isCollapsed
-                                    ? "justify-center dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
-                                    : "dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
-                            } group`}
-                        >
-                            <span className="text-lg">{item.icon}</span>
-                            {!isCollapsed && <span className="ml-3 flex-1 text-left">{item.label}</span>}
-                            {isCollapsed && (
-                                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {item.label}
-                                </span>
-                            )}
-                        </button>
-                    ))}
+                    {navItems.map((item) => {
+                        const sectionId = item.label.toLowerCase().replace(/\s+/g, "")
+                        return (
+                            <div key={item.label} className="space-y-1">
+                                {item.subItems ? (
+                                    <>
+                                        <button
+                                            onClick={() => toggleSection(sectionId)}
+                                            className={`flex items-center w-full p-3 rounded-lg transition-colors ${
+                                                isCollapsed
+                                                    ? "justify-center dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
+                                                    : "dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
+                                            } group`}
+                                        >
+                                            <span className="text-lg">{<item.icon />}</span>
+                                            {!isCollapsed && (
+                                                <span className="ml-3 flex-1 text-left">{item.label}</span>
+                                            )}
+                                            {!isCollapsed && (
+                                                <motion.span
+                                                    animate={{ rotate: openSections[sectionId] ? 180 : 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                >
+                                                    ▼
+                                                </motion.span>
+                                            )}
+                                        </button>
+
+                                        <Collapsible isOpen={openSections[sectionId]}>
+                                            <div className="pl-6 space-y-1">
+                                                {item.subItems?.map((sub) => (
+                                                    <button
+                                                        key={sub.label}
+                                                        onClick={() => router.push(sub.route || "#")}
+                                                        className="flex items-center p-2 rounded-lg dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white w-full text-left"
+                                                    >
+                                                        {sub.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </Collapsible>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => router.push(item.route || "#")}
+                                        className={`flex items-center w-full p-3 rounded-lg transition-colors ${
+                                            isCollapsed
+                                                ? "justify-center dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
+                                                : "dark:hover:bg-gray-800 hover:bg-gray-600 hover:text-white"
+                                        } group`}
+                                    >
+                                        <span className="text-lg">{<item.icon />}</span>
+                                        {!isCollapsed && <span className="ml-3 flex-1 text-left">{item.label}</span>}
+                                        {isCollapsed && (
+                                            <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {item.label}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        )
+                    })}
                 </nav>
 
                 {/* Theme Toggle */}

@@ -138,7 +138,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
         ) : currentView === 'users' ? (
           <UsersTable users={users} />
         ) : (
-          <StoresTable stores={stores} />
+          <StoresTable />
         )}
       </div>
     )

@@ -249,7 +249,7 @@ export default function TiendasForm() {
                             </SelectTrigger>
                             <SelectContent>
                                 {users.map((u: IUser) => (
-                                    <SelectItem value={u.name}>{u.name}</SelectItem>
+                                    <SelectItem key={u.userID} value={u.name}>{u.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
