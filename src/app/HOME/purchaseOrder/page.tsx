@@ -60,6 +60,32 @@ export default function PurchaseOrderPage() {
         [pedido, rawProducts]
     )
 
+    const handleAgregarCalzados = () => {
+        setPedido((prev) => {
+            const nuevoPedido = { ...prev }
+            rawProducts.forEach((product) => {
+                product.ProductVariations.forEach((variation) => {
+                    const sku = variation.sku
+                    nuevoPedido[sku] = (nuevoPedido[sku] || 0) + 1
+                })
+            })
+            return nuevoPedido
+        })
+    }
+
+    const handleQuitarCalzados = () => {
+        setPedido((prev) => {
+            const nuevoPedido = { ...prev }
+            rawProducts.forEach((product) => {
+                product.ProductVariations.forEach((variation) => {
+                    const sku = variation.sku
+                    nuevoPedido[sku] = Math.max((nuevoPedido[sku] || 0) - 1, 0)
+                })
+            })
+            return nuevoPedido
+        })
+    }
+
     const router = useRouter()
 
     return (
@@ -73,8 +99,10 @@ export default function PurchaseOrderPage() {
                     onChange={(e) => setSearch(e.target.value)}
                 />
                 <div className="flex gap-2 mr-2">
-                    <Button>Agregar calzados</Button>
-                    <Button variant="destructive">Quitar calzados</Button>
+                    <Button onClick={handleAgregarCalzados}>Agregar calzados</Button>
+                    <Button variant="destructive" onClick={handleQuitarCalzados}>
+                        Quitar calzados
+                    </Button>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">Gestionando orden de compra para:</span>
@@ -119,7 +147,14 @@ export default function PurchaseOrderPage() {
                                         ).reduce((sum, sp) => sum + sp.quantity, 0) ?? 0
 
                                     return (
-                                        <TableRow key={variation.variationID}>
+                                        <TableRow
+                                            key={variation.variationID}
+                                            className={
+                                                esPrimero
+                                                    ? "border-t-2 border-blue-700 dark:border-white"
+                                                    : "border-t-2 border-blue-700 dark:border-white"
+                                            }
+                                        >
                                             {esPrimero && (
                                                 <TableCell
                                                     rowSpan={product.ProductVariations.length}
@@ -181,7 +216,6 @@ export default function PurchaseOrderPage() {
                                 <strong>Total:</strong> ${(subtotal * 1.19).toLocaleString("es-CL")}
                             </p>
                         </div>
-
                         <Button
                             className="bg-green-600 hover:bg-green-700"
                             onClick={async () => {
