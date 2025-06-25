@@ -104,21 +104,21 @@ export default function PurchaseOrderPage() {
                         Quitar calzados
                     </Button>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">Gestionando orden de compra para:</span>
-                    <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                        <SelectTrigger className="w-[250px]">
-                            <SelectValue placeholder="Seleccionar tienda" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {stores.map((store) => (
-                                <SelectItem key={store.storeID} value={store.storeID}>
-                                    {store.name} - {store.city}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+            </div>
+            <div className="flex items-center gap-2 mb-4">
+                <span className="text-sm font-semibold">Gestionando orden de compra para:</span>
+                <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                    <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Seleccionar tienda" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {stores.map((store) => (
+                            <SelectItem key={store.storeID} value={store.storeID}>
+                                {store.name} - {store.city}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             {isLoading ? (
                 <TableSkeleton />
