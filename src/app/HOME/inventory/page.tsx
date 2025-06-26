@@ -191,9 +191,9 @@ export default function InventoryPage() {
                                             key={variation.variationID}
                                             className={`group ${
                                                 esPrimero
-                                                    ? "border-t-2 dark:border-t-gray-700 border-t-blue-300"
-                                                    : "border-t"
-                                            } text-base border-gray-200 dark:text-gray-300 text-gray-800`}
+                                                    ? "border-t-2 border-blue-700 dark:border-white"
+                                                    : "border-t-2 border-blue-700 dark:border-white"
+                                            } text-base dark:text-gray-300 text-gray-800`}
                                         >
                                             {esPrimero && (
                                                 <TableCell
