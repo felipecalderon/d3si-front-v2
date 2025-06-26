@@ -3,17 +3,27 @@
 import React, { useEffect, useState } from "react"
 import { getAllOrders } from "@/actions/orders/getAllOrders"
 import { getAllStores } from "@/actions/stores/getAllStores"
-import { IOrder } from "@/interfaces/orders/IOrder"
 import { IStore } from "@/interfaces/stores/IStore"
+//import { IOrder } from "@/interfaces/orders/IOrder"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { deleteOrder } from "@/actions/orders/deleteOrder"
+import OrderDetailModal from "@/components/Modals/OrderDetailModal"
+
+// Importa la interfaz extendida localmente
+import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 
 export default function InvoicesPage() {
-    const [orders, setOrders] = useState<IOrder[]>([])
+    const [orders, setOrders] = useState<IOrderWithStore[]>([])
     const [stores, setStores] = useState<IStore[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const router = useRouter()
+    const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const handleView = (order: IOrderWithStore) => {
+        setSelectedOrder(order)
+        setIsModalOpen(true)
+    }
 
     useEffect(() => {
         async function fetchData() {
@@ -27,6 +37,11 @@ export default function InvoicesPage() {
 
     const getStoreName = (storeID: string) => {
         return stores.find((s) => s.storeID === storeID)?.name || "Tienda no encontrada"
+    }
+
+    const handleDelete = async (orderID: string) => {
+        await deleteOrder(orderID)
+        setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
     }
 
     return (
@@ -61,7 +76,8 @@ export default function InvoicesPage() {
                                         <TableCell>{i + 1}</TableCell>
                                         <TableCell className="font-medium">{order.orderID.slice(0, 8)}</TableCell>
                                         <TableCell>{fecha}</TableCell>
-                                        <TableCell>{getStoreName(order.storeID)}</TableCell>
+                                        {/* Ahora usamos el store desde order.Store si existe */}
+                                        <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
                                         <TableCell>${total}</TableCell>
                                         <TableCell>
                                             <span
@@ -75,15 +91,15 @@ export default function InvoicesPage() {
                                             </span>
                                         </TableCell>
                                         <TableCell className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => router.push(`/invoices/${order.orderID}`)}
-                                            >
+                                            <Button variant="outline" size="sm" onClick={() => handleView(order)}>
                                                 Ver
                                             </Button>
                                             <Button size="sm">Imprimir</Button>
-                                            <Button size="sm" variant="destructive">
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => handleDelete(order.orderID)}
+                                            >
                                                 Anular
                                             </Button>
                                         </TableCell>
@@ -98,6 +114,15 @@ export default function InvoicesPage() {
                     <p className="p-4 text-gray-500 text-sm">No hay órdenes generadas aún.</p>
                 )}
             </div>
+
+            <OrderDetailModal
+                open={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false)
+                    setSelectedOrder(null)
+                }}
+                order={selectedOrder}
+            />
         </main>
     )
 }
