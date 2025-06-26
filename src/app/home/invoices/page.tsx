@@ -7,14 +7,20 @@ import { IOrder } from "@/interfaces/orders/IOrder"
 import { IStore } from "@/interfaces/stores/IStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
+import OrderDetailModal from "@/components/Modals/OrderDetailModal"
 
 export default function InvoicesPage() {
     const [orders, setOrders] = useState<IOrder[]>([])
     const [stores, setStores] = useState<IStore[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const router = useRouter()
+    const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const handleView = (order: IOrder) => {
+        setSelectedOrder(order)
+        setIsModalOpen(true)
+    }
 
     useEffect(() => {
         async function fetchData() {
@@ -81,11 +87,7 @@ export default function InvoicesPage() {
                                             </span>
                                         </TableCell>
                                         <TableCell className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => router.push(`/invoices/${order.orderID}`)}
-                                            >
+                                            <Button variant="outline" size="sm" onClick={() => handleView(order)}>
                                                 Ver
                                             </Button>
                                             <Button size="sm">Imprimir</Button>
@@ -108,6 +110,16 @@ export default function InvoicesPage() {
                     <p className="p-4 text-gray-500 text-sm">No hay órdenes generadas aún.</p>
                 )}
             </div>
+
+            {/* Modal de detalles */}
+            <OrderDetailModal
+                open={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false)
+                    setSelectedOrder(null)
+                }}
+                order={selectedOrder}
+            />
         </main>
     )
 }
