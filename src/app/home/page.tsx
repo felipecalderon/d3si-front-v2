@@ -1,14 +1,11 @@
-"use client"
-
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
 import StatCard from "@/components/dashboard/StatCard"
-//import GaugeChart from "@/components/dashboard/GaugeChart"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { getSales } from "@/actions/sales/getSales"
-import dynamic from "next/dynamic"
-
+import GaugeChart from "@/components/dashboard/GaugeChart"
+import { useMount } from "@/hooks/useMount"
 interface Sale {
     saleID: string
     total: number
@@ -31,27 +28,28 @@ interface Sale {
     }[]
 }
 
-const HomePage = () => {
-    const DynamicGaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), { ssr: false })
+const HomePage = async () => {
     const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52" // ID hardcodeado por ahora
-    const [sales, setSales] = useState<Sale[]>([])
-    const [loading, setLoading] = useState(true)
+    const sales = (await getSales(storeID)) as Sale[]
+    // const [sales, setSales] = useState<Sale[]>([])
+    // const [loading, setLoading] = useState(true)
+    // const { isMount } = useMount()
+    // useEffect(() => {
+    //     const fetchSales = async () => {
+    //         try {
+    //             const data = (await getSales(storeID)) as Sale[]
+    //             setSales(data)
+    //         } catch (error) {
+    //             console.error("Error fetching sales:", error)
+    //         } finally {
+    //             setLoading(false)
+    //         }
+    //     }
 
-    useEffect(() => {
-        const fetchSales = async () => {
-            try {
-                const data = (await getSales(storeID)) as Sale[]
-                setSales(data)
-            } catch (error) {
-                console.error("Error fetching sales:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
+    //     fetchSales()
+    // }, [])
 
-        fetchSales()
-    }, [])
-
+    // if (!isMount) return null
     return (
         <>
             <div className="grid grid-cols-3 gap-6 items-start">
@@ -63,7 +61,7 @@ const HomePage = () => {
 
                 <div className="flex justify-center items-center h-full">
                     <div className="w-full max-w-sm mx-auto">
-                        <DynamicGaugeChart />
+                        <GaugeChart />
                     </div>
                 </div>
 
@@ -146,11 +144,7 @@ const HomePage = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={6}>Cargando ventas...</TableCell>
-                            </TableRow>
-                        ) : sales.length === 0 ? (
+                        {sales.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6}>No hay ventas para mostrar.</TableCell>
                             </TableRow>
@@ -161,12 +155,12 @@ const HomePage = () => {
                                 const productsDescription =
                                     Array.isArray(sale.SaleProducts) && sale.SaleProducts.length > 0
                                         ? sale.SaleProducts.map((sp) => {
-                                            const productName =
-                                                sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                            const quantity = sp.quantitySold ?? "-"
-                                            const price = sp.unitPrice ?? "-"
-                                            return `${quantity} x ${productName} ($${price})`
-                                        }).join(", ")
+                                              const productName =
+                                                  sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                              const quantity = sp.quantitySold ?? "-"
+                                              const price = sp.unitPrice ?? "-"
+                                              return `${quantity} x ${productName} ($${price})`
+                                          }).join(", ")
                                         : "-"
 
                                 return (
