@@ -11,7 +11,7 @@ interface Props {
 
 export const SalesTable: React.FC<Props> = ({ sales }) => {
     return (
-        <div className="dark:bg-slate-700 bg-white rounded shadow overflow-hidden">
+        <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -25,7 +25,7 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
             </Table>
 
             <div
-                className={`dark:bg-slate-700 bg-white rounded shadow ${
+                className={`dark:bg-gray-800 bg-white rounded shadow ${
                     sales.length > 8 ? "max-h-[32rem] overflow-y-auto" : ""
                 }`}
             >
@@ -40,12 +40,12 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                 const storeName = sale.Store?.name || "Sucursal"
                                 const productsDescription = sale.SaleProducts?.length
                                     ? sale.SaleProducts.map((sp) => {
-                                        const productName =
-                                            sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                        const quantity = sp.quantitySold ?? "-"
-                                        const price = sp.unitPrice ?? "-"
-                                        return `${quantity} x ${productName} ($${price})`
-                                    }).join(", ")
+                                          const productName =
+                                              sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                          const quantity = sp.quantitySold ?? "-"
+                                          const price = sp.unitPrice ?? "-"
+                                          return `${quantity} x ${productName} ($${price})`
+                                      }).join(", ")
                                     : "-"
 
                                 return (

@@ -194,223 +194,32 @@ export default function InventoryPage() {
     }
 
     return (
-        <main className="p-6 flex-1">
-            <div className="flex items-center justify-between mb-4">
-                <Input
-                    type="text"
-                    placeholder="Buscar producto aquí..."
-                    className="w-[50%] mr-1 border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                <InventoryActions products={rawProducts} />
-                <p className="text-sm">
-                    Hay un total de <strong>{totalStockCentral}</strong> productos en stock central.
-                </p>
-            </div>
-            {isLoading ? (
-                <TableSkeleton />
-            ) : (
-                <div className="dark:bg-slate-800 bg-white shadow rounded overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead>CÓDIGO EAN</TableHead>
-                                <TableHead>TALLA</TableHead>
-                                <TableHead>PRECIO COSTO</TableHead>
-                                <TableHead>PRECIO PLAZA</TableHead>
-                                <TableHead>STOCK CENTRAL</TableHead>
-                                <TableHead>STOCK AGREGADO</TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {orderedProducts.map((product) => {
-                                // Suma total del stock central para este producto
-                                const totalStockQuantity = product.ProductVariations.reduce(
-                                    (total, v) => total + v.stockQuantity,
-                                    0
-                                )
-
-                                return product.ProductVariations.map((variation, index) => {
-                                    const esPrimero = index === 0
-
-                                    // Stock agregado = suma de StoreProducts en sucursales (no admin)
-                                    const stockAgregado =
-                                        variation.StoreProducts?.filter(
-                                            (sp) => !adminStoreIDs.includes(sp.storeID)
-                                        ).reduce((sum, sp) => sum + sp.quantity, 0) ?? 0
-
-                                    return (
-                                        <TableRow
-                                            key={variation.variationID}
-                                            className={`group ${
-                                                esPrimero
-                                                    ? "border-t-2 border-blue-700 dark:border-white"
-                                                    : "border-t-2 border-blue-700 dark:border-white"
-                                            } text-base dark:text-gray-300 text-gray-800`}
-                                        >
-                                            {esPrimero && (
-                                                <TableCell
-                                                    rowSpan={product.ProductVariations.length}
-                                                    className="py-1 px-3 text-left w-1/4 max-w-0"
-                                                >
-                                                    <div className="relative w-full flex flex-col items-center">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <button
-                                                                    title="boton"
-                                                                    className="absolute top-1 rounded-sm left-1 p-1 dark:hover:bg-gray-900 hover:bg-gray-100"
-                                                                >
-                                                                    <MoreVertical className="w-5 h-5 text-gray-600" />
-                                                                </button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="start">
-                                                                <DropdownMenuItem
-                                                                    onClick={() =>
-                                                                        setAddSizeModalProductID(product.productID)
-                                                                    }
-                                                                >
-                                                                    Agregar talla
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                    onClick={() => handleDeleteProduct(product)}
-                                                                    className="text-red-600"
-                                                                >
-                                                                    Eliminar producto
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-
-                                                        <AddSizeModal
-                                                            productID={product.productID}
-                                                            name={product.name}
-                                                            image={product.image}
-                                                            genre={product.genre}
-                                                            open={addSizeModalProductID === product.productID}
-                                                            onOpenChange={(open) => {
-                                                                if (!open) setAddSizeModalProductID(null)
-                                                            }}
-                                                            onAddSize={(newSize) => {
-                                                                setRawProducts((prev) =>
-                                                                    prev.map((p) =>
-                                                                        p.productID === product.productID
-                                                                            ? {
-                                                                                  ...p,
-                                                                                  ProductVariations: [
-                                                                                      ...p.ProductVariations,
-                                                                                      newSize,
-                                                                                  ],
-                                                                              }
-                                                                            : p
-                                                                    )
-                                                                )
-                                                            }}
-                                                        />
-
-                                                        <img
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            className="w-40 h-30 object-cover rounded"
-                                                        />
-                                                        <span className="font-medium text-center">{product.name}</span>
-                                                        <p className="flex gap-1 items-center text-white bg-blue-300 px-3 py-1 rounded-lg font-bold my-2">
-                                                            {totalStockQuantity}
-                                                        </p>
-                                                    </div>
-                                                </TableCell>
-                                            )}
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                                {variation.sku}
-                                            </TableCell>
-                                            <TableCell
-                                                className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
-                                                onClick={() => {
-                                                    setEditingField({ sku: variation.sku, field: "sizeNumber" })
-                                                    setEditValue(variation.sizeNumber)
-                                                }}
-                                            >
-                                                {editingField?.sku === variation.sku &&
-                                                editingField?.field === "sizeNumber" ? (
-                                                    <div className="flex justify-center">
-                                                        <Input
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            onBlur={() =>
-                                                                handleSaveEdit(product, variation.variationID)
-                                                            }
-                                                            className="w-[40%] px-2 py-1 rounded border"
-                                                            autoFocus
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    variation.sizeNumber
-                                                )}
-                                            </TableCell>
-
-                                            {(
-                                                ["priceCost", "priceList", "stockQuantity"] as Array<
-                                                    "priceCost" | "priceList" | "stockQuantity"
-                                                >
-                                            ).map((field) => (
-                                                <TableCell
-                                                    key={field}
-                                                    className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
-                                                    onClick={() => {
-                                                        setEditingField({ sku: variation.sku, field })
-                                                        setEditValue(String(variation[field]))
-                                                    }}
-                                                >
-                                                    {editingField?.sku === variation.sku &&
-                                                    editingField?.field === field ? (
-                                                        <div className="flex justify-center">
-                                                            <Input
-                                                                value={editValue}
-                                                                onChange={(e) => setEditValue(e.target.value)}
-                                                                onBlur={() =>
-                                                                    handleSaveEdit(product, variation.variationID)
-                                                                }
-                                                                className="w-[40%] px-2 py-1 rounded border"
-                                                                autoFocus
-                                                            />
-                                                        </div>
-                                                    ) : field === "stockQuantity" ? (
-                                                        <span
-                                                            className={
-                                                                variation.stockQuantity < 20
-                                                                    ? "font-bold text-red-500"
-                                                                    : "font-bold text-green-600"
-                                                            }
-                                                        >
-                                                            {variation.stockQuantity}
-                                                        </span>
-                                                    ) : (
-                                                        `$${Number(variation[field]).toLocaleString("es-CL")}`
-                                                    )}
-                                                </TableCell>
-                                            ))}
-
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100">
-                                                {stockAgregado}
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })
-                            })}
-                        </TableBody>
-                    </Table>
+        <main className="p-6 flex-1 flex flex-col h-screen">
+            {/* Header Section */}
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex items-center gap-4">
+                    <Input
+                        type="text"
+                        placeholder="Buscar producto aquí..."
+                        className="flex-1 h-10 border dark:bg-gray-800 bg-slate-300 px-4 py-2 rounded"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    <div className="h-10">
+                        <InventoryActions products={rawProducts} />
+                    </div>
                 </div>
-            )}
-            <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Hay un total de <strong className="text-blue-600 dark:text-blue-400">{totalStockCentral}</strong>{" "}
-                    productos en stock central.
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1}-{Math.min(endIndex, flattenedProducts.length)} de{" "}
-                    {flattenedProducts.length} elementos
-                </p>
+                <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Hay un total de{" "}
+                        <strong className="text-blue-600 dark:text-blue-400">{totalStockCentral}</strong> productos en
+                        stock central.
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Mostrando {startIndex + 1}-{Math.min(endIndex, flattenedProducts.length)} de{" "}
+                        {flattenedProducts.length} elementos
+                    </p>
+                </div>
             </div>
 
             {/* Table Section */}
