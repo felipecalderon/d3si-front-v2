@@ -3,21 +3,24 @@
 import React, { useEffect, useState } from "react"
 import { getAllOrders } from "@/actions/orders/getAllOrders"
 import { getAllStores } from "@/actions/stores/getAllStores"
-import { IOrder } from "@/interfaces/orders/IOrder"
 import { IStore } from "@/interfaces/stores/IStore"
+//import { IOrder } from "@/interfaces/orders/IOrder"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import OrderDetailModal from "@/components/Modals/OrderDetailModal"
 
+// Importa la interfaz extendida localmente
+import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
+
 export default function InvoicesPage() {
-    const [orders, setOrders] = useState<IOrder[]>([])
+    const [orders, setOrders] = useState<IOrderWithStore[]>([])
     const [stores, setStores] = useState<IStore[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null)
+    const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-    const handleView = (order: IOrder) => {
+    const handleView = (order: IOrderWithStore) => {
         setSelectedOrder(order)
         setIsModalOpen(true)
     }
@@ -73,7 +76,8 @@ export default function InvoicesPage() {
                                         <TableCell>{i + 1}</TableCell>
                                         <TableCell className="font-medium">{order.orderID.slice(0, 8)}</TableCell>
                                         <TableCell>{fecha}</TableCell>
-                                        <TableCell>{getStoreName(order.storeID)}</TableCell>
+                                        {/* Ahora usamos el store desde order.Store si existe */}
+                                        <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
                                         <TableCell>${total}</TableCell>
                                         <TableCell>
                                             <span
@@ -111,7 +115,6 @@ export default function InvoicesPage() {
                 )}
             </div>
 
-            {/* Modal de detalles */}
             <OrderDetailModal
                 open={isModalOpen}
                 onClose={() => {
