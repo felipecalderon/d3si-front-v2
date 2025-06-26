@@ -8,6 +8,7 @@ import { IStore } from "@/interfaces/stores/IStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { deleteOrder } from "@/actions/orders/deleteOrder"
 
 export default function InvoicesPage() {
     const [orders, setOrders] = useState<IOrder[]>([])
@@ -27,6 +28,11 @@ export default function InvoicesPage() {
 
     const getStoreName = (storeID: string) => {
         return stores.find((s) => s.storeID === storeID)?.name || "Tienda no encontrada"
+    }
+
+    const handleDelete = async (orderID: string) => {
+        await deleteOrder(orderID)
+        setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
     }
 
     return (
@@ -83,7 +89,11 @@ export default function InvoicesPage() {
                                                 Ver
                                             </Button>
                                             <Button size="sm">Imprimir</Button>
-                                            <Button size="sm" variant="destructive">
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => handleDelete(order.orderID)}
+                                            >
                                                 Anular
                                             </Button>
                                         </TableCell>
