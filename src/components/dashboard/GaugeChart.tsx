@@ -12,7 +12,7 @@ const data = [
 
 export default function GaugeChart() {
     return (
-        <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
+        <div className="dark:bg-gray-800 bg-white p-4 shadow rounded text-center">
             <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">Ventas totales del presente mes / Meta</h3>
 
             <div className="flex justify-center">
