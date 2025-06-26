@@ -24,7 +24,8 @@ export const navItems = [
     label: "Facturación", 
     icon: FaFileInvoice,
     subItems: [
-      { label: "Crear OC", route: "/home/facturacion/crear-oc" },
+      { label: "Facturar", route: "/home/invoices" },
+      { label: "Crear OC", route: "/home/purchaseOrder" },
       { label: "Cotizar", route: "/home/facturacion/cotizar" }
     ]
   },

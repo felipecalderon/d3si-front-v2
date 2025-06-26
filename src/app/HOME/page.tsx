@@ -80,23 +80,23 @@ const HomePage = () => {
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-4 mt-5">
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <ArrowRightLeft className="mx-auto mb-2" />
+                <div className="dark:bg-gray-800 bg-white p-4 shadow rounded text-center">
+                    <ArrowRightLeft className="mx-auto mb-2 text-blue-600" />
                     <p>Débito</p>
                     <p className="text-sm">152 Pares - $11.1MM</p>
                 </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <CreditCard className="mx-auto mb-2" />
+                <div className="dark:bg-gray-800 bg-white p-4 shadow rounded text-center">
+                    <CreditCard className="mx-auto mb-2 text-blue-600" />
                     <p>Crédito</p>
                     <p className="text-sm">40 Pares - $1.6MM</p>
                 </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <HandCoins className="mx-auto mb-2" />
+                <div className="dark:bg-gray-800 bg-white p-4 shadow rounded text-center">
+                    <HandCoins className="mx-auto mb-2 text-blue-600" />
                     <p>Efectivo</p>
                     <p className="text-sm">192 Pares - $12.7MM</p>
                 </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <Wallet className="mx-auto mb-2" />
+                <div className="dark:bg-gray-800 bg-white p-4 shadow rounded text-center">
+                    <Wallet className="mx-auto mb-2 text-blue-600" />
                     <p>Total Caja</p>
                     <p className="text-lg font-bold">$435.670</p>
                 </div>
@@ -104,7 +104,7 @@ const HomePage = () => {
 
             <div className="flex justify-between items-center mb-4">
                 <div className="flex gap-4">
-                    <select title="meses" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
+                    <select title="meses" className="px-4 py-2 dark:bg-gray-800 bg-white rounded shadow border">
                         <option>Filtrar por mes</option>
                         <option>Enero</option>
                         <option>Febrero</option>
@@ -119,7 +119,7 @@ const HomePage = () => {
                         <option>Noviembre</option>
                         <option>Diciembre</option>
                     </select>
-                    <select title="años" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
+                    <select title="años" className="px-4 py-2 dark:bg-gray-800 bg-white rounded shadow border">
                         <option>Filtrar por año</option>
                         <option>2025</option>
                         <option>2024</option>
@@ -127,14 +127,14 @@ const HomePage = () => {
                     </select>
                 </div>
                 <Link href="/home/createsale">
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded">
+                    <button className="bg-yellow-400 text-black hover:bg-yellow-600 transition-all ease-in-out px-6 py-2 rounded">
                         Vender 🛍️
                     </button>
                 </Link>
             </div>
 
             {/* Tabla de ventas */}
-            <div className="dark:bg-slate-700 bg-white rounded shadow overflow-auto">
+            <div className="dark:bg-gray-800 bg-white rounded shadow overflow-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>

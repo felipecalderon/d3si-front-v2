@@ -7,30 +7,18 @@ import {
   DollarSign, 
   ShoppingCart, 
   TrendingUp, 
-  Users, 
-  Calendar,
-  Target,
-  Store
+  Users,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
+  CartesianGrid,
+  AreaChart,
+  Area,
 } from "recharts"
-import { RankingVentasCanalMayorista } from "@/components/dashboard/RankingVentasCanalMayorista"
-import { RankingVentasCanalWeb } from "@/components/dashboard/RankingVentasCanalWeb"
-
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import dynamic from "next/dynamic"
 // Datos de ejemplo basados en la imagen
 const ventasData = [
   { mes: 'Ene', presencial: 45, mayorista: 35, web: 15 },
@@ -46,6 +34,20 @@ const ventasData = [
   { mes: 'Nov', presencial: 51, mayorista: 41, web: 23 },
   { mes: 'Dic', presencial: 55, mayorista: 45, web: 27 }
 ]
+const chartConfig = {
+  presencial: {
+    label: "Canal Presencial",
+    color: "#22c55e",
+  },
+  mayorista: {
+    label: "Canal Mayorista",
+    color: "#f97316",
+  },
+  web: {
+    label: "Canal Web",
+    color: "#3b82f6",
+  },
+}
 
 const productosData = [
   { nombre: 'calzado', porcentaje: 60, color: '#ef4444' },
@@ -107,7 +109,7 @@ const datosRankingWeb = [
 export default function ControlDashboard() {
     const [dateRange, setDateRange] = useState({ start: '01-01-2020', end: '31-12-2020' })
     const [activeTab, setActiveTab] = useState('detallado')
-
+    const DynamicGaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), { ssr: false })
     
     const [añoSeleccionado, setAñoSeleccionado] = useState(2019)
 
@@ -238,39 +240,19 @@ export default function ControlDashboard() {
             <div className="col-span-4 row-span-4 col-start-4">
                 {/* Gráfico circular de ventas */}
                 <Card className="dark:bg-gray-800 border-0 shadow-lg">
-                    <CardHeader>
-                    <CardTitle className="text-center dark:text-white">
-                        Ventas totales del presente mes / Meta
-                    </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    <div className="relative">
-                        <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                            data={[
-                                { name: 'Ventas', value: 45846410, fill: '#2563EB' },
-                                { name: 'Meta', value: 14153590, fill: '#f59e0b' }
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={80}
-                            outerRadius={120}
-                            startAngle={90}
-                            endAngle={450}
-                            dataKey="value"
-                            />
-                        </PieChart>
-                        </ResponsiveContainer>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">$60MM</p>
-                            <p className="text-2xl font-bold dark:text-white">$45.846.410</p>
-                        </div>
-                        </div>
+                <CardHeader>
+                  <CardTitle className="text-center dark:text-white">
+                    Ventas totales del presente mes / Meta
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center items-center h-full">
+                    <div className="w-full max-w-sm mx-auto">
+                      <DynamicGaugeChart />
                     </div>
-                    </CardContent>
-                </Card>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             {/* Columna derecha */}
             <div className="col-span-5 row-span-4 col-start-8">
@@ -280,14 +262,14 @@ export default function ControlDashboard() {
                     <CardTitle className="dark:text-white">Ranking Ventas Canal Presencial 80%</CardTitle>
                     </CardHeader>
                     <CardContent>
-                    <div className="space-y-8">
+                    <div className="space-y-6">
                         {productosData.map((producto, index) => (
                             <div key={index} className="flex items-center gap-3">
                                 <span className="text-sm dark:text-gray-300">{producto.nombre}</span>
                                 <div className="flex-1">
                                 <Progress 
                                     value={producto.porcentaje} 
-                                    className="h-7"
+                                    className="h-6"
                                     style={{
                                     background: `linear-gradient(to right, ${producto.color} 0%, ${producto.color} ${producto.porcentaje}%, #e5e7eb ${producto.porcentaje}%, #e5e7eb 100%)`
                                     }}
@@ -304,49 +286,129 @@ export default function ControlDashboard() {
             </div>
             {/* Columna de grafico ventas totales */}
             <div className="col-span-9 row-span-3 relative col-start-4 row-start-5 ">
-                <div className="absolute -top-16 rounded-md left-0 dark:bg-gray-800 border-0 shadow-lg py-4 px-6">
-                    <h1>Evolución de Ventas totales últimos 12 meses / Meta</h1>
-                </div>
-                <div className="absolute -top-16 right-0 flex text-sm">
-                    <div className="flex text-center rounded-md dark:bg-gray-800 border-0 shadow-lg py-2 px-6 mr-3">
-                        <div className="flex flex-col ">
-                            <span className="text-green-600">Ranking Ventas</span>
-                            <span className="text-green-600">Canal Mayorista</span>
-                        </div>
-                        <span className="font-medium mt-3 ml-2 dark:text-white">15%</span>
-                    </div>
-                    <div className="flex text-center rounded-md dark:bg-gray-800 border-0 shadow-lg py-2 px-6">
-                        <div className="flex flex-col ">
-                            <span className="text-blue-600">Ranking Ventas</span>
-                            <span className="text-blue-600">Canal Web</span>
-                        </div>
-                        <span className="font-medium mt-3 ml-2 dark:text-white">5%</span>
-                    </div>
-                </div>
-                {/* Evolución de ventas */}
+              <div className="absolute -top-16 rounded-md left-0 dark:bg-gray-800 border-0 shadow-lg py-4 px-6">
+                  <h1>Evolución de Ventas totales últimos 12 meses / Meta</h1>
+              </div>
+              <div className="absolute -top-16 right-0 flex text-sm">
+                  <div className="flex text-center rounded-md dark:bg-gray-800 border-0 shadow-lg py-2 px-6 mr-3">
+                      <div className="flex flex-col ">
+                          <span className="text-green-600">Ranking Ventas</span>
+                          <span className="text-green-600">Canal Mayorista</span>
+                      </div>
+                      <span className="font-medium mt-3 ml-2 dark:text-white">15%</span>
+                  </div>
+                  <div className="flex text-center rounded-md dark:bg-gray-800 border-0 shadow-lg py-2 px-6">
+                      <div className="flex flex-col ">
+                          <span className="text-blue-600">Ranking Ventas</span>
+                          <span className="text-blue-600">Canal Web</span>
+                      </div>
+                      <span className="font-medium mt-3 ml-2 dark:text-white">5%</span>
+                  </div>
+              </div>
+              {/* Evolución de ventas */}
               <Card className="dark:bg-gray-800 border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-sm dark:text-white">
+                    Evolución de Ventas Totales últimos 12 meses / Meta
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={ventasData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="presencial" stroke="#22c55e" strokeWidth={2} name="presencial" />
-                      <Line type="monotone" dataKey="mayorista" stroke="#f97316" strokeWidth={2} name="mayorista" />
-                      <Line type="monotone" dataKey="web" stroke="#3b82f6" strokeWidth={2} name="web" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <ChartContainer
+                    className="h-[250px] w-full"
+                    config={chartConfig}
+                  >
+                    <AreaChart data={ventasData}>
+                      <defs>
+                        <linearGradient id="fillPresencial" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="fillMayorista" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="fillWeb" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" tickLine={false} axisLine={false} />
+
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            indicator="dot"
+                            labelFormatter={(value) => `Mes: ${value}`}
+                          />
+                        }
+                      />
+
+                      <Area
+                        type="monotone"
+                        dataKey="presencial"
+                        fill="url(#fillPresencial)"
+                        stroke="#22c55e"
+                        stackId="ventas"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="mayorista"
+                        fill="url(#fillMayorista)"
+                        stroke="#f97316"
+                        stackId="ventas"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="web"
+                        fill="url(#fillWeb)"
+                        stroke="#3b82f6"
+                        stackId="ventas"
+                      />
+
+                      <ChartLegend content={<ChartLegendContent />} />
+                    </AreaChart>
+                  </ChartContainer>
                 </CardContent>
               </Card>
             </div>
-            {/* ultima fila */}
-            <div className="col-span-9 col-start-4 relative">
-                <Card className="dark:bg-gray-800 flex border-0 absolute -top-24 shadow-lg">
+          </div>
+          {/* ultimo grid */}
+          <div className="grid grid-cols-12 grid-rows-5 gap-8">
+            {/* Ranking Ventas Canal Web */}
+            <div className="col-span-4 row-span-5">
+              <Card className="dark:bg-gray-800 border-0 shadow-lg">
+                <CardHeader>
+                    <CardTitle className="text-sm dark:text-white">
+                    Ranking Ventas Canal Web 5%
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {datosRankingWeb.map((item, index) => (
+                      <div key={index} className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            {item.categoria}
+                          </span>
+                          <span className="text-xs font-medium text-white bg-teal-600 px-2 py-0.5 rounded">
+                            {item.valor} mil
+                          </span>
+                        </div>
+                            <Progress
+                            value={item.valor}
+                            className="h-3 bg-gray-200 dark:bg-gray-700 [&>div]:bg-orange-400"
+                          />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            {/* titulo canal mayorista */}
+            <div className="col-span-5 col-start-5 row-start-1 row-span-1">
+              <Card className="dark:bg-gray-800 flex border-0  shadow-lg">
                 <CardTitle className="text-sm dark:text-white mx-4 mt-8">
                     Ranking Ventas Canal Mayorista 15%
                 </CardTitle>
@@ -368,115 +430,86 @@ export default function ControlDashboard() {
                     ))}
                     </div>
                 </CardContent>
-                </Card>
-                <Card className="dark:bg-gray-800 flex border-0 rounded-lg absolute -top-24 right-0 shadow-lg">
+              </Card>
+            </div>
+            {/* Botones ranking y ticked */}
+            <div className="col-span-3 col-start-10 row-start-1 row-span-1">
+                <Card className="dark:bg-gray-800 flex border-0 rounded-lg shadow-lg">
                     <CardContent className="flex gap-2 py-4">
-                        {/* Botones inferiores */}
-                        <button className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                            Ranking Tiendas
-                        </button>
-                        <button className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                            Ticket Medio
-                        </button>
-                    </CardContent>
+                      <button className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          Ranking Tiendas
+                      </button>
+                      <button className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                          Ticket Medio
+                      </button>
+                  </CardContent>
                 </Card>
-                {/* Ventas vs Objetivos */}
-                <Card className="dark:bg-gray-800 border-0 absolute -left-72 shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="text-sm my-2 dark:text-white">Ventas Totales vs Objetivos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="text-center">
-                                <div className="relative w-52 h-52 mx-auto">
-                                    <svg className="w-full h-full transform -rotate-90">
-                                        <circle
-                                            cx="104"
-                                            cy="104"
-                                            r="90"
-                                            stroke="#e5e7eb"
-                                            strokeWidth="12"
-                                            fill="none"
-                                        />
-                                        <circle
-                                            cx="104"
-                                            cy="104"
-                                            r="90"
-                                            stroke="#ef4444"
-                                            strokeWidth="12"
-                                            fill="none"
-                                            strokeDasharray={`${2 * Math.PI * 90 * 0.75} ${2 * Math.PI * 90}`}
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <p className="text-xl font-bold dark:text-white text-gray-900">717.304</p>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">776.000</p>
-                                        </div>
-                                    </div>
+            </div>
+            {/* Ventas por Tienda */}
+            <div className="col-span-4 col-start-5 row-start-2 row-span-4">
+              <Card className="dark:bg-gray-800 border-0 shadow-lg">
+                <CardContent className="space-y-6">
+                    <div className="pt-4">
+                        <h4 className="text-sm font-medium mb-3 dark:text-white">Ventas por Tienda</h4>
+                        <div className="space-y-2">
+                            {tiendasActuales.map((tienda, index) => {
+                            const colores = ['#ef4444', '#22c55e', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899']
+                            return (
+                                <div 
+                                key={index}
+                                className="py-2 px-16 rounded text-white text-center text-sm font-medium"
+                                style={{ backgroundColor: colores[index] }}
+                                >
+                                {tienda.nombre} → {tienda.ventas.toLocaleString()}
                                 </div>
-                            </div>
+                            )
+                            })}
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-transparent border-0">
-                    <div  className="absolute">
-                        <Card className="dark:bg-gray-800 border-0 shadow-lg">
-                        <CardContent className="space-y-6">
-                            {/* Ventas por Tienda */}
-                            <div className="pt-4">
-                                <h4 className="text-sm font-medium mb-3 dark:text-white">Ventas por Tienda</h4>
-                                <div className="space-y-2">
-                                    {tiendasActuales.map((tienda, index) => {
-                                    const colores = ['#ef4444', '#22c55e', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899']
-                                    return (
-                                        <div 
-                                        key={index}
-                                        className="py-2 px-16 rounded text-white text-center text-sm font-medium"
-                                        style={{ backgroundColor: colores[index] }}
-                                        >
-                                        {tienda.nombre} → {tienda.ventas.toLocaleString()}
-                                        </div>
-                                    )
-                                    })}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
                     </div>
-                    <div className="absolute right-0">
-                        <Card className="dark:bg-gray-800 border-0 shadow-lg">
-                            {/* Ranking Ventas Canal Web */}
-                            <CardHeader>
-                                <CardTitle className="text-sm dark:text-white">
-                                Ranking Ventas Canal Web 5%
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                {datosRankingWeb.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                    <span className="text-xs min-w-[70px] text-gray-600 dark:text-gray-400">
-                                        {item.categoria}
-                                    </span>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                        <div className="flex-1 bg-orange-400 h-4 w-72 rounded-sm"></div>
-                                        <div 
-                                            className="bg-teal-600 h-4 rounded-sm text-white text-xs px-2 flex items-center justify-center font-medium min-w-[40px]"
-                                        >
-                                            {item.valor} mil
-                                        </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                                ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </Card>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Ventas Totales vs Objetivos */}
+            <div className="col-span-4 col-start-9 row-start-2 row-span-4">
+              <Card className="dark:bg-gray-800  border-0 shadow-lg">
+                  <CardHeader>
+                      <CardTitle className="text-sm my-2 dark:text-white">Ventas Totales vs Objetivos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="space-y-4">
+                          <div className="text-center">
+                              <div className="relative w-52 h-52 mx-auto">
+                                  <svg className="w-full h-full transform -rotate-90">
+                                      <circle
+                                          cx="104"
+                                          cy="104"
+                                          r="90"
+                                          stroke="#e5e7eb"
+                                          strokeWidth="12"
+                                          fill="none"
+                                      />
+                                      <circle
+                                          cx="104"
+                                          cy="104"
+                                          r="90"
+                                          stroke="#ef4444"
+                                          strokeWidth="12"
+                                          fill="none"
+                                          strokeDasharray={`${2 * Math.PI * 90 * 0.75} ${2 * Math.PI * 90}`}
+                                          strokeLinecap="round"
+                                      />
+                                  </svg>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="text-center">
+                                          <p className="text-xl font-bold dark:text-white text-gray-900">717.304</p>
+                                          <p className="text-xs text-gray-600 dark:text-gray-400">776.000</p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </CardContent>
+              </Card>
             </div>
           </div>
         </div>
