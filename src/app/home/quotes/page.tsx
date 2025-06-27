@@ -12,6 +12,8 @@ import { format } from "date-fns"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
+import { pdf } from "@react-pdf/renderer"
+import { QuoteDocument } from "@/components/pdf/QuoteDocument"
 
 export default function QuotesPage() {
     const [discounts, setDiscounts] = useState<
@@ -96,6 +98,31 @@ export default function QuotesPage() {
 
     const iva = subtotal * 0.19
     const montoTotal = subtotal + iva
+
+    const handleGenerateQuotePdf = async () => {
+        if (selectedProducts.length === 0) {
+            alert("Debe agregar al menos un producto.")
+            return
+        }
+
+        const blob = await pdf(
+            <QuoteDocument
+                selectedProducts={selectedProducts}
+                discounts={discounts}
+                vencimientoCantidad={vencimientoCantidad}
+                vencimientoPeriodo={vencimientoPeriodo}
+                montoNeto={montoNeto}
+                totalDescuentos={totalDescuentos}
+                totalCargos={totalCargos}
+                subtotal={subtotal}
+                iva={iva}
+                montoTotal={montoTotal}
+            />
+        ).toBlob()
+
+        const url = URL.createObjectURL(blob)
+        window.open(url)
+    }
 
     return (
         <div className="container mx-auto py-8 space-y-6">
@@ -349,19 +376,19 @@ export default function QuotesPage() {
                                 <p>
                                     <strong>Banco Chile</strong>
                                 </p>
-                                <p>Cta Cte: 144 032</p>
-                                <p>Razón Social</p>
-                                <p>RUT</p>
-                                <p>Email</p>
+                                <p>Cta Cte: 144 032 6403</p>
+                                <p>Razón Social: D3SI SpA</p>
+                                <p>RUT: 77.058.146-K</p>
+                                <p>alejandro.contreras@d3si.cl</p>
                             </div>
                             <div>
                                 <p>
                                     <strong>Banco Estado</strong>
                                 </p>
-                                <p>Cta Cte: 629</p>
-                                <p>Razón Social</p>
-                                <p>RUT</p>
-                                <p>Email</p>
+                                <p>Cta Cte: 629 0034 9276</p>
+                                <p>Razón Social: D3SI SpA</p>
+                                <p>RUT: 77.058.146-K</p>
+                                <p>alejandro.contreras@d3si.cl</p>
                             </div>
                         </div>
                     </CardContent>
@@ -395,9 +422,9 @@ export default function QuotesPage() {
                 </Card>
             </div>
 
-            {/* Botón imprimir */}
+            {/* Botón Gener Cotizacion */}
             <div className="text-right">
-                <Button>Imprimir</Button>
+                <Button onClick={handleGenerateQuotePdf}>Generar Cotización</Button>
             </div>
         </div>
     )
