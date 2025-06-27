@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +9,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { UploadIcon, PlusIcon, PercentIcon, Trash2Icon } from "lucide-react"
 import { format } from "date-fns"
+import { getAllProducts } from "@/actions/products/getAllProducts"
+import { IProduct } from "@/interfaces/products/IProduct"
+import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
 export default function QuotesPage() {
     const [discounts, setDiscounts] = useState<
@@ -17,10 +20,42 @@ export default function QuotesPage() {
 
     const [vencimientoCantidad, setVencimientoCantidad] = useState("30")
     const [vencimientoPeriodo, setVencimientoPeriodo] = useState<"dias" | "semanas" | "meses">("dias")
-
     const [discountType, setDiscountType] = useState<"Descuento" | "Cargo">("Descuento")
     const [discountDescription, setDiscountDescription] = useState("")
     const [discountPercentage, setDiscountPercentage] = useState("")
+
+    const [products, setProducts] = useState<IProduct[]>([])
+    const [selectedProductID, setSelectedProductID] = useState<string | null>(null)
+    const [selectedProducts, setSelectedProducts] = useState<
+        {
+            product: IProduct
+            variation: IProductVariation
+            quantity: number
+        }[]
+    >([])
+
+    useEffect(() => {
+        getAllProducts().then(setProducts)
+    }, [])
+
+    const handleAddProduct = (variationID: string) => {
+        const product = products.find((p) => p.productID === selectedProductID)
+        if (!product) return
+        const variation = product.ProductVariations.find((v) => v.variationID === variationID)
+        if (!variation) return
+        setSelectedProducts([...selectedProducts, { product, variation, quantity: 1 }])
+        setSelectedProductID(null)
+    }
+
+    const handleQuantityChange = (variationID: string, quantity: number) => {
+        setSelectedProducts(
+            selectedProducts.map((sp) => (sp.variation.variationID === variationID ? { ...sp, quantity } : sp))
+        )
+    }
+
+    const handleRemoveProduct = (variationID: string) => {
+        setSelectedProducts(selectedProducts.filter((sp) => sp.variation.variationID !== variationID))
+    }
 
     const handleAddDiscount = () => {
         if (!discountDescription || !discountPercentage) return
@@ -133,11 +168,43 @@ export default function QuotesPage() {
             </div>
 
             {/* Ingresar producto */}
-            <div className="w-full border rounded-md p-4 flex items-center justify-between">
+            <div className="w-full border rounded-md p-4 flex flex-col md:flex-row gap-4 md:items-center justify-between">
                 <span className="text-sm font-semibold flex items-center gap-2">
                     <PlusIcon size={16} /> Ingrese producto
                 </span>
-                <Button variant="outline">Seleccionar Producto</Button>
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    {/* Select de producto */}
+                    <Select onValueChange={setSelectedProductID} value={selectedProductID ?? undefined}>
+                        <SelectTrigger className="w-64">
+                            <SelectValue placeholder="Seleccionar Producto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {products.map((p) => (
+                                <SelectItem key={p.productID} value={p.productID}>
+                                    {p.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Select de talla */}
+                    {selectedProductID && (
+                        <Select onValueChange={handleAddProduct}>
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Seleccionar Talla" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {products
+                                    .find((p) => p.productID === selectedProductID)
+                                    ?.ProductVariations.map((v) => (
+                                        <SelectItem key={v.variationID} value={v.variationID}>
+                                            {v.sizeNumber || "Sin talla"}
+                                        </SelectItem>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                </div>
             </div>
 
             {/* Detalle de cotización */}
@@ -147,14 +214,43 @@ export default function QuotesPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Item</TableHead>
-                            <TableHead>Modelos Disponibles</TableHead>
+                            <TableHead>Talla</TableHead>
                             <TableHead>Cantidad</TableHead>
                             <TableHead>Precio Neto Unitario</TableHead>
                             <TableHead>Subtotal Neto</TableHead>
                             <TableHead />
                         </TableRow>
                     </TableHeader>
-                    <TableBody>{/* Aquí se renderizarán los productos seleccionados */}</TableBody>
+                    <TableBody>
+                        {selectedProducts.map((sp) => (
+                            <TableRow key={sp.variation.variationID}>
+                                <TableCell>{sp.product.name}</TableCell>
+                                <TableCell>{sp.variation.sizeNumber || "N/A"}</TableCell>
+                                <TableCell>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        value={sp.quantity}
+                                        onChange={(e) =>
+                                            handleQuantityChange(sp.variation.variationID, Number(e.target.value))
+                                        }
+                                        className="w-20"
+                                    />
+                                </TableCell>
+                                <TableCell>${sp.variation.priceList}</TableCell>
+                                <TableCell>${(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}</TableCell>
+                                <TableCell>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleRemoveProduct(sp.variation.variationID)}
+                                    >
+                                        <Trash2Icon size={16} />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
                 </Table>
             </div>
 
