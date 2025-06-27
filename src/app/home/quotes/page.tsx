@@ -82,6 +82,21 @@ export default function QuotesPage() {
         meses: Number(vencimientoCantidad) === 1 ? "mes" : "meses",
     }
 
+    const montoNeto = selectedProducts.reduce((acc, sp) => acc + sp.quantity * Number(sp.variation.priceList || 0), 0)
+
+    const totalDescuentos = discounts
+        .filter((d) => d.type === "Descuento")
+        .reduce((acc, d) => acc + montoNeto * (d.percentage / 100), 0)
+
+    const totalCargos = discounts
+        .filter((d) => d.type === "Cargo")
+        .reduce((acc, d) => acc + montoNeto * (d.percentage / 100), 0)
+
+    const subtotal = montoNeto - totalDescuentos + totalCargos
+
+    const iva = subtotal * 0.19
+    const montoTotal = subtotal + iva
+
     return (
         <div className="container mx-auto py-8 space-y-6">
             <div className="flex justify-between items-start gap-8">
@@ -356,11 +371,25 @@ export default function QuotesPage() {
                     <CardContent className="space-y-2 py-4">
                         <h4 className="font-semibold">Resumen</h4>
                         <div className="space-y-1 text-sm">
-                            <p>Monto Neto: $0</p>
-                            <p>Descuentos: $0</p>
-                            <p>Cargos: $0</p>
-                            <p>Subtotal: $0</p>
-                            <p>IVA (19%): $0</p>
+                            <p>
+                                Monto Neto: <span className="font-medium">${montoNeto.toFixed(2)}</span>
+                            </p>
+                            <p>
+                                Descuentos: <span className="font-medium">-${totalDescuentos.toFixed(2)}</span>
+                            </p>
+                            <p>
+                                Cargos: <span className="font-medium">+${totalCargos.toFixed(2)}</span>
+                            </p>
+                            <p>
+                                Subtotal: <span className="font-medium">${subtotal.toFixed(2)}</span>
+                            </p>
+                            <p>
+                                IVA (19%): <span className="font-medium">${iva.toFixed(2)}</span>
+                            </p>
+                            <hr />
+                            <p className="font-semibold">
+                                Monto Total: <span className="font-bold">${montoTotal.toFixed(2)}</span>
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
