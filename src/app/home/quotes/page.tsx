@@ -18,18 +18,23 @@ export default function QuotesPage() {
     const [vencimientoCantidad, setVencimientoCantidad] = useState("30")
     const [vencimientoPeriodo, setVencimientoPeriodo] = useState<"dias" | "semanas" | "meses">("dias")
 
+    const [discountType, setDiscountType] = useState<"Descuento" | "Cargo">("Descuento")
+    const [discountDescription, setDiscountDescription] = useState("")
+    const [discountPercentage, setDiscountPercentage] = useState("")
+
     const handleAddDiscount = () => {
-        // lógica de agregar descuento
-        // Por ahora solo agregamos un ejemplo fijo
+        if (!discountDescription || !discountPercentage) return
         setDiscounts([
             ...discounts,
             {
                 id: Date.now(),
-                type: "Descuento",
-                description: "Descuento especial",
-                percentage: 5,
+                type: discountType,
+                description: discountDescription,
+                percentage: Number(discountPercentage),
             },
         ])
+        setDiscountDescription("")
+        setDiscountPercentage("")
     }
 
     const handleRemoveDiscount = (id: number) => {
@@ -157,18 +162,34 @@ export default function QuotesPage() {
             <div className="space-y-4">
                 <h3 className="font-semibold">Descuentos / Cargos</h3>
                 <div className="flex flex-wrap gap-2">
-                    <Input placeholder="Descripción Ej: descuento por volumen" className="flex-1 min-w-[180px]" />
-                    <Select>
+                    <Input
+                        placeholder="Descripción Ej: descuento por volumen"
+                        className="flex-1 min-w-[180px]"
+                        value={discountDescription}
+                        onChange={(e) => setDiscountDescription(e.target.value)}
+                    />
+                    <Select
+                        value={discountType}
+                        onValueChange={(value) => setDiscountType(value === "Descuento" ? "Descuento" : "Cargo")}
+                    >
                         <SelectTrigger className="w-[150px]">
                             <SelectValue placeholder="Descuento/Cargo" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="descuento">Descuento</SelectItem>
-                            <SelectItem value="cargo">Cargo</SelectItem>
+                            <SelectItem value="Descuento">Descuento</SelectItem>
+                            <SelectItem value="Cargo">Cargo</SelectItem>
                         </SelectContent>
                     </Select>
                     <div className="flex items-center gap-1">
-                        <Input placeholder="0-100" className="w-[80px]" />
+                        <Input
+                            placeholder="0-100"
+                            className="w-[80px]"
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={discountPercentage}
+                            onChange={(e) => setDiscountPercentage(e.target.value)}
+                        />
                         <PercentIcon size={16} className="text-muted-foreground" />
                     </div>
                     <Button onClick={handleAddDiscount}>Agregar</Button>
