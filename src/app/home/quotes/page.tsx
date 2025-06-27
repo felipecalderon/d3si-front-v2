@@ -12,8 +12,9 @@ import { format } from "date-fns"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
-import { pdf } from "@react-pdf/renderer"
+//import { PDFDownloadLink } from "@react-pdf/renderer"
 import { QuoteDocument } from "@/components/pdf/QuoteDocument"
+import { pdf } from "@react-pdf/renderer"
 
 export default function QuotesPage() {
     const [discounts, setDiscounts] = useState<
@@ -25,7 +26,6 @@ export default function QuotesPage() {
     const [discountType, setDiscountType] = useState<"Descuento" | "Cargo">("Descuento")
     const [discountDescription, setDiscountDescription] = useState("")
     const [discountPercentage, setDiscountPercentage] = useState("")
-
     const [products, setProducts] = useState<IProduct[]>([])
     const [selectedProductID, setSelectedProductID] = useState<string | null>(null)
     const [selectedProducts, setSelectedProducts] = useState<
@@ -99,12 +99,14 @@ export default function QuotesPage() {
     const iva = subtotal * 0.19
     const montoTotal = subtotal + iva
 
-    const handleGenerateQuotePdf = async () => {
-        if (selectedProducts.length === 0) {
-            alert("Debe agregar al menos un producto.")
-            return
-        }
+    const [rut, setRut] = useState("")
+    const [razonSocial, setRazonSocial] = useState("")
+    const [giro, setGiro] = useState("")
+    const [comuna, setComuna] = useState("")
+    const [email, setEmail] = useState("")
+    const [observaciones, setObservaciones] = useState("")
 
+    const handleGeneratePDF = async () => {
         const blob = await pdf(
             <QuoteDocument
                 selectedProducts={selectedProducts}
@@ -117,11 +119,24 @@ export default function QuotesPage() {
                 subtotal={subtotal}
                 iva={iva}
                 montoTotal={montoTotal}
+                nroCotizacion={5100}
+                clientData={{
+                    rut,
+                    razonsocial: razonSocial,
+                    giro,
+                    comuna,
+                    email,
+                }}
+                observaciones={observaciones}
             />
         ).toBlob()
 
         const url = URL.createObjectURL(blob)
-        window.open(url)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `Cotizacion_${5100}.pdf`
+        link.click()
+        URL.revokeObjectURL(url)
     }
 
     return (
@@ -192,11 +207,15 @@ export default function QuotesPage() {
             {/* Datos del cliente */}
             <Card>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-                    <Input placeholder="RUT" />
-                    <Input placeholder="Razón Social" />
-                    <Input placeholder="Giro" />
-                    <Input placeholder="Comuna" />
-                    <Input placeholder="Email" />
+                    <Input placeholder="RUT" value={rut} onChange={(e) => setRut(e.target.value)} />
+                    <Input
+                        placeholder="Razón Social"
+                        value={razonSocial}
+                        onChange={(e) => setRazonSocial(e.target.value)}
+                    />
+                    <Input placeholder="Giro" value={giro} onChange={(e) => setGiro(e.target.value)} />
+                    <Input placeholder="Comuna" value={comuna} onChange={(e) => setComuna(e.target.value)} />
+                    <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </CardContent>
             </Card>
 
@@ -362,7 +381,11 @@ export default function QuotesPage() {
             {/* Otras observaciones */}
             <div>
                 <label className="text-sm font-medium">Otras Observaciones</label>
-                <Textarea placeholder="Observaciones adicionales" />
+                <Textarea
+                    placeholder="Observaciones adicionales"
+                    value={observaciones}
+                    onChange={(e) => setObservaciones(e.target.value)}
+                />
             </div>
 
             {/* Totales y datos bancarios */}
@@ -424,7 +447,7 @@ export default function QuotesPage() {
 
             {/* Botón Gener Cotizacion */}
             <div className="text-right">
-                <Button onClick={handleGenerateQuotePdf}>Generar Cotización</Button>
+                <Button onClick={handleGeneratePDF}>Generar Cotización</Button>
             </div>
         </div>
     )
