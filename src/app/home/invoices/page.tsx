@@ -4,14 +4,12 @@ import React, { useEffect, useState } from "react"
 import { getAllOrders } from "@/actions/orders/getAllOrders"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import { IStore } from "@/interfaces/stores/IStore"
-//import { IOrder } from "@/interfaces/orders/IOrder"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import OrderDetailModal from "@/components/Modals/OrderDetailModal"
-
-// Importa la interfaz extendida localmente
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
+import PrintOrderView from "@/components/Print/PrintOrderView"
 
 export default function InvoicesPage() {
     const [orders, setOrders] = useState<IOrderWithStore[]>([])
@@ -19,6 +17,7 @@ export default function InvoicesPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [printOrder, setPrintOrder] = useState<IOrderWithStore | null>(null)
 
     const handleView = (order: IOrderWithStore) => {
         setSelectedOrder(order)
@@ -42,6 +41,14 @@ export default function InvoicesPage() {
     const handleDelete = async (orderID: string) => {
         await deleteOrder(orderID)
         setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
+    }
+
+    const handlePrint = (order: IOrderWithStore) => {
+        setPrintOrder(order)
+        setTimeout(() => {
+            window.print()
+            setPrintOrder(null) // Limpia después de imprimir
+        }, 100)
     }
 
     return (
@@ -76,7 +83,6 @@ export default function InvoicesPage() {
                                         <TableCell>{i + 1}</TableCell>
                                         <TableCell className="font-medium">{order.orderID.slice(0, 8)}</TableCell>
                                         <TableCell>{fecha}</TableCell>
-                                        {/* Ahora usamos el store desde order.Store si existe */}
                                         <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
                                         <TableCell>${total}</TableCell>
                                         <TableCell>
@@ -94,7 +100,10 @@ export default function InvoicesPage() {
                                             <Button variant="outline" size="sm" onClick={() => handleView(order)}>
                                                 Ver
                                             </Button>
-                                            <Button size="sm">Imprimir</Button>
+                                            <Button size="sm" onClick={() => handlePrint(order)}>
+                                                Imprimir
+                                            </Button>
+
                                             <Button
                                                 size="sm"
                                                 variant="destructive"
@@ -123,6 +132,12 @@ export default function InvoicesPage() {
                 }}
                 order={selectedOrder}
             />
+
+            {printOrder && (
+                <div id="print-area">
+                    <PrintOrderView order={printOrder} />
+                </div>
+            )}
         </main>
     )
 }
