@@ -7,6 +7,8 @@ import Link from "next/link"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { IResume } from "@/interfaces/sales/ISalesResume"
+import { getAllStores } from "@/actions/stores/getAllStores"
+import { useEffect, useState } from "react"
 
 const GaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), {
     ssr: false,
@@ -18,6 +20,21 @@ interface Props {
 }
 
 export default function HomeContentClient({ sales, resume }: Props) {
+    const [stores, setStores] = useState<{ storeID: string; name: string }[]>([])
+
+    useEffect(() => {
+        const fetchStores = async () => {
+            try {
+                const data = await getAllStores()
+                setStores(data)
+            } catch (error) {
+                console.error("Error al cargar tiendas:", error)
+            }
+        }
+
+        fetchStores()
+    }, [])
+
     return (
         <>
             <div className="grid grid-cols-3 gap-6 items-start">
@@ -118,6 +135,14 @@ export default function HomeContentClient({ sales, resume }: Props) {
                         <option>2025</option>
                         <option>2024</option>
                         <option>2023</option>
+                    </select>
+                    <select title="tienda" className="px-4 py-2 dark:bg-gray-800 bg-white rounded shadow border">
+                        <option>Filtrar por tienda</option>
+                        {stores.map((store) => (
+                            <option key={store.storeID} value={store.storeID}>
+                                {store.name}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <Link href="/home/createsale">
