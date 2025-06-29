@@ -49,15 +49,21 @@ export default function HomeContentClient({ sales, resume }: Props) {
                     <StatCard
                         icon={<DollarSign />}
                         label="Ventas del día"
-                        value={`$${resume.sales.today.amount.toLocaleString("es-CL")}`}
+                        value={`${resume.sales.today.count} productos - $${resume.sales.today.amount.toLocaleString(
+                            "es-CL"
+                        )}`}
                         color="text-green-600"
                     />
+
                     <StatCard
                         icon={<DollarSign />}
                         label="Ventas de ayer"
-                        value={`$${resume.sales.yesterday.amount.toLocaleString("es-CL")}`}
+                        value={`${
+                            resume.sales.yesterday.count
+                        } productos - $${resume.sales.yesterday.amount.toLocaleString("es-CL")}`}
                         color="text-yellow-600"
                     />
+
                     <StatCard
                         icon={<DollarSign />}
                         label="Ventas Semana móvil"
