@@ -197,7 +197,7 @@ export default function InventoryPage() {
         <main className="p-6 flex-1 flex flex-col h-screen">
             {/* Header Section */}
             <div className="flex flex-col gap-4 mb-6">
-                <div className="flex items-center gap-4">
+                <div className="flex lg:flex-row flex-col items-center gap-4">
                     <Input
                         type="text"
                         placeholder="Buscar producto aquí..."
@@ -209,7 +209,7 @@ export default function InventoryPage() {
                         <InventoryActions products={rawProducts} />
                     </div>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                         Hay un total de{" "}
                         <strong className="text-blue-600 dark:text-blue-400">{totalStockCentral}</strong> productos en
@@ -258,7 +258,7 @@ export default function InventoryPage() {
                                                         isFirst
                                                             ? "border-t-2 dark:border-t-gray-700 border-t-blue-300"
                                                             : "border-t"
-                                                    } text-sm border-gray-200 dark:text-gray-300 text-gray-800 h-16`}
+                                                    } text-sm border-transparent dark:text-gray-300 text-gray-800 h-16`}
                                                 >
                                                     {isFirst && (
                                                         <TableCell className="py-2 px-3 text-left w-1/4">
@@ -448,7 +448,7 @@ export default function InventoryPage() {
                                                 variant={currentPage === page ? "default" : "outline"}
                                                 size="sm"
                                                 onClick={() => setCurrentPage(page as number)}
-                                                className="h-8 w-8"
+                                                className={currentPage === page ? "h-8 w-8 bg-slate-300" : "h-8 w-8"}
                                             >
                                                 {page}
                                             </Button>

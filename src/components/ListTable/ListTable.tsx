@@ -80,16 +80,16 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
         </p>
       </div>
 
-      <div className="flex justify-center gap-0">
+      <div className="flex lg:flex-row flex-col justify-center gap-0">
         <Button
           onClick={() => handleViewChange('users')}
-          className="bg-blue-600 hover:bg-blue-700  text-white px-6 py-3 rounded-l-md rounded-r-none font-medium"
+          className="bg-blue-600 hover:bg-blue-700  text-white px-6 py-3 rounded-l-md lg:rounded-r-none font-medium"
         >
           Gestionar Usuarios
         </Button>
         <Button
           onClick={() => handleViewChange('stores')}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-r-md rounded-l-none font-medium"
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-r-md lg:mt-0 mt-2 lg:rounded-l-none font-medium"
         >
           Gestionar Tiendas
         </Button>
@@ -110,10 +110,10 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
 
     return (
       <div>
-        <div className="flex justify-center gap-0 mb-6">
+        <div className="flex lg:flex-row flex-col justify-center gap-0 mb-6">
           <Button
             onClick={() => handleViewChange('users')}
-            className={`px-6 py-3 rounded-l-md rounded-r-none font-medium ${
+            className={`px-6 py-3 rounded-l-md lg:rounded-r-none font-medium ${
               currentView === 'users'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -123,7 +123,7 @@ export default function ListTable({ defaultView = 'initial', onViewChange }: Lis
           </Button>
           <Button
             onClick={() => handleViewChange('stores')}
-            className={`px-6 py-3 rounded-r-md rounded-l-none font-medium ${
+            className={`px-6 py-3 rounded-r-md lg:mt-0 mt-2 lg:rounded-l-none font-medium ${
               currentView === 'stores'
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
