@@ -5,9 +5,21 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { UploadIcon, PlusIcon, PercentIcon, Trash2Icon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { 
+    UploadIcon, 
+    PlusIcon, 
+    PercentIcon, 
+    Trash2Icon, 
+    FileTextIcon,
+    BuildingIcon,
+    MailIcon,
+    CalendarIcon,
+    DollarSignIcon
+} from "lucide-react"
 import { format } from "date-fns"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
@@ -138,317 +150,487 @@ export default function QuotesPage() {
         link.click()
         URL.revokeObjectURL(url)
     }
-
     return (
         <div className="container mx-auto py-8 space-y-6">
-            <div className="flex justify-between items-start gap-8">
-                <div className="flex-1">
-                    <h2 className="text-xl font-semibold mr-3">
-                        VENTA AL POR MAYOR DE VESTUARIO, CALZADO, TECNOLOGÍA Y ACCESORIOS
-                    </h2>
-                    <p>ALMARGO 593, PURÉN, LA ARAUCANÍA</p>
-                    <p>alejandro.contreras@d3si.cl</p>
-                </div>
-                <div className="w-full max-w-xs">
-                    <div className="border border-[#002147] rounded-md p-4 space-y-1">
-                        <p>
-                            <strong>R.U.T.:</strong> 77.058.146-K
-                        </p>
-                        <p>
-                            <strong>COTIZACIÓN ELECTRÓNICA</strong>
-                        </p>
-                        <p>
-                            <strong>N° 5100</strong>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <div className="min-h-screen ">
+                <div className="container mx-auto py-8 px-4 space-y-8">
+                    {/* Header Card */}
+                    <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardContent className="p-8">
+                            <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
+                                <div className="flex-1 space-y-3">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <BuildingIcon className="h-8 w-8 text-blue-600" />
+                                        <div>
+                                            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                                                D3SI SpA
+                                            </h1>
+                                            <p className="text-slate-600 dark:text-slate-300">
+                                                VENTA AL POR MAYOR DE VESTUARIO, CALZADO, TECNOLOGÍA Y ACCESORIOS
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                        <p className="flex items-center gap-2">
+                                            <BuildingIcon className="h-4 w-4" />
+                                            ALMARGO 593, PURÉN, LA ARAUCANÍA
+                                        </p>
+                                        <p className="flex items-center gap-2">
+                                            <MailIcon className="h-4 w-4" />
+                                            alejandro.contreras@d3si.cl
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="w-full lg:w-auto">
+                                    <Card className="border-2 border-blue-600 bg-blue-50 dark:bg-blue-950/50">
+                                        <CardContent className="p-6 text-center space-y-2">
+                                            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                R.U.T.: 77.058.146-K
+                                            </Badge>
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-slate-800 dark:text-white">COTIZACIÓN ELECTRÓNICA</p>
+                                                <p className="text-2xl font-bold text-blue-600">N° 5100</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
 
-            <div className="flex justify-between">
-                <div>
-                    <p>
-                        <span className="font-semibold">Emisión:</span> {format(new Date(), "dd/MM/yyyy")}
-                    </p>
-                    <p>
-                        <span className="font-semibold">Vencimiento:</span> {vencimientoCantidad}{" "}
-                        {periodoLabel[vencimientoPeriodo]}
-                    </p>
-                </div>
-                <div className="flex items-start gap-4">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium">Vencimiento</label>
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="Cantidad"
-                                className="w-20"
-                                type="number"
-                                min={1}
-                                value={vencimientoCantidad}
-                                onChange={(e) => setVencimientoCantidad(e.target.value)}
-                            />
-                            <Select
-                                value={vencimientoPeriodo}
-                                onValueChange={(value) => setVencimientoPeriodo(value as "dias" | "semanas" | "meses")}
-                            >
-                                <SelectTrigger className="w-[120px]">
-                                    <SelectValue placeholder="Periodo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="dias">Días</SelectItem>
-                                    <SelectItem value="semanas">Semanas</SelectItem>
-                                    <SelectItem value="meses">Meses</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <Separator className="my-6" />
 
-            {/* Datos del cliente */}
-            <Card>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-                    <Input placeholder="RUT" value={rut} onChange={(e) => setRut(e.target.value)} />
-                    <Input
-                        placeholder="Razón Social"
-                        value={razonSocial}
-                        onChange={(e) => setRazonSocial(e.target.value)}
-                    />
-                    <Input placeholder="Giro" value={giro} onChange={(e) => setGiro(e.target.value)} />
-                    <Input placeholder="Comuna" value={comuna} onChange={(e) => setComuna(e.target.value)} />
-                    <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </CardContent>
-            </Card>
+                            {/* Fechas y Vencimiento */}
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                        <CalendarIcon className="h-4 w-4" />
+                                        <span className="font-medium">Emisión:</span>
+                                        <span>{format(new Date(), "dd/MM/yyyy")}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                        <CalendarIcon className="h-4 w-4" />
+                                        <span className="font-medium">Vencimiento:</span>
+                                        <span>{vencimientoCantidad} {periodoLabel[vencimientoPeriodo]}</span>
+                                    </div>
+                                </div>
+                                
+                                <Card className="w-full sm:w-auto bg-slate-50 dark:bg-slate-700">
+                                    <CardContent className="p-4">
+                                        <div className="space-y-3">
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                Configurar Vencimiento
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    placeholder="Cantidad"
+                                                    className="w-20"
+                                                    type="number"
+                                                    min={1}
+                                                    value={vencimientoCantidad}
+                                                    onChange={(e) => setVencimientoCantidad(e.target.value)}
+                                                />
+                                                <Select
+                                                    value={vencimientoPeriodo}
+                                                    onValueChange={(value) => setVencimientoPeriodo(value as "dias" | "semanas" | "meses")}
+                                                >
+                                                    <SelectTrigger className="w-[120px]">
+                                                        <SelectValue placeholder="Periodo" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="dias">Días</SelectItem>
+                                                        <SelectItem value="semanas">Semanas</SelectItem>
+                                                        <SelectItem value="meses">Meses</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-            {/* Subir imagen */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Subir Imagen</label>
-                <Button variant="outline" className="flex gap-2">
-                    <UploadIcon size={16} />
-                    Elegir Archivo
-                </Button>
-            </div>
+                    {/* Datos del Cliente */}
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">
+                                <FileTextIcon className="h-5 w-5 text-blue-600" />
+                                Datos del Cliente
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Input 
+                                    placeholder="RUT" 
+                                    value={rut} 
+                                    onChange={(e) => setRut(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
+                                <Input
+                                    placeholder="Razón Social"
+                                    value={razonSocial}
+                                    onChange={(e) => setRazonSocial(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
+                                <Input 
+                                    placeholder="Giro" 
+                                    value={giro} 
+                                    onChange={(e) => setGiro(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
+                                <Input 
+                                    placeholder="Comuna" 
+                                    value={comuna} 
+                                    onChange={(e) => setComuna(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
+                                <Input 
+                                    placeholder="Email" 
+                                    value={email} 
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-            {/* Ingresar producto */}
-            <div className="w-full border rounded-md p-4 flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                <span className="text-sm font-semibold flex items-center gap-2">
-                    <PlusIcon size={16} /> Ingrese producto
-                </span>
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                    {/* Select de producto */}
-                    <Select onValueChange={setSelectedProductID} value={selectedProductID ?? undefined}>
-                        <SelectTrigger className="w-64">
-                            <SelectValue placeholder="Seleccionar Producto" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {products.map((p) => (
-                                <SelectItem key={p.productID} value={p.productID}>
-                                    {p.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* Subir Imagen */}
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardContent className="p-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Subir Imagen del Producto
+                                </label>
+                                <Button variant="outline" className="flex gap-2 hover:bg-blue-50 dark:hover:bg-blue-950">
+                                    <UploadIcon size={16} />
+                                    Elegir Archivo
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Select de talla */}
-                    {selectedProductID && (
-                        <Select onValueChange={handleAddProduct}>
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Seleccionar Talla" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {products
-                                    .find((p) => p.productID === selectedProductID)
-                                    ?.ProductVariations.map((v) => (
-                                        <SelectItem key={v.variationID} value={v.variationID}>
-                                            {v.sizeNumber || "Sin talla"}
-                                        </SelectItem>
-                                    ))}
-                            </SelectContent>
-                        </Select>
+                    {/* Agregar Productos */}
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">
+                                <PlusIcon className="h-5 w-5 text-green-600" />
+                                Agregar Productos
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col lg:flex-row gap-4 items-end">
+                                <div className="flex-1 space-y-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Seleccionar Producto
+                                    </label>
+                                    <Select onValueChange={setSelectedProductID} value={selectedProductID ?? undefined}>
+                                        <SelectTrigger className="bg-white dark:bg-slate-700">
+                                            <SelectValue placeholder="Seleccionar Producto" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {products.map((p) => (
+                                                <SelectItem key={p.productID} value={p.productID}>
+                                                    {p.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {selectedProductID && (
+                                    <div className="flex-1 space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                            Seleccionar Talla
+                                        </label>
+                                        <Select onValueChange={handleAddProduct}>
+                                            <SelectTrigger className="bg-white dark:bg-slate-700">
+                                                <SelectValue placeholder="Seleccionar Talla" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {products
+                                                    .find((p) => p.productID === selectedProductID)
+                                                    ?.ProductVariations.map((v) => (
+                                                        <SelectItem key={v.variationID} value={v.variationID}>
+                                                            {v.sizeNumber || "Sin talla"}
+                                                        </SelectItem>
+                                                    ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Detalle de Cotización */}
+                    {selectedProducts.length > 0 && (
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                            <CardHeader>
+                                <CardTitle className="text-slate-800 dark:text-white">Detalle de Cotización</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-50 dark:bg-slate-700">
+                                                <TableHead className="font-semibold">Item</TableHead>
+                                                <TableHead className="font-semibold">Talla</TableHead>
+                                                <TableHead className="font-semibold">Cantidad</TableHead>
+                                                <TableHead className="font-semibold">Precio Neto Unitario</TableHead>
+                                                <TableHead className="font-semibold">Subtotal Neto</TableHead>
+                                                <TableHead className="font-semibold"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {selectedProducts.map((sp) => (
+                                                <TableRow key={sp.variation.variationID} className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                                                    <TableCell className="font-medium">{sp.product.name}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline">{sp.variation.sizeNumber || "N/A"}</Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            type="number"
+                                                            min="1"
+                                                            value={sp.quantity}
+                                                            onChange={(e) =>
+                                                                handleQuantityChange(sp.variation.variationID, Number(e.target.value))
+                                                            }
+                                                            className="w-20 bg-white dark:bg-slate-700"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="flex items-center gap-1">
+                                                        <DollarSignIcon className="h-4 w-4 text-green-600" />
+                                                        {sp.variation.priceList}
+                                                    </TableCell>
+                                                    <TableCell className="font-semibold text-green-600">
+                                                        ${(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleRemoveProduct(sp.variation.variationID)}
+                                                            className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                                                        >
+                                                            <Trash2Icon size={16} />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
-                </div>
-            </div>
 
-            {/* Detalle de cotización */}
-            <div className="space-y-2">
-                <h3 className="font-semibold">Detalle de Cotización</h3>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Talla</TableHead>
-                            <TableHead>Cantidad</TableHead>
-                            <TableHead>Precio Neto Unitario</TableHead>
-                            <TableHead>Subtotal Neto</TableHead>
-                            <TableHead />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {selectedProducts.map((sp) => (
-                            <TableRow key={sp.variation.variationID}>
-                                <TableCell>{sp.product.name}</TableCell>
-                                <TableCell>{sp.variation.sizeNumber || "N/A"}</TableCell>
-                                <TableCell>
+                    {/* Descuentos / Cargos */}
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">
+                                <PercentIcon className="h-5 w-5 text-orange-600" />
+                                Descuentos / Cargos
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                                <div className="lg:col-span-2 space-y-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Descripción
+                                    </label>
                                     <Input
-                                        type="number"
-                                        min="1"
-                                        value={sp.quantity}
-                                        onChange={(e) =>
-                                            handleQuantityChange(sp.variation.variationID, Number(e.target.value))
-                                        }
-                                        className="w-20"
+                                        placeholder="Ej: descuento por volumen"
+                                        value={discountDescription}
+                                        onChange={(e) => setDiscountDescription(e.target.value)}
+                                        className="bg-white dark:bg-slate-700"
                                     />
-                                </TableCell>
-                                <TableCell>${sp.variation.priceList}</TableCell>
-                                <TableCell>${(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}</TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleRemoveProduct(sp.variation.variationID)}
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Tipo
+                                    </label>
+                                    <Select
+                                        value={discountType}
+                                        onValueChange={(value) => setDiscountType(value === "Descuento" ? "Descuento" : "Cargo")}
                                     >
-                                        <Trash2Icon size={16} />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+                                        <SelectTrigger className="bg-white dark:bg-slate-700">
+                                            <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Descuento">Descuento</SelectItem>
+                                            <SelectItem value="Cargo">Cargo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Porcentaje
+                                    </label>
+                                    <div className="flex items-center gap-1">
+                                        <Input
+                                            placeholder="0-100"
+                                            className="bg-white dark:bg-slate-700"
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            value={discountPercentage}
+                                            onChange={(e) => setDiscountPercentage(e.target.value)}
+                                        />
+                                        <PercentIcon size={16} className="text-muted-foreground" />
+                                    </div>
+                                </div>
+                                <Button 
+                                    onClick={handleAddDiscount}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                    Agregar
+                                </Button>
+                            </div>
 
-            {/* Descuentos / Cargos */}
-            <div className="space-y-4">
-                <h3 className="font-semibold">Descuentos / Cargos</h3>
-                <div className="flex flex-wrap gap-2">
-                    <Input
-                        placeholder="Descripción Ej: descuento por volumen"
-                        className="flex-1 min-w-[180px]"
-                        value={discountDescription}
-                        onChange={(e) => setDiscountDescription(e.target.value)}
-                    />
-                    <Select
-                        value={discountType}
-                        onValueChange={(value) => setDiscountType(value === "Descuento" ? "Descuento" : "Cargo")}
-                    >
-                        <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder="Descuento/Cargo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Descuento">Descuento</SelectItem>
-                            <SelectItem value="Cargo">Cargo</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="flex items-center gap-1">
-                        <Input
-                            placeholder="0-100"
-                            className="w-[80px]"
-                            type="number"
-                            min={0}
-                            max={100}
-                            value={discountPercentage}
-                            onChange={(e) => setDiscountPercentage(e.target.value)}
-                        />
-                        <PercentIcon size={16} className="text-muted-foreground" />
+                            {discounts.length > 0 && (
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-50 dark:bg-slate-700">
+                                                <TableHead className="font-semibold">Tipo</TableHead>
+                                                <TableHead className="font-semibold">Descripción</TableHead>
+                                                <TableHead className="font-semibold">Porcentaje</TableHead>
+                                                <TableHead className="font-semibold"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {discounts.map((d) => (
+                                                <TableRow key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                                                    <TableCell>
+                                                        <Badge 
+                                                            variant={d.type === "Descuento" ? "default" : "destructive"}
+                                                            className={d.type === "Descuento" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                                                        >
+                                                            {d.type}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{d.description}</TableCell>
+                                                    <TableCell className="font-semibold">{d.percentage}%</TableCell>
+                                                    <TableCell>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            onClick={() => handleRemoveDiscount(d.id)}
+                                                            className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                                                        >
+                                                            <Trash2Icon size={16} />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Observaciones */}
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                        <CardHeader>
+                            <CardTitle className="text-slate-800 dark:text-white">Otras Observaciones</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Textarea
+                                placeholder="Observaciones adicionales sobre la cotización..."
+                                value={observaciones}
+                                onChange={(e) => setObservaciones(e.target.value)}
+                                className="min-h-[100px] bg-white dark:bg-slate-700"
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Resumen Final */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Datos Bancarios */}
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">
+                                    <BuildingIcon className="h-5 w-5 text-blue-600" />
+                                    Datos de Transferencia Bancaria
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Card className="bg-slate-50 dark:bg-slate-700 border">
+                                        <CardContent className="p-4 space-y-2">
+                                            <h4 className="font-bold text-blue-600">Banco Chile</h4>
+                                            <div className="text-sm space-y-1">
+                                                <p><span className="font-medium">Cta Cte:</span> 144 032 6403</p>
+                                                <p><span className="font-medium">Razón Social:</span> D3SI SpA</p>
+                                                <p><span className="font-medium">RUT:</span> 77.058.146-K</p>
+                                                <p><span className="font-medium">Email:</span> alejandro.contreras@d3si.cl</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="bg-slate-50 dark:bg-slate-700 border">
+                                        <CardContent className="p-4 space-y-2">
+                                            <h4 className="font-bold text-blue-600">Banco Estado</h4>
+                                            <div className="text-sm space-y-1">
+                                                <p><span className="font-medium">Cta Cte:</span> 629 0034 9276</p>
+                                                <p><span className="font-medium">Razón Social:</span> D3SI SpA</p>
+                                                <p><span className="font-medium">RUT:</span> 77.058.146-K</p>
+                                                <p><span className="font-medium">Email:</span> alejandro.contreras@d3si.cl</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {/* Resumen de Totales */}
+                        <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">
+                                    <DollarSignIcon className="h-5 w-5 text-green-600" />
+                                    Resumen Financiero
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                        <span className="text-slate-600 dark:text-slate-300">Monto Neto:</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">${montoNeto.toFixed(2)}</span>
+                                    </div>
+                                    {totalDescuentos > 0 && (
+                                        <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                            <span className="text-red-600">Descuentos:</span>
+                                            <span className="font-semibold text-red-600">-${totalDescuentos.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {totalCargos > 0 && (
+                                        <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                            <span className="text-red-600">Descuentos:</span>
+                                            <span className="font-semibold text-red-600">-${totalCargos.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                        <span className="text-slate-600 dark:text-slate-300">Subtotal:</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">${subtotal.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                        <span className="text-slate-600 dark:text-slate-300">IVA (19%): </span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">${iva.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
+                                        <span className="text-slate-600 dark:text-slate-300">Monto Total:</span>
+                                        <span className="font-bold text-slate-800 dark:text-white">${montoTotal.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
-                    <Button onClick={handleAddDiscount}>Agregar</Button>
+                    {/* Botón Gener Cotizacion */}
+                    <div className="text-center ">
+                        <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleGeneratePDF}>Generar Cotización</Button>
+                    </div>
                 </div>
-
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Descripción</TableHead>
-                            <TableHead>Porcentaje</TableHead>
-                            <TableHead />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {discounts.map((d) => (
-                            <TableRow key={d.id}>
-                                <TableCell>{d.type}</TableCell>
-                                <TableCell>{d.description}</TableCell>
-                                <TableCell>{d.percentage}%</TableCell>
-                                <TableCell>
-                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveDiscount(d.id)}>
-                                        <Trash2Icon size={16} />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Otras observaciones */}
-            <div>
-                <label className="text-sm font-medium">Otras Observaciones</label>
-                <Textarea
-                    placeholder="Observaciones adicionales"
-                    value={observaciones}
-                    onChange={(e) => setObservaciones(e.target.value)}
-                />
-            </div>
-
-            {/* Totales y datos bancarios */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Bancos */}
-                <Card>
-                    <CardContent className="space-y-2 py-4">
-                        <h4 className="font-semibold">Datos de Transferencia Bancaria</h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p>
-                                    <strong>Banco Chile</strong>
-                                </p>
-                                <p>Cta Cte: 144 032 6403</p>
-                                <p>Razón Social: D3SI SpA</p>
-                                <p>RUT: 77.058.146-K</p>
-                                <p>alejandro.contreras@d3si.cl</p>
-                            </div>
-                            <div>
-                                <p>
-                                    <strong>Banco Estado</strong>
-                                </p>
-                                <p>Cta Cte: 629 0034 9276</p>
-                                <p>Razón Social: D3SI SpA</p>
-                                <p>RUT: 77.058.146-K</p>
-                                <p>alejandro.contreras@d3si.cl</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                {/* Totales */}
-                <Card>
-                    <CardContent className="space-y-2 py-4">
-                        <h4 className="font-semibold">Resumen</h4>
-                        <div className="space-y-1 text-sm">
-                            <p>
-                                Monto Neto: <span className="font-medium">${montoNeto.toFixed(2)}</span>
-                            </p>
-                            <p>
-                                Descuentos: <span className="font-medium">-${totalDescuentos.toFixed(2)}</span>
-                            </p>
-                            <p>
-                                Cargos: <span className="font-medium">+${totalCargos.toFixed(2)}</span>
-                            </p>
-                            <p>
-                                Subtotal: <span className="font-medium">${subtotal.toFixed(2)}</span>
-                            </p>
-                            <p>
-                                IVA (19%): <span className="font-medium">${iva.toFixed(2)}</span>
-                            </p>
-                            <hr />
-                            <p className="font-semibold">
-                                Monto Total: <span className="font-bold">${montoTotal.toFixed(2)}</span>
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Botón Gener Cotizacion */}
-            <div className="text-right">
-                <Button onClick={handleGeneratePDF}>Generar Cotización</Button>
-            </div>
+            </div>        
         </div>
     )
 }

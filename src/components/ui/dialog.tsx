@@ -17,7 +17,7 @@ export const DialogContent = React.forwardRef<
         <DialogPrimitive.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
         <DialogPrimitive.Content
             ref={ref}
-            className="fixed left-[50%] top-[50%] w-[90vw] max-w-md translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-6 shadow-lg"
+            className="fixed left-[50%] top-[50%] w-[90vw] max-w-4xl translate-x-[-50%] translate-y-[-50%] rounded-lg shadow-lg"
             {...props}
         >
             {children}
