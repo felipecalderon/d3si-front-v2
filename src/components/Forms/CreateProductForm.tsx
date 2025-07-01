@@ -18,6 +18,7 @@ export default function CreateProductForm() {
             name: "",
             image: "",
             genre: "",
+            category: "",
             sizes: [
                 {
                     sizeNumber: "",
@@ -30,11 +31,19 @@ export default function CreateProductForm() {
         },
     ])
 
-    const [errors, setErrors] = useState<ErrorState[]>([{ sizes: [{}] }])
+    const [errors, setErrors] = useState<ErrorState[]>([
+        {
+            sizes: [{}],
+            category: "",
+        },
+    ])
 
     const validate = (data: CreateProductFormData[]): ErrorState[] => {
         return data.map((product) => {
-            const productErrors: ErrorState = { sizes: [] }
+            const productErrors: ErrorState = {
+                sizes: [],
+                category: "",
+            }
             if (!product.name.trim()) productErrors.name = "Falta llenar este campo"
             if (!product.genre.trim()) productErrors.genre = "Falta llenar este campo"
 
@@ -82,6 +91,7 @@ export default function CreateProductForm() {
                 name: "",
                 image: "",
                 genre: "",
+                category: "",
                 sizes: [
                     {
                         sizeNumber: "",
@@ -93,7 +103,13 @@ export default function CreateProductForm() {
                 ],
             },
         ])
-        setErrors([...errors, { sizes: [{}] }])
+        setErrors([
+            ...errors,
+            {
+                sizes: [{}],
+                category: "",
+            },
+        ])
     }
 
     const removeProduct = (index: number) => {
@@ -316,6 +332,38 @@ export default function CreateProductForm() {
                                             </p>
                                         )}
                                     </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <Users className="w-4 h-4" />
+                                        Categoría
+                                    </label>
+                                    <Select
+                                        value={product.category}
+                                        onValueChange={(value) => handleProductChange(pIndex, "category", value)}
+                                    >
+                                        <SelectTrigger
+                                            className={`h-12 text-base border-2 transition-all duration-200 ${
+                                                errors[pIndex]?.category
+                                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                                            } bg-white dark:bg-slate-800`}
+                                        >
+                                            <SelectValue placeholder="Selecciona categoría" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
+                                            <SelectItem value="Hombre">Hombre</SelectItem>
+                                            <SelectItem value="Mujer">Mujer</SelectItem>
+                                            <SelectItem value="Unisex">Unisex</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors[pIndex]?.category && (
+                                        <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
+                                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                            {errors[pIndex].category}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Sizes Section */}
