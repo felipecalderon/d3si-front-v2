@@ -26,7 +26,7 @@ export const navItems = [
         subItems: [
             { label: "Crear OC", route: "/home/purchaseOrder" },
             { label: "Facturas", route: "/home/invoices" },
-            { label: "Cotizar", route: "/home/facturacion/cotizar" },
+            { label: "Cotizar", route: "/home/quotes" },
         ],
     },
     {

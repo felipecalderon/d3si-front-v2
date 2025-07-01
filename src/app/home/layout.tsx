@@ -5,7 +5,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     return (
         <div className="flex h-screen dark:bg-gray-900 bg-gray-100">
             <Sidebar />
-            <section className="flex-1 p-6 overflow-auto">
+            <section className="flex-1 pl-2 lg:p-6 overflow-auto">
                 <Navbar />
                 {children}
             </section>

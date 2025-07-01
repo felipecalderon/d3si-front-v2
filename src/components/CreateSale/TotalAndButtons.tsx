@@ -69,7 +69,7 @@ export const TotalAndButtons = ({ tipoPago, setTipoPago, total, handleSubmit, re
                 </div>
             ) : (
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex lg:flex-row flex-col items-center gap-2">
                         <label htmlFor="pago" className="dark:text-slate-700 text-gray-700 font-medium">
                             Tipo de pago:
                         </label>
