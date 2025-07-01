@@ -131,7 +131,7 @@ export default function CreateProductForm() {
 
     const calculateMarkup = (priceCost: number, priceList: number): string => {
         if (priceCost === 0) return "N/A"
-        const markup = (priceList - priceCost) / priceCost
+        const markup = priceList / priceCost
         return markup.toFixed(2)
     }
 
@@ -170,7 +170,7 @@ export default function CreateProductForm() {
                             Volver al inventario
                         </button>
                     </div>
-                    
+
                     <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
@@ -185,15 +185,20 @@ export default function CreateProductForm() {
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div className="flex lg:flex-row flex-col items-center gap-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span>{products.length} producto{products.length !== 1 ? 's' : ''}</span>
+                                <span>
+                                    {products.length} producto{products.length !== 1 ? "s" : ""}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                <span>{products.reduce((acc, p) => acc + p.sizes.length, 0)} variante{products.reduce((acc, p) => acc + p.sizes.length, 0) !== 1 ? 's' : ''}</span>
+                                <span>
+                                    {products.reduce((acc, p) => acc + p.sizes.length, 0)} variante
+                                    {products.reduce((acc, p) => acc + p.sizes.length, 0) !== 1 ? "s" : ""}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -214,11 +219,9 @@ export default function CreateProductForm() {
                                             <Package className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-xl text-white">
-                                                Producto {pIndex + 1}
-                                            </h3>
+                                            <h3 className="font-bold text-xl text-white">Producto {pIndex + 1}</h3>
                                             <p className="text-blue-100">
-                                                {product.sizes.length} talla{product.sizes.length !== 1 ? 's' : ''}
+                                                {product.sizes.length} talla{product.sizes.length !== 1 ? "s" : ""}
                                             </p>
                                         </div>
                                     </div>
@@ -248,9 +251,9 @@ export default function CreateProductForm() {
                                             onChange={(e) => handleProductChange(pIndex, "name", e.target.value)}
                                             placeholder="Ej: Zapatillas deportivas"
                                             className={`h-12 text-base border-2 transition-all duration-200 ${
-                                                errors[pIndex]?.name 
-                                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                                    : 'border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500'
+                                                errors[pIndex]?.name
+                                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
                                             }`}
                                         />
                                         {errors[pIndex]?.name && (
@@ -271,9 +274,9 @@ export default function CreateProductForm() {
                                             onChange={(e) => handleProductChange(pIndex, "image", e.target.value)}
                                             placeholder="https://ejemplo.com/imagen.jpg"
                                             className={`h-12 text-base border-2 transition-all duration-200 ${
-                                                errors[pIndex]?.image 
-                                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                                    : 'border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500'
+                                                errors[pIndex]?.image
+                                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
                                             }`}
                                         />
                                         {errors[pIndex]?.image && (
@@ -293,11 +296,13 @@ export default function CreateProductForm() {
                                             value={product.genre}
                                             onValueChange={(value) => handleProductChange(pIndex, "genre", value)}
                                         >
-                                            <SelectTrigger className={`h-12 text-base border-2 transition-all duration-200 ${
-                                                errors[pIndex]?.genre 
-                                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                                    : 'border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500'
-                                            } bg-white dark:bg-slate-800`}>
+                                            <SelectTrigger
+                                                className={`h-12 text-base border-2 transition-all duration-200 ${
+                                                    errors[pIndex]?.genre
+                                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                                        : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                                                } bg-white dark:bg-slate-800`}
+                                            >
                                                 <SelectValue placeholder="Selecciona género" />
                                             </SelectTrigger>
                                             <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
@@ -348,57 +353,84 @@ export default function CreateProductForm() {
                                                         <Input
                                                             placeholder="XL, 42, M..."
                                                             value={size.sizeNumber}
-                                                            onChange={(e) => handleSizeChange(pIndex, sIndex, "sizeNumber", e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleSizeChange(
+                                                                    pIndex,
+                                                                    sIndex,
+                                                                    "sizeNumber",
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
-                                                                errors[pIndex]?.sizes[sIndex]?.sizeNumber 
-                                                                    ? 'border-red-300 focus:border-red-500' 
-                                                                    : 'border-gray-300 dark:border-slate-500 focus:border-blue-500'
+                                                                errors[pIndex]?.sizes[sIndex]?.sizeNumber
+                                                                    ? "border-red-300 focus:border-red-500"
+                                                                    : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
                                                             } bg-white dark:bg-slate-800`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.sizeNumber && (
-                                                            <p className="text-red-500 text-xs">{errors[pIndex].sizes[sIndex].sizeNumber}</p>
+                                                            <p className="text-red-500 text-xs">
+                                                                {errors[pIndex].sizes[sIndex].sizeNumber}
+                                                            </p>
                                                         )}
                                                     </div>
 
                                                     <div className="space-y-3">
                                                         <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <DollarSign className="w-3 h-3" />
-                                                            Costo
+                                                            Costo Neto
                                                         </label>
                                                         <Input
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceCost}
-                                                            onChange={(e) => handleSizeChange(pIndex, sIndex, "priceCost", Number(e.target.value))}
+                                                            onChange={(e) =>
+                                                                handleSizeChange(
+                                                                    pIndex,
+                                                                    sIndex,
+                                                                    "priceCost",
+                                                                    Number(e.target.value)
+                                                                )
+                                                            }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
-                                                                errors[pIndex]?.sizes[sIndex]?.priceCost 
-                                                                    ? 'border-red-300 focus:border-red-500' 
-                                                                    : 'border-gray-300 dark:border-slate-500 focus:border-blue-500'
+                                                                errors[pIndex]?.sizes[sIndex]?.priceCost
+                                                                    ? "border-red-300 focus:border-red-500"
+                                                                    : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
                                                             } bg-white dark:bg-slate-800`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.priceCost && (
-                                                            <p className="text-red-500 text-xs">{errors[pIndex].sizes[sIndex].priceCost}</p>
+                                                            <p className="text-red-500 text-xs">
+                                                                {errors[pIndex].sizes[sIndex].priceCost}
+                                                            </p>
                                                         )}
                                                     </div>
 
                                                     <div className="space-y-3">
                                                         <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <DollarSign className="w-3 h-3" />
-                                                            Precio
+                                                            Precio Plaza
                                                         </label>
                                                         <Input
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceList}
-                                                            onChange={(e) => handleSizeChange(pIndex, sIndex, "priceList", Number(e.target.value))}
+                                                            onChange={(e) =>
+                                                                handleSizeChange(
+                                                                    pIndex,
+                                                                    sIndex,
+                                                                    "priceList",
+                                                                    Number(e.target.value)
+                                                                )
+                                                            }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
-                                                                errors[pIndex]?.sizes[sIndex]?.priceList 
-                                                                    ? 'border-red-300 focus:border-red-500' 
-                                                                    : 'border-gray-300 dark:border-slate-500 focus:border-blue-500'
+                                                                errors[pIndex]?.sizes[sIndex]?.priceList
+                                                                    ? "border-red-300 focus:border-red-500"
+                                                                    : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
                                                             } bg-white dark:bg-slate-800`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.priceList && (
-                                                            <p className="text-red-500 text-xs">{errors[pIndex].sizes[sIndex].priceList}</p>
+                                                            <p className="text-red-500 text-xs">
+                                                                {errors[pIndex].sizes[sIndex].priceList}
+                                                            </p>
                                                         )}
                                                     </div>
 
@@ -410,15 +442,19 @@ export default function CreateProductForm() {
                                                         <Input
                                                             placeholder="ABC123"
                                                             value={size.sku}
-                                                            onChange={(e) => handleSizeChange(pIndex, sIndex, "sku", e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleSizeChange(pIndex, sIndex, "sku", e.target.value)
+                                                            }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
-                                                                errors[pIndex]?.sizes[sIndex]?.sku 
-                                                                    ? 'border-red-300 focus:border-red-500' 
-                                                                    : 'border-gray-300 dark:border-slate-500 focus:border-blue-500'
+                                                                errors[pIndex]?.sizes[sIndex]?.sku
+                                                                    ? "border-red-300 focus:border-red-500"
+                                                                    : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
                                                             } bg-white dark:bg-slate-800`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.sku && (
-                                                            <p className="text-red-500 text-xs">{errors[pIndex].sizes[sIndex].sku}</p>
+                                                            <p className="text-red-500 text-xs">
+                                                                {errors[pIndex].sizes[sIndex].sku}
+                                                            </p>
                                                         )}
                                                     </div>
 
@@ -431,15 +467,24 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0"
                                                             value={size.stockQuantity}
-                                                            onChange={(e) => handleSizeChange(pIndex, sIndex, "stockQuantity", Number(e.target.value))}
+                                                            onChange={(e) =>
+                                                                handleSizeChange(
+                                                                    pIndex,
+                                                                    sIndex,
+                                                                    "stockQuantity",
+                                                                    Number(e.target.value)
+                                                                )
+                                                            }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
-                                                                errors[pIndex]?.sizes[sIndex]?.stockQuantity 
-                                                                    ? 'border-red-300 focus:border-red-500' 
-                                                                    : 'border-gray-300 dark:border-slate-500 focus:border-blue-500'
+                                                                errors[pIndex]?.sizes[sIndex]?.stockQuantity
+                                                                    ? "border-red-300 focus:border-red-500"
+                                                                    : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
                                                             } bg-white dark:bg-slate-800`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.stockQuantity && (
-                                                            <p className="text-red-500 text-xs">{errors[pIndex].sizes[sIndex].stockQuantity}</p>
+                                                            <p className="text-red-500 text-xs">
+                                                                {errors[pIndex].sizes[sIndex].stockQuantity}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -450,7 +495,8 @@ export default function CreateProductForm() {
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full"></div>
                                                             <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                                                Markup: {calculateMarkup(size.priceCost, size.priceList)}
+                                                                Markup:{" "}
+                                                                {calculateMarkup(size.priceCost, size.priceList)}
                                                             </span>
                                                         </div>
                                                     </div>
