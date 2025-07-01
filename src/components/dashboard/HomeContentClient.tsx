@@ -6,6 +6,9 @@ import SalesTable from "@/components/ListTable/SalesTable"
 import Link from "next/link"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
+import { IResume } from "@/interfaces/sales/ISalesResume"
+import { getAllStores } from "@/actions/stores/getAllStores"
+import { useEffect, useState } from "react"
 
 const GaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), {
     ssr: false,
@@ -13,18 +16,45 @@ const GaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), {
 
 interface Props {
     sales: ISaleResponse[]
+    resume: IResume
 }
 
-export default function HomeContentClient({ sales }: Props) {
+export default function HomeContentClient({ sales, resume }: Props) {
+    const [stores, setStores] = useState<{ storeID: string; name: string }[]>([])
+
+    useEffect(() => {
+        const fetchStores = async () => {
+            try {
+                const data = await getAllStores()
+                setStores(data)
+            } catch (error) {
+                console.error("Error al cargar tiendas:", error)
+            }
+        }
+
+        fetchStores()
+    }, [])
+
     return (
-        <div className="space-y-6">
-            {/* Stats Grid - Responsive Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Stats Column */}
-                <div className="space-y-4 lg:space-y-6">
-                    <StatCard icon={<FileText />} label="Boletas Emitidas" value="128" />
-                    <StatCard icon={<FileCheck2 />} label="Facturas Emitidas" value="31" />
-                    <StatCard icon={<DollarSign />} label="Facturación" value="$45.846.410" />
+        <>
+            <div className="grid grid-cols-3 gap-6 items-start">
+                <div className="flex flex-col gap-4">
+                    <StatCard
+                        icon={<FileText />}
+                        label="Boletas Emitidas"
+                        value={resume.orders.month.count.toString()}
+                    />
+                    <StatCard
+                        icon={<FileCheck2 />}
+                        label="Facturas Emitidas"
+                        value={resume.sales.month.count.toString()}
+                    />
+                    <StatCard
+                        icon={<DollarSign />}
+                        label="Facturación"
+                        value={`$${resume.sales.month.amount.toLocaleString("es-CL")}`}
+                    />
+
                 </div>
 
                 {/* Gauge Chart - Centered */}
@@ -34,24 +64,29 @@ export default function HomeContentClient({ sales }: Props) {
                     </div>
                 </div>
 
-                {/* Right Stats Column */}
-                <div className="space-y-4 lg:space-y-6">
-                    <StatCard 
-                        icon={<DollarSign />} 
-                        label="Ventas del día" 
-                        value="$435.670" 
-                        color="text-green-600" 
+                <div className="flex flex-col gap-4">
+                    <StatCard
+                        icon={<DollarSign />}
+                        label="Ventas del día"
+                        value={`${resume.sales.today.count} productos - $${resume.sales.today.amount.toLocaleString(
+                            "es-CL"
+                        )}`}
+                        color="text-green-600"
                     />
-                    <StatCard 
-                        icon={<DollarSign />} 
-                        label="Ventas de ayer" 
-                        value="$635.800" 
-                        color="text-yellow-600" 
+
+                    <StatCard
+                        icon={<DollarSign />}
+                        label="Ventas de ayer"
+                        value={`${
+                            resume.sales.yesterday.count
+                        } productos - $${resume.sales.yesterday.amount.toLocaleString("es-CL")}`}
+                        color="text-yellow-600"
                     />
+
                     <StatCard
                         icon={<DollarSign />}
                         label="Ventas Semana móvil"
-                        value="$3.535.800"
+                        value={`$${resume.sales.last7.amount.toLocaleString("es-CL")}`}
                         color="text-red-600"
                     />
                 </div>
@@ -116,6 +151,14 @@ export default function HomeContentClient({ sales }: Props) {
                         <option>2025</option>
                         <option>2024</option>
                         <option>2023</option>
+                    </select>
+                    <select title="tienda" className="px-4 py-2 dark:bg-gray-800 bg-white rounded shadow border">
+                        <option>Filtrar por tienda</option>
+                        {stores.map((store) => (
+                            <option key={store.storeID} value={store.storeID}>
+                                {store.name}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 
