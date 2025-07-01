@@ -9,6 +9,7 @@ export interface Size {
 }
 
 export interface CreateProductFormData {
+    category: string
     name: string
     image: string
     genre: string
@@ -20,6 +21,7 @@ export interface MassiveCreateProductData {
 }
 
 export interface ErrorState {
+    category: string
     name?: string
     image?: string
     genre?: string

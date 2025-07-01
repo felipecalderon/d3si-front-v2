@@ -9,22 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { 
-    UploadIcon, 
-    PlusIcon, 
-    PercentIcon, 
-    Trash2Icon, 
+import {
+    UploadIcon,
+    PlusIcon,
+    PercentIcon,
+    Trash2Icon,
     FileTextIcon,
     BuildingIcon,
     MailIcon,
     CalendarIcon,
-    DollarSignIcon
+    DollarSignIcon,
 } from "lucide-react"
 import { format } from "date-fns"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
-//import { PDFDownloadLink } from "@react-pdf/renderer"
 import { QuoteDocument } from "@/components/pdf/QuoteDocument"
 import { pdf } from "@react-pdf/renderer"
 
@@ -118,6 +117,14 @@ export default function QuotesPage() {
     const [email, setEmail] = useState("")
     const [observaciones, setObservaciones] = useState("")
 
+    const [nroCotizacion, setNroCotizacion] = useState(5100)
+    useEffect(() => {
+        const stored = localStorage.getItem("nroCotizacion")
+        if (stored) {
+            setNroCotizacion(Number(stored))
+        }
+    }, [])
+
     const handleGeneratePDF = async () => {
         const blob = await pdf(
             <QuoteDocument
@@ -149,7 +156,11 @@ export default function QuotesPage() {
         link.download = `Cotizacion_${5100}.pdf`
         link.click()
         URL.revokeObjectURL(url)
+        const nextNro = nroCotizacion + 1
+        setNroCotizacion(nextNro)
+        localStorage.setItem("nroCotizacion", nextNro.toString())
     }
+
     return (
         <div className="container mx-auto py-8 space-y-6">
             <div className="min-h-screen ">
@@ -163,7 +174,7 @@ export default function QuotesPage() {
                                         <BuildingIcon className="h-8 w-8 text-blue-600" />
                                         <div>
                                             <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                                                D3SI SpA
+                                                D3SI AVOCCO
                                             </h1>
                                             <p className="text-slate-600 dark:text-slate-300">
                                                 VENTA AL POR MAYOR DE VESTUARIO, CALZADO, TECNOLOGÍA Y ACCESORIOS
@@ -181,16 +192,21 @@ export default function QuotesPage() {
                                         </p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="w-full lg:w-auto">
                                     <Card className="border-2 border-blue-600 bg-blue-50 dark:bg-blue-950/50">
                                         <CardContent className="p-6 text-center space-y-2">
-                                            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                            >
                                                 R.U.T.: 77.058.146-K
                                             </Badge>
                                             <div className="space-y-1">
-                                                <p className="font-semibold text-slate-800 dark:text-white">COTIZACIÓN ELECTRÓNICA</p>
-                                                <p className="text-2xl font-bold text-blue-600">N° 5100</p>
+                                                <p className="font-semibold text-slate-800 dark:text-white">
+                                                    COTIZACIÓN ELECTRÓNICA
+                                                </p>
+                                                <p className="text-2xl font-bold text-blue-600">N° {nroCotizacion}</p>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -210,10 +226,12 @@ export default function QuotesPage() {
                                     <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                         <CalendarIcon className="h-4 w-4" />
                                         <span className="font-medium">Vencimiento:</span>
-                                        <span>{vencimientoCantidad} {periodoLabel[vencimientoPeriodo]}</span>
+                                        <span>
+                                            {vencimientoCantidad} {periodoLabel[vencimientoPeriodo]}
+                                        </span>
                                     </div>
                                 </div>
-                                
+
                                 <Card className="w-full sm:w-auto bg-slate-50 dark:bg-slate-700">
                                     <CardContent className="p-4">
                                         <div className="space-y-3">
@@ -231,7 +249,9 @@ export default function QuotesPage() {
                                                 />
                                                 <Select
                                                     value={vencimientoPeriodo}
-                                                    onValueChange={(value) => setVencimientoPeriodo(value as "dias" | "semanas" | "meses")}
+                                                    onValueChange={(value) =>
+                                                        setVencimientoPeriodo(value as "dias" | "semanas" | "meses")
+                                                    }
                                                 >
                                                     <SelectTrigger className="w-[120px]">
                                                         <SelectValue placeholder="Periodo" />
@@ -260,9 +280,9 @@ export default function QuotesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <Input 
-                                    placeholder="RUT" 
-                                    value={rut} 
+                                <Input
+                                    placeholder="RUT"
+                                    value={rut}
                                     onChange={(e) => setRut(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
@@ -272,21 +292,21 @@ export default function QuotesPage() {
                                     onChange={(e) => setRazonSocial(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
-                                <Input 
-                                    placeholder="Giro" 
-                                    value={giro} 
+                                <Input
+                                    placeholder="Giro"
+                                    value={giro}
                                     onChange={(e) => setGiro(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
-                                <Input 
-                                    placeholder="Comuna" 
-                                    value={comuna} 
+                                <Input
+                                    placeholder="Comuna"
+                                    value={comuna}
                                     onChange={(e) => setComuna(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
-                                <Input 
-                                    placeholder="Email" 
-                                    value={email} 
+                                <Input
+                                    placeholder="Email"
+                                    value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
@@ -301,7 +321,10 @@ export default function QuotesPage() {
                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Subir Imagen del Producto
                                 </label>
-                                <Button variant="outline" className="flex gap-2 hover:bg-blue-50 dark:hover:bg-blue-950">
+                                <Button
+                                    variant="outline"
+                                    className="flex gap-2 hover:bg-blue-50 dark:hover:bg-blue-950"
+                                >
                                     <UploadIcon size={16} />
                                     Elegir Archivo
                                 </Button>
@@ -383,10 +406,15 @@ export default function QuotesPage() {
                                         </TableHeader>
                                         <TableBody>
                                             {selectedProducts.map((sp) => (
-                                                <TableRow key={sp.variation.variationID} className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                                                <TableRow
+                                                    key={sp.variation.variationID}
+                                                    className="hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                >
                                                     <TableCell className="font-medium">{sp.product.name}</TableCell>
                                                     <TableCell>
-                                                        <Badge variant="outline">{sp.variation.sizeNumber || "N/A"}</Badge>
+                                                        <Badge variant="outline">
+                                                            {sp.variation.sizeNumber || "N/A"}
+                                                        </Badge>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Input
@@ -394,7 +422,10 @@ export default function QuotesPage() {
                                                             min="1"
                                                             value={sp.quantity}
                                                             onChange={(e) =>
-                                                                handleQuantityChange(sp.variation.variationID, Number(e.target.value))
+                                                                handleQuantityChange(
+                                                                    sp.variation.variationID,
+                                                                    Number(e.target.value)
+                                                                )
                                                             }
                                                             className="w-20 bg-white dark:bg-slate-700"
                                                         />
@@ -404,13 +435,16 @@ export default function QuotesPage() {
                                                         {sp.variation.priceList}
                                                     </TableCell>
                                                     <TableCell className="font-semibold text-green-600">
-                                                        ${(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}
+                                                        $
+                                                        {(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleRemoveProduct(sp.variation.variationID)}
+                                                            onClick={() =>
+                                                                handleRemoveProduct(sp.variation.variationID)
+                                                            }
                                                             className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
                                                         >
                                                             <Trash2Icon size={16} />
@@ -452,7 +486,9 @@ export default function QuotesPage() {
                                     </label>
                                     <Select
                                         value={discountType}
-                                        onValueChange={(value) => setDiscountType(value === "Descuento" ? "Descuento" : "Cargo")}
+                                        onValueChange={(value) =>
+                                            setDiscountType(value === "Descuento" ? "Descuento" : "Cargo")
+                                        }
                                     >
                                         <SelectTrigger className="bg-white dark:bg-slate-700">
                                             <SelectValue placeholder="Tipo" />
@@ -480,7 +516,7 @@ export default function QuotesPage() {
                                         <PercentIcon size={16} className="text-muted-foreground" />
                                     </div>
                                 </div>
-                                <Button 
+                                <Button
                                     onClick={handleAddDiscount}
                                     className="bg-green-600 hover:bg-green-700 text-white"
                                 >
@@ -501,11 +537,18 @@ export default function QuotesPage() {
                                         </TableHeader>
                                         <TableBody>
                                             {discounts.map((d) => (
-                                                <TableRow key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                                                <TableRow
+                                                    key={d.id}
+                                                    className="hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                >
                                                     <TableCell>
-                                                        <Badge 
+                                                        <Badge
                                                             variant={d.type === "Descuento" ? "default" : "destructive"}
-                                                            className={d.type === "Descuento" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                                                            className={
+                                                                d.type === "Descuento"
+                                                                    ? "bg-green-100 text-green-800"
+                                                                    : "bg-red-100 text-red-800"
+                                                            }
                                                         >
                                                             {d.type}
                                                         </Badge>
@@ -513,9 +556,9 @@ export default function QuotesPage() {
                                                     <TableCell>{d.description}</TableCell>
                                                     <TableCell className="font-semibold">{d.percentage}%</TableCell>
                                                     <TableCell>
-                                                        <Button 
-                                                            variant="ghost" 
-                                                            size="icon" 
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
                                                             onClick={() => handleRemoveDiscount(d.id)}
                                                             className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
                                                         >
@@ -562,10 +605,19 @@ export default function QuotesPage() {
                                         <CardContent className="p-4 space-y-2">
                                             <h4 className="font-bold text-blue-600">Banco Chile</h4>
                                             <div className="text-sm space-y-1">
-                                                <p><span className="font-medium">Cta Cte:</span> 144 032 6403</p>
-                                                <p><span className="font-medium">Razón Social:</span> D3SI SpA</p>
-                                                <p><span className="font-medium">RUT:</span> 77.058.146-K</p>
-                                                <p><span className="font-medium">Email:</span> alejandro.contreras@d3si.cl</p>
+                                                <p>
+                                                    <span className="font-medium">Cta Cte:</span> 144 032 6403
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">Razón Social:</span> D3SI SpA
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">RUT:</span> 77.058.146-K
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">Email:</span>{" "}
+                                                    alejandro.contreras@d3si.cl
+                                                </p>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -573,10 +625,19 @@ export default function QuotesPage() {
                                         <CardContent className="p-4 space-y-2">
                                             <h4 className="font-bold text-blue-600">Banco Estado</h4>
                                             <div className="text-sm space-y-1">
-                                                <p><span className="font-medium">Cta Cte:</span> 629 0034 9276</p>
-                                                <p><span className="font-medium">Razón Social:</span> D3SI SpA</p>
-                                                <p><span className="font-medium">RUT:</span> 77.058.146-K</p>
-                                                <p><span className="font-medium">Email:</span> alejandro.contreras@d3si.cl</p>
+                                                <p>
+                                                    <span className="font-medium">Cta Cte:</span> 629 0034 9276
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">Razón Social:</span> D3SI SpA
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">RUT:</span> 77.058.146-K
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">Email:</span>{" "}
+                                                    alejandro.contreras@d3si.cl
+                                                </p>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -595,31 +656,43 @@ export default function QuotesPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                         <span className="text-slate-600 dark:text-slate-300">Monto Neto:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-white">${montoNeto.toFixed(2)}</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">
+                                            ${montoNeto.toFixed(2)}
+                                        </span>
                                     </div>
                                     {totalDescuentos > 0 && (
                                         <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                             <span className="text-red-600">Descuentos:</span>
-                                            <span className="font-semibold text-red-600">-${totalDescuentos.toFixed(2)}</span>
+                                            <span className="font-semibold text-red-600">
+                                                -${totalDescuentos.toFixed(2)}
+                                            </span>
                                         </div>
                                     )}
                                     {totalCargos > 0 && (
                                         <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                             <span className="text-red-600">Descuentos:</span>
-                                            <span className="font-semibold text-red-600">-${totalCargos.toFixed(2)}</span>
+                                            <span className="font-semibold text-red-600">
+                                                -${totalCargos.toFixed(2)}
+                                            </span>
                                         </div>
                                     )}
                                     <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                         <span className="text-slate-600 dark:text-slate-300">Subtotal:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-white">${subtotal.toFixed(2)}</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">
+                                            ${subtotal.toFixed(2)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                         <span className="text-slate-600 dark:text-slate-300">IVA (19%): </span>
-                                        <span className="font-semibold text-slate-800 dark:text-white">${iva.toFixed(2)}</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">
+                                            ${iva.toFixed(2)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
                                         <span className="text-slate-600 dark:text-slate-300">Monto Total:</span>
-                                        <span className="font-bold text-slate-800 dark:text-white">${montoTotal.toFixed(2)}</span>
+                                        <span className="font-bold text-slate-800 dark:text-white">
+                                            ${montoTotal.toFixed(2)}
+                                        </span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -627,10 +700,12 @@ export default function QuotesPage() {
                     </div>
                     {/* Botón Gener Cotizacion */}
                     <div className="text-center ">
-                        <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleGeneratePDF}>Generar Cotización</Button>
+                        <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleGeneratePDF}>
+                            Generar Cotización
+                        </Button>
                     </div>
                 </div>
-            </div>        
+            </div>
         </div>
     )
 }
