@@ -36,12 +36,10 @@ export default function CreateProductForm() {
         return data.map((product) => {
             const productErrors: ErrorState = { sizes: [] }
             if (!product.name.trim()) productErrors.name = "Falta llenar este campo"
-            if (!product.image.trim()) productErrors.image = "Falta llenar este campo"
             if (!product.genre.trim()) productErrors.genre = "Falta llenar este campo"
 
             product.sizes.forEach((size) => {
                 const sizeErrors: Record<string, string> = {}
-                if (!size.sizeNumber?.trim()) sizeErrors.sizeNumber = "Falta llenar este campo"
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
                 if (!size.sku.trim()) sizeErrors.sku = "Falta llenar este campo"
