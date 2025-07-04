@@ -1,4 +1,5 @@
 export interface ICategory {
+    id: string
     name: string
     parentID: string
     createdAt: string
