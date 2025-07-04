@@ -1,12 +1,15 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/sales/getResume"
 import HomeContentClient from "@/components/dashboard/HomeContentClient"
-
+import ImageUploader from "@/components/UploadImage"
 const HomePage = async () => {
     const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
     const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
 
-    return <HomeContentClient sales={sales} resume={resume} />
+    return <>
+        <HomeContentClient sales={sales} resume={resume} />
+        <ImageUploader/>
+    </>
 }
 
 export default HomePage
