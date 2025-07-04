@@ -1,4 +1,4 @@
-import { SaleForm } from "@/components/Forms/SaleForm"
+import { SaleForm } from "@/components/CreateSale/SaleForm"
 
 const CreateSale = () => {
     return (
