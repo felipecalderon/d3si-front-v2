@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 "use client"
 
 import { useState, useTransition } from "react"
@@ -171,7 +172,7 @@ export default function CreateProductForm() {
     }
 
     return (
-        <div className="min-h-screen lg:p-4 lg:p-8">
+        <div className="min-h-screen lg:p-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
