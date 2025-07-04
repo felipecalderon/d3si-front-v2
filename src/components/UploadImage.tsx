@@ -1,6 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
+import { toast } from "sonner"
 
 const UploadImageToCloudinary = () => {
     const [file, setFile] = useState<File | null>(null)
@@ -10,7 +12,7 @@ const UploadImageToCloudinary = () => {
 
     const handleUpload = async () => {
         if (!file && !imageUrl) {
-            alert("Selecciona un archivo o pega una URL")
+            toast("Selecciona un archivo o pega una URL")
             return
         }
 
@@ -39,14 +41,14 @@ const UploadImageToCloudinary = () => {
 
             if (data.secure_url) {
                 setResultUrl(data.secure_url)
-                alert("Imagen subida con éxito")
+                toast("Imagen subida con éxito")
             } else {
                 console.error(data)
-                alert("Error al subir la imagen")
+                toast("Error al subir la imagen")
             }
         } catch (error) {
             console.error(error)
-            alert("Error de red al subir imagen")
+            toast("Error de red al subir imagen")
         } finally {
             setUploading(false)
         }
@@ -84,7 +86,7 @@ const UploadImageToCloudinary = () => {
             {resultUrl && (
                 <div className="mt-4">
                     <p className="text-sm">Imagen subida:</p>
-                    <img src={resultUrl} alt="Imagen subida" className="w-48 mt-2" />
+                    <Image src={resultUrl} alt="Imagen subida" className="w-48 mt-2" />
                     <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                         Ver imagen
                     </a>
