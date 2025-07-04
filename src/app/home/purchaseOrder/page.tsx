@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
@@ -303,7 +304,7 @@ export default function PurchaseOrderPage() {
                                         </TableHeader>
 
                                         <TableBody>
-                                            {currentItems.map(({ product, variation, isFirst, totalStock }, index) => {
+                                            {currentItems.map(({ product, variation, isFirst }, index) => {
                                                 // Stock agregado = suma de StoreProducts en sucursales (no admin)
                                                 const stockAgregado =
                                                     variation.StoreProducts?.filter(
