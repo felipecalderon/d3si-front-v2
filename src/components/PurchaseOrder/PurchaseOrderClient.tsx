@@ -163,7 +163,7 @@ export default function PurchaseOrderClient({
     //  const userID = "2f13abf6-bbb6-402b-a5b2-e368a89c79e9" // O donde obtengas el userID
 
     return (
-        <main className="p-6 flex-1 flex flex-col h-screen">
+        <main className="p-6 flex-1 flex flex-col min-h-screen">
             {/* Header Section */}
             <MotionItem delay={0}>
                 <div className="flex flex-col gap-4 mb-6">
@@ -242,7 +242,7 @@ export default function PurchaseOrderClient({
             </MotionItem>
 
             {/* Tabla de productos */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto flex flex-col">
                 <MotionItem delay={1} className="flex-1">
                     <PurchaseOrderTable
                         currentItems={currentItems}
@@ -251,68 +251,67 @@ export default function PurchaseOrderClient({
                         setPedido={setPedido}
                     />
                 </MotionItem>
-
-                {/* Paginación */}
-                {totalPages > 1 && (
-                    <MotionItem delay={currentItems.length + 2}>
-                        <div className="flex items-center justify-center gap-2 mt-6 pb-4">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="h-9 px-3 border-2"
-                            >
-                                Anterior
-                            </Button>
-
-                            {getVisiblePages().map((page, index) =>
-                                page === "..." ? (
-                                    <span key={index} className="px-2 text-gray-500">
-                                        ...
-                                    </span>
-                                ) : (
-                                    <Button
-                                        key={index}
-                                        variant={currentPage === page ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => setCurrentPage(page as number)}
-                                        className={`h-9 w-9 border-2 ${
-                                            currentPage === page
-                                                ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
-                                                : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        }`}
-                                    >
-                                        {page}
-                                    </Button>
-                                )
-                            )}
-
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className="h-9 px-3 border-2"
-                            >
-                                Siguiente
-                            </Button>
-                        </div>
-                    </MotionItem>
-                )}
-
-                {/* Resumen y acción de crear orden */}
-                <PurchaseOrderSummary
-                    totalProductsInOrder={totalProductsInOrder}
-                    subtotal={subtotal}
-                    isLoading={false}
-                    selectedStoreID={selectedStoreID}
-                    pedido={pedido}
-                    rawProducts={rawProducts}
-                    setPedido={setPedido}
-                    router={router}
-                />
             </div>
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <MotionItem delay={currentItems.length + 2}>
+                    <div className="flex items-center justify-center gap-2 mt-6 pb-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="h-9 px-3 border-2"
+                        >
+                            Anterior
+                        </Button>
+
+                        {getVisiblePages().map((page, index) =>
+                            page === "..." ? (
+                                <span key={index} className="px-2 text-gray-500">
+                                    ...
+                                </span>
+                            ) : (
+                                <Button
+                                    key={index}
+                                    variant={currentPage === page ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setCurrentPage(page as number)}
+                                    className={`h-9 w-9 border-2 ${
+                                        currentPage === page
+                                            ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
+                                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    }`}
+                                >
+                                    {page}
+                                </Button>
+                            )
+                        )}
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="h-9 px-3 border-2"
+                        >
+                            Siguiente
+                        </Button>
+                    </div>
+                </MotionItem>
+            )}
+
+            {/* Resumen y acción de crear orden */}
+            <PurchaseOrderSummary
+                totalProductsInOrder={totalProductsInOrder}
+                subtotal={subtotal}
+                isLoading={false}
+                selectedStoreID={selectedStoreID}
+                pedido={pedido}
+                rawProducts={rawProducts}
+                setPedido={setPedido}
+                router={router}
+            />
         </main>
     )
 }
