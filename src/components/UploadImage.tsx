@@ -1,7 +1,10 @@
 "use client"
 
+import { uploadImageCDN } from "@/actions/upload/image"
+import { CDN_KEY, CDN_NAME } from "@/lib/enviroments"
+import { fileToArrayBuffer } from "@/utils/file-to-buffer"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 const UploadImageToCloudinary = () => {
@@ -9,43 +12,20 @@ const UploadImageToCloudinary = () => {
     const [imageUrl, setImageUrl] = useState("")
     const [uploading, setUploading] = useState(false)
     const [resultUrl, setResultUrl] = useState("")
+    const [isPending, startTransition] = useTransition()
 
     const handleUpload = async () => {
-        if (!file && !imageUrl) {
-            toast("Selecciona un archivo o pega una URL")
-            return
-        }
-
-        setUploading(true)
-
-        const formData = new FormData()
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUD_UPLOAD_PRESET!)
-        formData.append("folder", "desi_v2")
-
-        if (file) {
-            formData.append("file", file)
-        } else {
-            formData.append("file", imageUrl)
-        }
-
         try {
-            const response = await fetch(
-                `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUD_NAME}/image/upload`,
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            )
-
-            const data = await response.json()
-
-            if (data.secure_url) {
-                setResultUrl(data.secure_url)
-                toast("Imagen subida con éxito")
-            } else {
-                console.error(data)
-                toast("Error al subir la imagen")
+            if (!file) {
+                toast("Selecciona un archivo")
+                return
             }
+            startTransition(async () => {
+                const buffer = await fileToArrayBuffer(file)
+                const upload = await uploadImageCDN(buffer)
+                setImageUrl(upload.url)
+                console.log({ upload: upload.url })
+            })
         } catch (error) {
             console.error(error)
             toast("Error de red al subir imagen")

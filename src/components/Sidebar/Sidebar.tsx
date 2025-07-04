@@ -28,7 +28,7 @@ export default function Sidebar() {
         const handleResize = () => {
             const mobile = window.innerWidth < 1024
             setIsMobile(mobile)
-            
+
             // Only auto-collapse on desktop, not mobile
             if (!mobile) {
                 setIsMobileOpen(false)
@@ -36,8 +36,8 @@ export default function Sidebar() {
         }
 
         handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
     }, [])
 
     // Theme toggle handler
@@ -84,9 +84,9 @@ export default function Sidebar() {
 
     // Mobile overlay
     const MobileOverlay = () => (
-        <div 
+        <div
             className={`fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300 ${
-                isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                isMobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
             onClick={() => setIsMobileOpen(false)}
         />
@@ -106,12 +106,14 @@ export default function Sidebar() {
         <>
             <MobileMenuButton />
             <MobileOverlay />
-            
-            <div className={`
+
+            <div
+                className={`
                 fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto
                 transform transition-transform duration-300 ease-in-out lg:transform-none
-                ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            `}>
+                ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+            `}
+            >
                 <SidebarTransition isCollapsed={shouldShowCollapsed}>
                     <div className="flex flex-col h-screen bg-slate-200 shadow-lg shadow-black dark:bg-gray-900 text-gray-600 dark:text-gray-300">
                         {/* Header */}
@@ -132,7 +134,7 @@ export default function Sidebar() {
                                     />
                                 </div>
                             )}
-                            
+
                             <div className="flex items-center gap-2">
                                 {/* Mobile close button */}
                                 <button
@@ -141,7 +143,7 @@ export default function Sidebar() {
                                 >
                                     <FaTimes size={18} />
                                 </button>
-                                
+
                                 {/* Desktop collapse button */}
                                 <button
                                     onClick={() => setIsCollapsed(!isCollapsed)}

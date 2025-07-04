@@ -19,6 +19,7 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@react-pdf/renderer": "^4.3.0",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.17.3",

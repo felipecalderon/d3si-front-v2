@@ -8,13 +8,7 @@ import { useTienda } from "@/stores/tienda.store"
 import { createStore } from "@/actions/stores/createStore"
 import { Input } from "@/components/ui/input"
 import { getAllStores } from "@/actions/stores/getAllStores"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
 export default function TiendasForm() {
     const { users, setStores } = useTienda()
@@ -33,27 +27,18 @@ export default function TiendasForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const gestor = users.find((u: IUser) => u.name === gestorTienda)
-        
+
         if (!gestor) {
             toast.error("Gestor no encontrado")
             return
         }
-        
+
         try {
             let isAdmin = false
             if (tipoTienda === "admin") {
                 isAdmin = true
             }
-            await createStore(
-                nombre,
-                gestor.userID,
-                sucursal,
-                rut,
-                telefono,
-                direccion,
-                ciudad,
-                isAdmin
-            )
+            await createStore(nombre, gestor.userID, sucursal, rut, telefono, direccion, ciudad, isAdmin)
 
             const allStores = await getAllStores()
             setStores(allStores)
@@ -78,12 +63,15 @@ export default function TiendasForm() {
     return (
         <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm max-w-2xl mx-auto">
             <h2 className="text-xl font-semibold mb-6 dark:text-white text-gray-800 text-start">Crear nueva Tienda</h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Primera fila: RUT y Nombre */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="rut">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="rut"
+                        >
                             RUT
                         </label>
                         <input
@@ -98,7 +86,10 @@ export default function TiendasForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="nombre">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="nombre"
+                        >
                             Nombre
                         </label>
                         <input
@@ -116,7 +107,10 @@ export default function TiendasForm() {
                 {/* Segunda fila: Email y Markup */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="email">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="email"
+                        >
                             Email
                         </label>
                         <input
@@ -131,7 +125,10 @@ export default function TiendasForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="markup">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="markup"
+                        >
                             Markup
                         </label>
                         <input
@@ -149,7 +146,10 @@ export default function TiendasForm() {
                 {/* Tercera fila: Sucursal y Ciudad */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="sucursal">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="sucursal"
+                        >
                             Sucursal o sector
                         </label>
                         <input
@@ -164,7 +164,10 @@ export default function TiendasForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="ciudad">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="ciudad"
+                        >
                             Ciudad
                         </label>
                         <input
@@ -182,7 +185,10 @@ export default function TiendasForm() {
                 {/* Cuarta fila: Dirección y Teléfono */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="direccion">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="direccion"
+                        >
                             Dirección (calle y número)
                         </label>
                         <input
@@ -197,7 +203,10 @@ export default function TiendasForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="telefono">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="telefono"
+                        >
                             Teléfono
                         </label>
                         <input
@@ -215,14 +224,13 @@ export default function TiendasForm() {
                 {/* Quinta fila: Tipo de tienda y Gestor */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="tipoTienda">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="tipoTienda"
+                        >
                             Tipo de tienda
                         </label>
-                        <Select
-                            value={tipoTienda}
-                            onValueChange={(value) => setTipoTienda(value)}
-                            required
-                            >
+                        <Select value={tipoTienda} onValueChange={(value) => setTipoTienda(value)} required>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Selecciona tipo" />
                             </SelectTrigger>
@@ -236,24 +244,24 @@ export default function TiendasForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700" htmlFor="gestorTienda">
+                        <label
+                            className="block text-sm font-medium mb-1 dark:text-gray-500 text-gray-700"
+                            htmlFor="gestorTienda"
+                        >
                             Gestor de la tienda
                         </label>
-                        <Select
-                            value={gestorTienda}
-                            onValueChange={(value) => setGestorTienda(value)}
-                            required
-                            >
+                        <Select value={gestorTienda} onValueChange={(value) => setGestorTienda(value)} required>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Selecciona gestor" />
                             </SelectTrigger>
                             <SelectContent>
                                 {users.map((u: IUser) => (
-                                    <SelectItem key={u.userID} value={u.name}>{u.name}</SelectItem>
+                                    <SelectItem key={u.userID} value={u.name}>
+                                        {u.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-
                     </div>
                 </div>
 

@@ -47,7 +47,7 @@ export default function InvoicesPage() {
     }
 
     const handleDelete = async (orderID: string) => {
-        if (confirm('¿Estás seguro de que quieres anular esta orden?')) {
+        if (confirm("¿Estás seguro de que quieres anular esta orden?")) {
             await deleteOrder(orderID)
             setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
         }
@@ -63,13 +63,16 @@ export default function InvoicesPage() {
 
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            'Pendiente': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-            'Completado': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-            'Cancelado': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-            'En proceso': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+            Pendiente: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+            Completado: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+            Cancelado: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+            "En proceso": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
         }
-        
-        return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+
+        return (
+            statusConfig[status as keyof typeof statusConfig] ||
+            "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
+        )
     }
 
     return (
@@ -106,7 +109,7 @@ export default function InvoicesPage() {
                                     const total = parseFloat(order.total).toFixed(2)
 
                                     return (
-                                        <TableRow 
+                                        <TableRow
                                             key={order.orderID}
                                             className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
                                         >
@@ -118,9 +121,7 @@ export default function InvoicesPage() {
                                                     {order.orderID.slice(0, 8)}
                                                 </code>
                                             </TableCell>
-                                            <TableCell className="text-gray-700 dark:text-gray-300">
-                                                {fecha}
-                                            </TableCell>
+                                            <TableCell className="text-gray-700 dark:text-gray-300">{fecha}</TableCell>
                                             <TableCell className="font-medium">
                                                 {order.Store?.name || getStoreName(order.storeID)}
                                             </TableCell>
@@ -128,22 +129,26 @@ export default function InvoicesPage() {
                                                 ${total}
                                             </TableCell>
                                             <TableCell>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(order.status)}`}>
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+                                                        order.status
+                                                    )}`}
+                                                >
                                                     {order.status}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2 flex-wrap">
-                                                    <Button 
-                                                        variant="outline" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
                                                         onClick={() => handleView(order)}
                                                         className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-300"
                                                     >
                                                         Ver
                                                     </Button>
-                                                    <Button 
-                                                        size="sm" 
+                                                    <Button
+                                                        size="sm"
                                                         onClick={() => handlePrint(order)}
                                                         className="bg-green-600 hover:bg-green-700 text-white"
                                                     >
@@ -174,29 +179,33 @@ export default function InvoicesPage() {
                         </div>
                     </div>
                 )}
-                
+
                 {!isLoading && orders.length === 0 && (
                     <div className="p-8 text-center">
                         <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <svg
+                                className="w-8 h-8 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
                             </svg>
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                             No hay órdenes generadas
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Las órdenes que generes aparecerán aquí
-                        </p>
+                        <p className="text-gray-500 dark:text-gray-400">Las órdenes que generes aparecerán aquí</p>
                     </div>
                 )}
             </div>
 
-            <OrderDetailModal
-                open={isModalOpen}
-                onClose={handleCloseModal}
-                order={selectedOrder}
-            />
+            <OrderDetailModal open={isModalOpen} onClose={handleCloseModal} order={selectedOrder} />
 
             {printOrder && (
                 <div id="print-area">
