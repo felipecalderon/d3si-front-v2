@@ -1,5 +1,5 @@
 "use server"
-import { cloudinary } from "@/utils/cdn-setup"
+import { cloudinary } from "@/lib/cdn-setup"
 import { UploadApiResponse } from "cloudinary"
 import { Readable } from "node:stream"
 
