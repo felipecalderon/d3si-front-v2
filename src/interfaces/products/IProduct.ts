@@ -1,3 +1,4 @@
+import { ICategory } from "../categories/ICategory"
 import { IProductVariation } from "./IProductVariation"
 
 export interface IProduct {
@@ -9,4 +10,5 @@ export interface IProduct {
     createdAt: string
     updatedAt: string
     ProductVariations: IProductVariation[]
+    categoryID: ICategory[]
 }

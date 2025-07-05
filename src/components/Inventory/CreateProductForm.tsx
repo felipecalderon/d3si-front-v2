@@ -1,6 +1,7 @@
+/* eslint-disable jsx-a11y/alt-text */
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
@@ -8,6 +9,8 @@ import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { Size, CreateProductFormData, ErrorState } from "@/interfaces/products/ICreateProductForm"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Minus, Trash2, Package, DollarSign, Hash, Shirt, Image, Users, ArrowLeft, Save } from "lucide-react"
+import { getAllCategories } from "@/actions/categories/getAllCategories" // Ajusta la ruta si es necesario
+import { ICategory } from "@/interfaces/categories/ICategory"
 
 export default function CreateProductForm() {
     const router = useRouter()
@@ -170,8 +173,14 @@ export default function CreateProductForm() {
         })
     }
 
+    const [categories, setCategories] = useState<ICategory[]>([])
+
+    useEffect(() => {
+        getAllCategories().then(setCategories)
+    }, [])
+
     return (
-        <div className="min-h-screen lg:p-4 lg:p-8">
+        <div className="min-h-screen lg:p-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -353,9 +362,11 @@ export default function CreateProductForm() {
                                             <SelectValue placeholder="Selecciona categoría" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
-                                            <SelectItem value="Hombre">Hombre</SelectItem>
-                                            <SelectItem value="Mujer">Mujer</SelectItem>
-                                            <SelectItem value="Unisex">Unisex</SelectItem>
+                                            {categories.map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.id}>
+                                                    {cat.name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     {errors[pIndex]?.category && (

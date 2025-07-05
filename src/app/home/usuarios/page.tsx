@@ -1,7 +1,7 @@
-import RegistroForm from "@/components/Forms/RegistroForm"
+import RegisterForm from "@/components/Register/RegisterForm"
 import TiendasForm from "@/components/Forms/TiendasForm"
 import ListTable from "@/components/ListTable/ListTable"
-import React, { useEffect, useState } from "react"
+import React from "react"
 
 export default function UsuariosPage() {
     return (
@@ -16,7 +16,7 @@ export default function UsuariosPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Formulario de Registro */}
                 <div>
-                    <RegistroForm />
+                    <RegisterForm />
                 </div>
 
                 {/* Formulario de Tiendas */}
