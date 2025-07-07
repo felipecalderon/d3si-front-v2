@@ -8,7 +8,7 @@ import { IUser } from "@/interfaces/users/IUser"
 import { deleteUser } from "@/actions/auth/authActions"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 import { useTienda } from "@/stores/tienda.store"
-import GestionUserForm from "../Forms/GestionUserForm"
+import GestionUserForm from "../Edit/GestionUserForm"
 import { Edit, Trash2, User } from "lucide-react"
 
 interface UsersTableProps {
