@@ -1,6 +1,7 @@
 import RegistroForm from "@/components/Usuarios/Forms/RegistroForm"
 import TiendasForm from "@/components/Usuarios/Forms/TiendasForm"
 import ListTable from "@/components/Usuarios/Tables/ListTable"
+
 import React from "react"
 
 export default function UsuariosPage() {
@@ -16,7 +17,7 @@ export default function UsuariosPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Formulario de Registro */}
                 <div>
-                    <RegistroForm />
+                    <RegisterForm />
                 </div>
 
                 {/* Formulario de Tiendas */}
