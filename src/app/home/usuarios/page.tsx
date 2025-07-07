@@ -1,7 +1,7 @@
-import RegistroForm from "@/components/Forms/RegistroForm"
-import TiendasForm from "@/components/Forms/TiendasForm"
-import ListTable from "@/components/ListTable/ListTable"
-import React, { useEffect, useState } from "react"
+import RegistroForm from "@/components/Usuarios/Forms/RegistroForm"
+import TiendasForm from "@/components/Usuarios/Forms/TiendasForm"
+import ListTable from "@/components/Usuarios/Tables/ListTable"
+import React from "react"
 
 export default function UsuariosPage() {
     return (

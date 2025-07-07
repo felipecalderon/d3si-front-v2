@@ -7,7 +7,7 @@ import { getAllUsers } from "@/actions/users/getAllUsers"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import UsersTable from "./UsersTable"
 import StoresTable from "./StoresTable"
-import TableSkeleton from "./TableSkeleton"
+import TableSkeleton from "../../ListTable/TableSkeleton"
 
 type ViewType = 'initial' | 'users' | 'stores'
 

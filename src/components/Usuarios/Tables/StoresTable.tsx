@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import GestionStoreForm from "../Forms/GestionStoreForm"
+import GestionStoreForm from "../Edit/GestionStoreForm"
 import { IStore } from "@/interfaces/stores/IStore"
 import { Edit, Trash2, Store as StoreIcon } from "lucide-react"
 import { deleteStore } from "@/actions/stores/deleteStore"
