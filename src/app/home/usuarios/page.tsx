@@ -1,6 +1,7 @@
-import RegisterForm from "@/components/Register/RegisterForm"
-import TiendasForm from "@/components/Forms/TiendasForm"
-import ListTable from "@/components/ListTable/ListTable"
+import RegistroForm from "@/components/Usuarios/Forms/RegistroForm"
+import TiendasForm from "@/components/Usuarios/Forms/TiendasForm"
+import ListTable from "@/components/Usuarios/Tables/ListTable"
+
 import React from "react"
 
 export default function UsuariosPage() {

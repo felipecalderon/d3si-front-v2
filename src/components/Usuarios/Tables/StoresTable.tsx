@@ -3,8 +3,15 @@
 import { useState } from "react"
 import { useTienda } from "@/stores/tienda.store"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import GestionStoreForm from "../Forms/GestionStoreForm"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import GestionStoreForm from "../Edit/GestionStoreForm"
 import { IStore } from "@/interfaces/stores/IStore"
 import { Edit, Trash2, Store as StoreIcon } from "lucide-react"
 import { deleteStore } from "@/actions/stores/deleteStore"

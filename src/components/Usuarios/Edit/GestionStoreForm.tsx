@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Button } from "../ui/button"
+import { Button } from "../../ui/button"
 import { toast } from "sonner"
 import { IStore } from "@/interfaces/stores/IStore"
 import { IUser } from "@/interfaces/users/IUser"
@@ -11,26 +11,11 @@ import { getAllStores } from "@/actions/stores/getAllStores"
 import { updateStore } from "@/actions/stores/updateStore"
 import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
-import ModalUserTienda from "../Modals/ModalUserTienda"
-import {
-    Store,
-    User,
-    Plus,
-    Trash2,
-    Save,
-    X,
-    Building,
-    Phone,
-    MapPin,
-    Hash,
-    Map,
-    MapPinned,
-    UserRoundCheck,
-    AtSign,
-} from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import ModalUserTienda from "./ModalUserTienda"
+import { Store, User, Plus, Trash2, Save, X, Building, Phone, MapPin, Hash, Map, MapPinned, UserRoundCheck, AtSign} from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
 import { Label } from "@/components/ui/label"
-import { Input } from "../ui/input"
+import { Input } from "../../ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 
