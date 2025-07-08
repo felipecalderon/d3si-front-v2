@@ -14,65 +14,67 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
         <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
             <div className="overflow-x-auto w-full">
                 <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead className="min-w-[160px]">Sucursal</TableHead>
-                    <TableHead className="min-w-[160px]">Fecha de Venta</TableHead>
-                    <TableHead className="min-w-[160px]">Venta con IVA</TableHead>
-                    <TableHead className="min-w-[160px]">Productos</TableHead>
-                    <TableHead className="min-w-[160px]">Estado</TableHead>
-                    </TableRow>
-                </TableHeader>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="min-w-[160px]">Sucursal</TableHead>
+                            <TableHead className="min-w-[160px]">Fecha de Venta</TableHead>
+                            <TableHead className="min-w-[160px]">Venta con IVA</TableHead>
+                            <TableHead className="min-w-[160px]">Productos</TableHead>
+                            <TableHead className="min-w-[160px]">Estado</TableHead>
+                        </TableRow>
+                    </TableHeader>
                 </Table>
             </div>
 
             <div
                 className={`dark:bg-gray-800 bg-white rounded shadow ${
-                sales.length > 8 ? "max-h-[32rem] overflow-y-auto" : ""
+                    sales.length > 8 ? "max-h-[32rem] overflow-y-auto" : ""
                 }`}
             >
                 <div className="overflow-x-auto w-full">
-                <Table>
-                    <TableBody>
-                    {sales.length === 0 ? (
-                        <TableRow>
-                        <TableCell colSpan={5}>No hay ventas para mostrar.</TableCell>
-                        </TableRow>
-                    ) : (
-                        sales.map((sale) => {
-                        const storeName = sale.Store?.name || "Sucursal"
-                        const productsDescription = sale.SaleProducts?.length
-                            ? sale.SaleProducts.map((sp) => {
-                                const productName = sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                const quantity = sp.quantitySold ?? "-"
-                                const price = sp.unitPrice ?? "-"
-                                return `${quantity} x ${productName} ($${price})`
-                            }).join(", ")
-                            : "-"
+                    <Table>
+                        <TableBody>
+                            {sales.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5}>No hay ventas para mostrar.</TableCell>
+                                </TableRow>
+                            ) : (
+                                sales.map((sale) => {
+                                    const storeName = sale.Store?.name || "Sucursal"
+                                    const productsDescription = sale.SaleProducts?.length
+                                        ? sale.SaleProducts.map((sp) => {
+                                            const productName =
+                                                sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                            const quantity = sp.quantitySold ?? "-"
+                                            const price = sp.unitPrice ?? "-"
+                                            return `${quantity} x ${productName} ($${price})`
+                                        }).join(", ")
+                                        : "-"
 
-                        return (
-                            <TableRow key={sale.saleID}>
-                            <TableCell className="min-w-[160px]">{storeName}</TableCell>
-                            <TableCell className="min-w-[160px]">
-                                <DateCell date={sale.createdAt} />
-                            </TableCell>
-                            <TableCell className="min-w-[160px]">
-                                {typeof sale.total === "number"
-                                ? `$${sale.total.toLocaleString("es-AR")}`
-                                : "Sin dato"}
-                            </TableCell>
-                            <TableCell className="min-w-[160px]">{productsDescription}</TableCell>
-                            <TableCell className="text-green-600 min-w-[160px] font-medium">{sale.status}</TableCell>
-                            </TableRow>
-                        )
-                        })
-                    )}
-                    </TableBody>
-                </Table>
+                                    return (
+                                        <TableRow key={sale.saleID}>
+                                            <TableCell className="min-w-[160px]">{storeName}</TableCell>
+                                            <TableCell className="min-w-[160px]">
+                                                <DateCell date={sale.createdAt} />
+                                            </TableCell>
+                                            <TableCell className="min-w-[160px]">
+                                                {typeof sale.total === "number"
+                                                    ? `$${sale.total.toLocaleString("es-AR")}`
+                                                    : "Sin dato"}
+                                            </TableCell>
+                                            <TableCell className="min-w-[160px]">{productsDescription}</TableCell>
+                                            <TableCell className="text-green-600 min-w-[160px] font-medium">
+                                                {sale.status}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
         </div>
-
     )
 }
 
