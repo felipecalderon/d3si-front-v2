@@ -54,7 +54,10 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
-                if (!size.sku.trim()) sizeErrors.sku = "Falta llenar este campo"
+                // SKU: solo validar si el usuario lo ingresó manualmente
+                if (size.sku && !/^1\d{11}$/.test(size.sku)) {
+                    sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
+                }
                 if (size.stockQuantity === null || size.stockQuantity === undefined || isNaN(size.stockQuantity)) {
                     sizeErrors.stockQuantity = "Falta llenar este campo"
                 }
@@ -127,10 +130,14 @@ export default function CreateProductForm() {
 
     const addSize = (productIndex: number) => {
         const newProducts = [...products]
+        const sizes = newProducts[productIndex].sizes
+        // Si ya hay al menos una talla, copia los precios de la primera
+        const basePriceCost = sizes[0]?.priceCost ?? 0
+        const basePriceList = sizes[0]?.priceList ?? 0
         newProducts[productIndex].sizes.push({
             sizeNumber: "",
-            priceList: 0,
-            priceCost: 0,
+            priceCost: basePriceCost,
+            priceList: basePriceList,
             sku: "",
             stockQuantity: 0,
         })
@@ -154,7 +161,16 @@ export default function CreateProductForm() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        const validationErrors = validate(products)
+        // Antes de validar, rellenar los SKU vacíos
+        const productsWithSku = products.map((product) => ({
+            ...product,
+            sizes: product.sizes.map((size) => ({
+                ...size,
+                sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
+            })),
+        }))
+
+        const validationErrors = validate(productsWithSku)
         setErrors(validationErrors)
 
         if (hasErrors(validationErrors)) {
@@ -163,7 +179,7 @@ export default function CreateProductForm() {
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products })
+            const result = await createMassiveProducts({ products: productsWithSku })
             if (result.success) {
                 toast.success("Productos guardados correctamente.")
                 router.push("/home/inventory")
@@ -173,11 +189,27 @@ export default function CreateProductForm() {
         })
     }
 
+    const handleSkuBlur = (productIndex: number, sizeIndex: number, value: string) => {
+        if (value.trim() === "") {
+            // Genera y asigna el SKU si está vacío
+            handleSizeChange(productIndex, sizeIndex, "sku", generateRandomSku())
+        }
+    }
+
     const [categories, setCategories] = useState<ICategory[]>([])
 
     useEffect(() => {
         getAllCategories().then(setCategories)
     }, [])
+
+    // Para generar SKU aleatorio
+    function generateRandomSku() {
+        let sku = "1"
+        for (let i = 0; i < 11; i++) {
+            sku += Math.floor(Math.random() * 10).toString()
+        }
+        return sku
+    }
 
     return (
         <div className="min-h-screen lg:p-8">
@@ -501,6 +533,9 @@ export default function CreateProductForm() {
                                                             value={size.sku}
                                                             onChange={(e) =>
                                                                 handleSizeChange(pIndex, sIndex, "sku", e.target.value)
+                                                            }
+                                                            onBlur={(e) =>
+                                                                handleSkuBlur(pIndex, sIndex, e.target.value)
                                                             }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
                                                                 errors[pIndex]?.sizes[sIndex]?.sku
