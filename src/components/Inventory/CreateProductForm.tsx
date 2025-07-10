@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Minus, Trash2, Package, DollarSign, Hash, Shirt, Image, Users, ArrowLeft, Save } from "lucide-react"
 import { getAllCategories } from "@/actions/categories/getAllCategories" // Ajusta la ruta si es necesario
 import { ICategory } from "@/interfaces/categories/ICategory"
+import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
+import { IChildCategory } from "@/interfaces/categories/ICategory"
 
 export default function CreateProductForm() {
     const router = useRouter()
@@ -22,6 +24,7 @@ export default function CreateProductForm() {
             image: "",
             genre: "",
             category: "",
+            childCategory: "",
             sizes: [
                 {
                     sizeNumber: "",
@@ -54,7 +57,10 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
-                if (!size.sku.trim()) sizeErrors.sku = "Falta llenar este campo"
+                // SKU: solo validar si el usuario lo ingresó manualmente
+                if (size.sku && !/^1\d{11}$/.test(size.sku)) {
+                    sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
+                }
                 if (size.stockQuantity === null || size.stockQuantity === undefined || isNaN(size.stockQuantity)) {
                     sizeErrors.stockQuantity = "Falta llenar este campo"
                 }
@@ -74,6 +80,10 @@ export default function CreateProductForm() {
     const handleProductChange = (productIndex: number, field: keyof CreateProductFormData, value: string) => {
         const newProducts = [...products]
         newProducts[productIndex] = { ...newProducts[productIndex], [field]: value }
+        // Si cambias la categoría padre, limpia la subcategoría seleccionada
+        if (field === "category") {
+            newProducts[productIndex].childCategory = ""
+        }
         setProducts(newProducts)
         setErrors(validate(newProducts))
     }
@@ -95,6 +105,7 @@ export default function CreateProductForm() {
                 image: "",
                 genre: "",
                 category: "",
+                childCategory: "",
                 sizes: [
                     {
                         sizeNumber: "",
@@ -127,10 +138,14 @@ export default function CreateProductForm() {
 
     const addSize = (productIndex: number) => {
         const newProducts = [...products]
+        const sizes = newProducts[productIndex].sizes
+        // Si ya hay al menos una talla, copia los precios de la primera
+        const basePriceCost = sizes[0]?.priceCost ?? 0
+        const basePriceList = sizes[0]?.priceList ?? 0
         newProducts[productIndex].sizes.push({
             sizeNumber: "",
-            priceList: 0,
-            priceCost: 0,
+            priceCost: basePriceCost,
+            priceList: basePriceList,
             sku: "",
             stockQuantity: 0,
         })
@@ -154,7 +169,16 @@ export default function CreateProductForm() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        const validationErrors = validate(products)
+        // Antes de validar, rellenar los SKU vacíos
+        const productsWithSku = products.map((product) => ({
+            ...product,
+            sizes: product.sizes.map((size) => ({
+                ...size,
+                sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
+            })),
+        }))
+
+        const validationErrors = validate(productsWithSku)
         setErrors(validationErrors)
 
         if (hasErrors(validationErrors)) {
@@ -163,7 +187,7 @@ export default function CreateProductForm() {
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products })
+            const result = await createMassiveProducts({ products: productsWithSku })
             if (result.success) {
                 toast.success("Productos guardados correctamente.")
                 router.push("/home/inventory")
@@ -173,11 +197,35 @@ export default function CreateProductForm() {
         })
     }
 
+    const handleSkuBlur = (productIndex: number, sizeIndex: number, value: string) => {
+        if (value.trim() === "") {
+            // Genera y asigna el SKU si está vacío
+            handleSizeChange(productIndex, sizeIndex, "sku", generateRandomSku())
+        }
+    }
+
     const [categories, setCategories] = useState<ICategory[]>([])
 
     useEffect(() => {
         getAllCategories().then(setCategories)
     }, [])
+
+    // Nuevo estado para subcategorías
+    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
+
+    useEffect(() => {
+        getAllCategories().then(setCategories)
+        getAllChildCategories().then(setChildCategories)
+    }, [])
+
+    // Para generar SKU aleatorio
+    function generateRandomSku() {
+        let sku = "1"
+        for (let i = 0; i < 11; i++) {
+            sku += Math.floor(Math.random() * 10).toString()
+        }
+        return sku
+    }
 
     return (
         <div className="min-h-screen lg:p-8">
@@ -335,10 +383,10 @@ export default function CreateProductForm() {
                                             </SelectContent>
                                         </Select>
                                         {errors[pIndex]?.genre && (
-                                            <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
+                                            <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                {errors[pIndex].genre}
-                                            </p>
+                                                {errors[pIndex].name}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -363,7 +411,7 @@ export default function CreateProductForm() {
                                         </SelectTrigger>
                                         <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
                                             {categories.map((cat) => (
-                                                <SelectItem key={cat.id} value={cat.id}>
+                                                <SelectItem key={cat.categoryID} value={cat.categoryID.toString()}>
                                                     {cat.name}
                                                 </SelectItem>
                                             ))}
@@ -374,6 +422,35 @@ export default function CreateProductForm() {
                                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                             {errors[pIndex].category}
                                         </p>
+                                    )}
+
+                                    {/* Select para subcategoría */}
+                                    {product.category && (
+                                        <div className="mt-3">
+                                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                <Users className="w-4 h-4" />
+                                                Subcategoría
+                                            </label>
+                                            <Select
+                                                value={product.childCategory}
+                                                onValueChange={(value) =>
+                                                    handleProductChange(pIndex, "childCategory", value)
+                                                }
+                                            >
+                                                <SelectTrigger className="h-12 text-base border-2 transition-all duration-200 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800">
+                                                    <SelectValue placeholder="Selecciona subcategoría" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
+                                                    {childCategories
+                                                        .filter((sub) => sub.parentID === product.category)
+                                                        .map((sub) => (
+                                                            <SelectItem key={sub.name} value={sub.name}>
+                                                                {sub.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     )}
                                 </div>
 
@@ -501,6 +578,9 @@ export default function CreateProductForm() {
                                                             value={size.sku}
                                                             onChange={(e) =>
                                                                 handleSizeChange(pIndex, sIndex, "sku", e.target.value)
+                                                            }
+                                                            onBlur={(e) =>
+                                                                handleSkuBlur(pIndex, sIndex, e.target.value)
                                                             }
                                                             className={`h-11 text-base border-2 transition-all duration-200 ${
                                                                 errors[pIndex]?.sizes[sIndex]?.sku

@@ -14,6 +14,7 @@ import type { IProduct } from "@/interfaces/products/IProduct"
 interface InventoryTableProps {
     currentItems: Array<{
         product: IProduct
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         variation: any
         isFirst: boolean
         totalStock: number
@@ -67,9 +68,9 @@ export function InventoryTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRODUCTO
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    CÓDIGO SKU
-                                </TableHead>
+                                {/* <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+            CÓDIGO SKU
+        </TableHead> */}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     TALLA
                                 </TableHead>
@@ -177,6 +178,10 @@ export function InventoryTable({
                                                             <span className="font-medium text-sm block truncate">
                                                                 {product.name}
                                                             </span>
+                                                            {/* SKU debajo de la imagen */}
+                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">
+                                                                {variation.sku}
+                                                            </span>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
                                                                     Stock: {totalStock}
@@ -191,7 +196,7 @@ export function InventoryTable({
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
 
-                                        {/* Columna SKU */}
+                                        {/* Columna SKU 
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
                                             <MotionItem
                                                 key={`${product.productID}-${variation.variationID}`}
@@ -201,7 +206,7 @@ export function InventoryTable({
                                                     {variation.sku}
                                                 </span>
                                             </MotionItem>
-                                        </TableCell>
+                                        </TableCell> */}
 
                                         {/* Columna TALLA */}
                                         <TableCell
