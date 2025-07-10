@@ -2,6 +2,7 @@ import { ICategory } from "../categories/ICategory"
 import { IProductVariation } from "./IProductVariation"
 
 export interface IProduct {
+    childCategory: string
     genre: string
     productID: string
     name: string
