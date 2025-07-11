@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import type React from "react"
@@ -10,6 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
+import { useEffect, useState } from "react"
+import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
+import { IChildCategory } from "@/interfaces/categories/ICategory"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -58,6 +62,11 @@ export function InventoryTable({
     setRawProducts,
     adminStoreIDs,
 }: InventoryTableProps) {
+    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
+
+    useEffect(() => {
+        getAllChildCategories().then(setChildCategories)
+    }, [])
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -68,9 +77,9 @@ export function InventoryTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRODUCTO
                                 </TableHead>
-                                {/* <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-            CÓDIGO SKU
-        </TableHead> */}
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    CATEGORÍA
+                                </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     TALLA
                                 </TableHead>
@@ -79,6 +88,9 @@ export function InventoryTable({
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
+                                </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    OFERTAS
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     STOCK CENTRAL
@@ -195,19 +207,10 @@ export function InventoryTable({
                                         {!isFirst && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
-
-                                        {/* Columna SKU 
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem
-                                                key={`${product.productID}-${variation.variationID}`}
-                                                delay={index + 3}
-                                            >
-                                                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                                    {variation.sku}
-                                                </span>
-                                            </MotionItem>
-                                        </TableCell> */}
-
+                                            {childCategories.find((cat) => cat.parentID === String(product.categoryID))
+                                                ?.name || "-"}
+                                        </TableCell>
                                         {/* Columna TALLA */}
                                         <TableCell
                                             className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer py-2"
@@ -302,7 +305,17 @@ export function InventoryTable({
                                                 </div>
                                             )}
                                         </TableCell>
-
+                                        {/* OFERTAS */}
+                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                            {/* Aquí puedes mostrar el precio de oferta, porcentaje, o un botón, según tu lógica */}
+                                            {variation.offerPrice ? (
+                                                <span className="font-semibold text-green-600">
+                                                    ${Number(variation.offerPrice).toLocaleString("es-CL")}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </TableCell>
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
                                             className="w-32 text-center dark:hover:bg-gray-800 hover:bg-gray-50 cursor-pointer py-3 transition-colors"
