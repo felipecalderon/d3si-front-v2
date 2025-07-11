@@ -16,49 +16,62 @@ export const SaleForm = () => {
     const [isAdding] = useState(false)
 
     const handleAddProduct = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!codigo) return
+    e.preventDefault()
+    if (!codigo) return
 
-        const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+    const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
 
-        try {
-            const productoEncontrado = await getProductById(storeID, codigo)
+    try {
+        const productoEncontrado = await getProductById(storeID, codigo)
 
-            if (!productoEncontrado) {
-                toast("Producto no encontrado")
-                return
-            }
+        if (!productoEncontrado) {
+            toast("Producto no encontrado")
+            return
+        }
 
-            const idProducto = productoEncontrado.storeProductID 
+        if (productoEncontrado.stock <= 0) {
+            toast("No hay stock disponible para este producto.")
+            return
+        }
 
-            setProductos((prev) => {
-                const index = prev.findIndex((p) => p.storeProductID === idProducto)
+        const idProducto = productoEncontrado.storeProductID
 
-                if (index !== -1) {
-                    const updated = [...prev]
-                    updated[index].cantidad += 1
-                    return updated
+        setProductos((prev) => {
+            const index = prev.findIndex((p) => p.storeProductID === idProducto)
+
+            if (index !== -1) {
+                const updated = [...prev]
+                const cantidadActual = updated[index].cantidad
+
+                if (cantidadActual + 1 > productoEncontrado.stock) {
+                    toast("No se puede agregar más, stock insuficiente.")
+                    return prev
                 }
 
-                return [
-                    ...prev,
-                    {
-                        storeProductID: idProducto,
-                        nombre: productoEncontrado.name,
-                        precio: Number(productoEncontrado.priceList),
-                        storeID: storeID,
-                        image: productoEncontrado.image || "",
-                        cantidad: 1,
-                    },
-                ]
-            })
+                updated[index].cantidad += 1
+                return updated
+            }
 
-            setCodigo("")
-        } catch (err) {
-            console.error(err)
-            toast("Error al buscar producto")
-        }
+            return [
+                ...prev,
+                {
+                    storeProductID: idProducto,
+                    nombre: productoEncontrado.name,
+                    precio: Number(productoEncontrado.priceList),
+                    storeID: storeID,
+                    image: productoEncontrado.image || "",
+                    cantidad: 1,
+                },
+            ]
+        })
+
+        setCodigo("")
+    } catch (err) {
+        console.error(err)
+        toast("Error al buscar producto")
     }
+}
+
 
     const total = productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0)
 
@@ -100,10 +113,6 @@ export const SaleForm = () => {
     const handleDelete = (id: string) => {
         setProductos((prev) => prev.filter((prod) => prod.storeProductID !== id))
     }
-
-    /*useEffect(() => {
-        console.log(productos)
-    }, [productos])*/
 
     const handleCantidadChange = (id: string, cantidad: number) => {
         setProductos((prev) => {
