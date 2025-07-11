@@ -16,10 +16,7 @@ export default function SalesEvolutionChart() {
     return (
         <div className="lg:col-span-9 lg:row-span-3 relative lg:col-start-4 lg:row-start-5">
             {/* Headers del gráfico - Solo en desktop */}
-            <div className="hidden lg:block lg:absolute lg:-top-16 rounded-md left-0 dark:bg-gray-800 border-0 shadow-lg py-4 px-6">
-                <h1 className="text-sm">Evolución de Ventas totales últimos 12 meses / Meta</h1>
-            </div>
-            <div className="hidden lg:flex lg:absolute lg:-top-16 right-0 text-sm gap-3">
+            <div className="hidden lg:flex lg:absolute lg:-top-20 left-0 text-sm gap-3">
                 <div className="flex text-center rounded-md dark:bg-gray-800 border-0 shadow-lg py-2 px-6">
                     <div className="flex flex-col">
                         <span className="text-green-600">Ranking Ventas</span>
@@ -35,7 +32,6 @@ export default function SalesEvolutionChart() {
                     <span className="font-medium mt-3 ml-2 dark:text-white">5%</span>
                 </div>
             </div>
-
             <Card className="dark:bg-gray-800 border-0 shadow-lg">
                 <CardHeader>
                     <CardTitle className="text-xs md:text-sm dark:text-white">
@@ -65,10 +61,7 @@ export default function SalesEvolutionChart() {
 
                             <ChartTooltip
                                 content={
-                                    <ChartTooltipContent
-                                        indicator="dot"
-                                        labelFormatter={(value) => `Mes: ${value}`}
-                                    />
+                                    <ChartTooltipContent indicator="dot" labelFormatter={(value) => `Mes: ${value}`} />
                                 }
                             />
 

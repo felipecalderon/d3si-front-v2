@@ -17,7 +17,7 @@ export default function UsuariosPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Formulario de Registro */}
                 <div>
-                    <RegisterForm />
+                    <RegistroForm />
                 </div>
 
                 {/* Formulario de Tiendas */}

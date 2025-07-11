@@ -12,4 +12,5 @@ export interface IProduct {
     updatedAt: string
     ProductVariations: IProductVariation[]
     categoryID: ICategory[]
+    stock: number
 }

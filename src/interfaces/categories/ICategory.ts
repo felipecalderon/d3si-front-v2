@@ -6,6 +6,7 @@ export interface ICategory {
     createdAt: string
     updatedAt: string
     subcategories: Array<{
+        categoryID?: string
         name?: string
         parentID?: string
         createdAt?: string

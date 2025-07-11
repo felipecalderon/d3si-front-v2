@@ -16,11 +16,12 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="min-w-[160px]">Sucursal</TableHead>
-                            <TableHead className="min-w-[160px]">Fecha de Venta</TableHead>
-                            <TableHead className="min-w-[160px]">Venta con IVA</TableHead>
-                            <TableHead className="min-w-[160px]">Productos</TableHead>
-                            <TableHead className="min-w-[160px]">Estado</TableHead>
+                            <TableHead className="min-w-[140px]">Sucursal</TableHead>
+                            <TableHead className="min-w-[140px]">Fecha de Venta</TableHead>
+                            <TableHead className="min-w-[140px]">Venta con IVA</TableHead>
+                            <TableHead className="min-w-[140px]">Productos</TableHead>
+                            <TableHead className="min-w-[140px]">Estado</TableHead>
+                            <TableHead className="min-w-[140px]">Tipo de pago</TableHead>
                         </TableRow>
                     </TableHeader>
                 </Table>
@@ -53,19 +54,20 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
 
                                     return (
                                         <TableRow key={sale.saleID}>
-                                            <TableCell className="min-w-[160px]">{storeName}</TableCell>
-                                            <TableCell className="min-w-[160px]">
+                                            <TableCell className="min-w-[150px]">{storeName}</TableCell>
+                                            <TableCell className="min-w-[150px]">
                                                 <DateCell date={sale.createdAt} />
                                             </TableCell>
-                                            <TableCell className="min-w-[160px]">
+                                            <TableCell className="min-w-[150px]">
                                                 {typeof sale.total === "number"
                                                     ? `$${sale.total.toLocaleString("es-AR")}`
                                                     : "Sin dato"}
                                             </TableCell>
-                                            <TableCell className="min-w-[160px]">{productsDescription}</TableCell>
+                                            <TableCell className="min-w-[150px]">{productsDescription}</TableCell>
                                             <TableCell className="text-green-600 min-w-[160px] font-medium">
                                                 {sale.status}
                                             </TableCell>
+                                            <TableCell className="min-w-[150px]">Efectivo</TableCell>
                                         </TableRow>
                                     )
                                 })
