@@ -15,8 +15,7 @@ import { motion } from "framer-motion"
 
 export default function Sidebar() {
     const router = useRouter()
-    const { stores, setStores } = useTienda()
-    const [storeSelected, setStoreSelected] = useState<{ storeID: string; name: string } | null>(null)
+    const { stores, storeSelected, setStoreSelected, setStores } = useTienda()
     const [isCollapsed, setIsCollapsed] = useState(false)
     const [isMobileOpen, setIsMobileOpen] = useState(false)
     const [isDarkMode, setIsDarkMode] = useState(false)
@@ -60,7 +59,7 @@ export default function Sidebar() {
             }
         }
         cargarTiendas()
-    }, [setStores])
+    }, [])
 
     const toggleSection = (sectionId: string) => {
         setOpenSections((prev) => ({

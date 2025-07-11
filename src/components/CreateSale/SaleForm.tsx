@@ -7,6 +7,7 @@ import { CartTable } from "@/components/CreateSale/CartTable"
 import { TotalAndButtons } from "@/components/CreateSale/TotalAndButtons"
 import { postSale } from "@/actions/sales/postSale"
 import { toast } from "sonner"
+import { useTienda } from "@/stores/tienda.store"
 
 export const SaleForm = () => {
     const [productos, setProductos] = useState<IProductoEnVenta[]>([])
@@ -14,12 +15,15 @@ export const SaleForm = () => {
     const [tipoPago, setTipoPago] = useState("EFECTIVO")
     const [resumen, setResumen] = useState<IProductoEnVenta[]>([])
     const [isAdding] = useState(false)
-
+    const { storeSelected } = useTienda()
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!codigo) return
+        if (!storeSelected) {
+            return toast("Debes elegir una tienda")
+        }
 
-        const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+        const storeID = storeSelected.storeID
 
         try {
             const productoEncontrado = await getProductById(storeID, codigo)
@@ -29,7 +33,7 @@ export const SaleForm = () => {
                 return
             }
 
-            const idProducto = productoEncontrado.storeProductID 
+            const idProducto = productoEncontrado.variationID // variationID
 
             setProductos((prev) => {
                 const index = prev.findIndex((p) => p.storeProductID === idProducto)
