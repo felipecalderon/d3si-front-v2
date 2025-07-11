@@ -33,13 +33,26 @@ export const SaleForm = () => {
                 return
             }
 
-            const idProducto = productoEncontrado.variationID // variationID
+            if (productoEncontrado.stock <= 0) {
+                toast("No hay stock disponible para este producto.")
+                return
+            }
+
+            // Si la tienda es central se utiliza variationID, si no usa storeProductID
+            const idProducto = productoEncontrado.variationID
 
             setProductos((prev) => {
                 const index = prev.findIndex((p) => p.storeProductID === idProducto)
 
                 if (index !== -1) {
                     const updated = [...prev]
+                    const cantidadActual = updated[index].cantidad
+
+                    if (cantidadActual + 1 > productoEncontrado.stock) {
+                        toast("No se puede agregar más, stock insuficiente.")
+                        return prev
+                    }
+
                     updated[index].cantidad += 1
                     return updated
                 }
@@ -104,10 +117,6 @@ export const SaleForm = () => {
     const handleDelete = (id: string) => {
         setProductos((prev) => prev.filter((prod) => prod.storeProductID !== id))
     }
-
-    /*useEffect(() => {
-        console.log(productos)
-    }, [productos])*/
 
     const handleCantidadChange = (id: string, cantidad: number) => {
         setProductos((prev) => {
