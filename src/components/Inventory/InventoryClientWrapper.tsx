@@ -203,6 +203,11 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
+            {/* Category Progress */}
+            <MotionItem delay={1}>
+                <CategoryProgress products={searchedProducts} />
+            </MotionItem>
+
             {/* Header Section */}
             <MotionItem delay={0}>
                 <InventoryHeader
@@ -229,11 +234,6 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                         {flattenedProducts.length} variaciones)
                     </p>
                 </div>
-            </MotionItem>
-
-            {/* Category Progress */}
-            <MotionItem delay={1}>
-                <CategoryProgress products={searchedProducts} />
             </MotionItem>
 
             {/* Table Section */}

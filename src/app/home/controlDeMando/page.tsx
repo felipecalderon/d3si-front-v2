@@ -1,3 +1,5 @@
+import { getAllCategories } from "@/actions/categories/getAllCategories"
+import { getAllProducts } from "@/actions/products/getAllProducts"
 import DateRangeTabs from "@/components/ControlDeMando/Dashboard/DateRangeTabs"
 import GaugeChartSection from "@/components/ControlDeMando/Dashboard/GaugeChartSection"
 import MayoristaSection from "@/components/ControlDeMando/Dashboard/MayoristaSection"
@@ -7,7 +9,9 @@ import StatisticsGrid from "@/components/ControlDeMando/Dashboard/StatisticsGrid
 import WebRankingSection from "@/components/ControlDeMando/Dashboard/WebRankingSection"
 import React from "react"
 
-export default function ControlDashboard() {
+export default async function ControlDashboard() {
+    // Lógica de obtención en servidor
+    const [productsData, categoriesData] = await Promise.all([getAllProducts(), getAllCategories()])
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
             <div className="flex-1 w-full flex flex-col">
@@ -24,7 +28,7 @@ export default function ControlDashboard() {
                         <GaugeChartSection />
 
                         {/* Columna derecha - Ranking productos */}
-                        <ProductRanking />
+                        <ProductRanking initialProducts={productsData} categories={categoriesData} />
 
                         {/* Gráfico de evolución */}
                         <SalesEvolutionChart />
