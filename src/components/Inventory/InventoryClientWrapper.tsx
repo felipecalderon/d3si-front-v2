@@ -255,6 +255,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                                 setAddSizeModalProductID={setAddSizeModalProductID}
                                 setRawProducts={setRawProducts}
                                 adminStoreIDs={adminStoreIDs}
+                                categories={[]}
                             />
                         </MotionItem>
                         {totalPages > 1 && (

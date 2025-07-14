@@ -1,8 +1,8 @@
+//import { ICategory } from "../categories/ICategory"
 import { ICategory } from "../categories/ICategory"
 import { IProductVariation } from "./IProductVariation"
 
 export interface IProduct {
-    childCategory: string
     genre: string
     productID: string
     name: string
@@ -11,6 +11,7 @@ export interface IProduct {
     createdAt: string
     updatedAt: string
     ProductVariations: IProductVariation[]
-    categoryID: ICategory[]
+    categoryID: string | null
     stock: number
+    Category?: ICategory
 }

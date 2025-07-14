@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import type React from "react"
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
+import { ICategory } from "@/interfaces/categories/ICategory"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -19,6 +21,7 @@ interface InventoryTableProps {
         isFirst: boolean
         totalStock: number
     }>
+    categories: ICategory[]
     editingField: {
         sku: string
         field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
@@ -45,6 +48,14 @@ const calculateMarkup = (priceCost: number, priceList: number): string => {
     return markup.toFixed(2)
 }
 
+const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory[]): string => {
+    const cat = product.Category
+    if (!cat) return "-"
+    if (!cat.parentID) return cat.name
+    const parent = categories.find((c) => c.categoryID === cat.parentID)
+    return parent ? `${parent.name} / ${cat.name}` : cat.name
+}
+
 export function InventoryTable({
     currentItems,
     editingField,
@@ -57,6 +68,7 @@ export function InventoryTable({
     setAddSizeModalProductID,
     setRawProducts,
     adminStoreIDs,
+    categories,
 }: InventoryTableProps) {
     return (
         <div className="flex-1 flex flex-col">
@@ -68,9 +80,9 @@ export function InventoryTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRODUCTO
                                 </TableHead>
-                                {/* <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-            CÓDIGO SKU
-        </TableHead> */}
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    CATEGORÍA
+                                </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     TALLA
                                 </TableHead>
@@ -79,6 +91,9 @@ export function InventoryTable({
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
+                                </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    OFERTAS
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     STOCK CENTRAL
@@ -195,18 +210,10 @@ export function InventoryTable({
                                         {!isFirst && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
-
-                                        {/* Columna SKU 
+                                        {/* Columna CATEGORIA */}
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem
-                                                key={`${product.productID}-${variation.variationID}`}
-                                                delay={index + 3}
-                                            >
-                                                <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                                    {variation.sku}
-                                                </span>
-                                            </MotionItem>
-                                        </TableCell> */}
+                                            {getCategoryFullNameFromProduct(product, categories)}
+                                        </TableCell>
 
                                         {/* Columna TALLA */}
                                         <TableCell
@@ -302,7 +309,17 @@ export function InventoryTable({
                                                 </div>
                                             )}
                                         </TableCell>
-
+                                        {/* OFERTAS */}
+                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                            {/* Aquí puedes mostrar el precio de oferta, porcentaje, o un botón, según tu lógica */}
+                                            {variation.offerPrice ? (
+                                                <span className="font-semibold text-green-600">
+                                                    ${Number(variation.offerPrice).toLocaleString("es-CL")}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </TableCell>
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
                                             className="w-32 text-center dark:hover:bg-gray-800 hover:bg-gray-50 cursor-pointer py-3 transition-colors"
