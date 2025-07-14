@@ -5,7 +5,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components
 interface CartTableProps {
     productos: IProductoEnVenta[]
     onDelete: (id: string) => void
-    onCantidadChange: (id: string, cantidad: number) => void 
+    onCantidadChange: (id: string, cantidad: number) => void
 }
 
 export const CartTable = ({ productos, onDelete, onCantidadChange }: CartTableProps) => (
@@ -26,7 +26,7 @@ export const CartTable = ({ productos, onDelete, onCantidadChange }: CartTablePr
                         key={`${producto.storeProductID}-${index}`}
                         producto={producto}
                         onDelete={onDelete}
-                        onCantidadChange={onCantidadChange} 
+                        onCantidadChange={onCantidadChange}
                     />
                 ))}
             </TableBody>
