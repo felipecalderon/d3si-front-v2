@@ -40,7 +40,7 @@ export const SaleForm = () => {
 
             // Si la tienda es central se utiliza variationID, si no usa storeProductID
             const idProducto = productoEncontrado.variationID
-
+            
             setProductos((prev) => {
                 const index = prev.findIndex((p) => p.storeProductID === idProducto)
 
