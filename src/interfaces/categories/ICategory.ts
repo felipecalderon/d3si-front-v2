@@ -13,10 +13,3 @@ export interface ICategory {
         updatedAt?: string
     }>
 }
-
-export interface IChildCategory {
-    name: string
-    parentID: string
-    createdAt: string
-    updatedAt: string
-}

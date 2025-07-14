@@ -11,9 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import { useEffect, useState } from "react"
-import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
-import { IChildCategory } from "@/interfaces/categories/ICategory"
+import { ICategory } from "@/interfaces/categories/ICategory"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -23,6 +21,7 @@ interface InventoryTableProps {
         isFirst: boolean
         totalStock: number
     }>
+    categories: ICategory[]
     editingField: {
         sku: string
         field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
@@ -49,6 +48,14 @@ const calculateMarkup = (priceCost: number, priceList: number): string => {
     return markup.toFixed(2)
 }
 
+const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory[]): string => {
+    const cat = product.Category
+    if (!cat) return "-"
+    if (!cat.parentID) return cat.name
+    const parent = categories.find((c) => c.categoryID === cat.parentID)
+    return parent ? `${parent.name} / ${cat.name}` : cat.name
+}
+
 export function InventoryTable({
     currentItems,
     editingField,
@@ -61,12 +68,8 @@ export function InventoryTable({
     setAddSizeModalProductID,
     setRawProducts,
     adminStoreIDs,
+    categories,
 }: InventoryTableProps) {
-    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
-
-    useEffect(() => {
-        getAllChildCategories().then(setChildCategories)
-    }, [])
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -207,10 +210,11 @@ export function InventoryTable({
                                         {!isFirst && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
+                                        {/* Columna CATEGORIA */}
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            {childCategories.find((cat) => cat.parentID === String(product.categoryID))
-                                                ?.name || "-"}
+                                            {getCategoryFullNameFromProduct(product, categories)}
                                         </TableCell>
+
                                         {/* Columna TALLA */}
                                         <TableCell
                                             className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer py-2"
