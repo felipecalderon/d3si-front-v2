@@ -12,6 +12,8 @@ interface TiendaStore {
     storeSelected: { storeID: string; name: string } | null
     setStoreSelected: (store: TempStore) => void
     setStores: (stores: IStore[]) => void
+    users: IUser[]
+    setUsers: (users: IUser[]) => void
 }
 
 export const useTienda = create<TiendaStore>((set) => ({
@@ -21,4 +23,6 @@ export const useTienda = create<TiendaStore>((set) => ({
         set({ storeSelected: store })
     },
     setStores: (stores) => set({ stores }),
+    users: [],
+    setUsers: (users) => set({ users }),
 }))
