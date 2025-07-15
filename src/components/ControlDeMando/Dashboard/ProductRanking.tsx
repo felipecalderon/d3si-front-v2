@@ -3,9 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CategoryManagementModal } from "../EditCategory/CategoryManagementModal"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import type { ICategory } from "@/interfaces/categories/ICategory"
 
@@ -15,10 +13,9 @@ interface Props {
 }
 
 export default function ProductRanking({ initialProducts, categories }: Props) {
-    const [categoriesData, setCategoriesData] = useState<ICategory[]>(categories)
-    const [products, setProducts] = useState<IProduct[]>(initialProducts)
-    const [loading, setLoading] = useState(false)
-    const [showModal, setShowModal] = useState(false)
+    const [categoriesData] = useState<ICategory[]>(categories)
+    const [products] = useState<IProduct[]>(initialProducts)
+    const [loading] = useState(false)
 
     const totalProductsWithCategory = products.filter((p) => p.categoryID !== null).length
 
@@ -44,13 +41,6 @@ export default function ProductRanking({ initialProducts, categories }: Props) {
             categoryPercentage,
         }
     }
-
-    const handleModalClose = () => setShowModal(false)
-
-    // Remover esta función:
-    // const handleCategoriesUpdate = (updatedCategories: ICategory[]) => {
-    //   setCategoriesData(updatedCategories)
-    // }
 
     return (
         <div className="lg:col-span-5 lg:row-span-4 lg:col-start-8">
@@ -135,15 +125,8 @@ export default function ProductRanking({ initialProducts, categories }: Props) {
                             </div>
                         </div>
                     )}
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                        <Button onClick={() => setShowModal(true)} disabled={loading} className="w-full">
-                            Administrar Categorías
-                        </Button>
-                    </div>
                 </CardContent>
             </Card>
-
-            <CategoryManagementModal isOpen={showModal} onClose={handleModalClose} categories={categoriesData} />
         </div>
     )
 }

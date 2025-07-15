@@ -1,18 +1,39 @@
 /* eslint-disable jsx-a11y/alt-text */
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import type React from "react"
+
+import { useState, useTransition, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
-import { Size, CreateProductFormData, ErrorState } from "@/interfaces/products/ICreateProductForm"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Minus, Trash2, Package, DollarSign, Hash, Shirt, Image, Users, ArrowLeft, Save } from "lucide-react"
-import { getAllCategories } from "@/actions/categories/getAllCategories" // Ajusta la ruta si es necesario
-import { ICategory } from "@/interfaces/categories/ICategory"
+import type { Size, CreateProductFormData, ErrorState } from "@/interfaces/products/ICreateProductForm"
+import {
+    Plus,
+    Minus,
+    Trash2,
+    Package,
+    DollarSign,
+    Hash,
+    Shirt,
+    ImageIcon,
+    Users,
+    ArrowLeft,
+    Save,
+    ChevronDown,
+} from "lucide-react"
+import { getAllCategories } from "@/actions/categories/getAllCategories"
+import type { ICategory } from "@/interfaces/categories/ICategory"
 import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
-import { IChildCategory } from "@/interfaces/categories/ICategory"
+import type { IChildCategory } from "@/interfaces/categories/ICategory"
+
+interface CategoryOption {
+    id: string
+    label: string
+    parentName: string
+    childName: string
+}
 
 export default function CreateProductForm() {
     const router = useRouter()
@@ -44,6 +65,137 @@ export default function CreateProductForm() {
         },
     ])
 
+    // Estados para autocompletado de categorías
+    const [categories, setCategories] = useState<ICategory[]>([])
+    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
+    const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
+    const [categorySearches, setCategorySearches] = useState<string[]>([])
+    const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
+    const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
+    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
+
+    useEffect(() => {
+        Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
+            setCategories(cats)
+            setChildCategories(childCats)
+
+            // Crear opciones combinadas para autocompletado
+            const options: CategoryOption[] = []
+
+            childCats.forEach((child) => {
+                const parent = cats.find((cat) => cat.categoryID === child.parentID)
+                if (parent) {
+                    options.push({
+                        id: child.categoryID,
+                        label: `${parent.name} > ${child.name}`,
+                        parentName: parent.name,
+                        childName: child.name,
+                    })
+                }
+            })
+
+            setCategoryOptions(options)
+        })
+    }, [])
+
+    // Inicializar arrays de búsqueda cuando cambie el número de productos
+    useEffect(() => {
+        setCategorySearches((prev) => {
+            const newSearches = [...prev]
+            while (newSearches.length < products.length) {
+                newSearches.push("")
+            }
+            return newSearches.slice(0, products.length)
+        })
+
+        setShowCategoryDropdowns((prev) => {
+            const newDropdowns = [...prev]
+            while (newDropdowns.length < products.length) {
+                newDropdowns.push(false)
+            }
+            return newDropdowns.slice(0, products.length)
+        })
+
+        setFilteredOptions((prev) => {
+            const newFiltered = [...prev]
+            while (newFiltered.length < products.length) {
+                newFiltered.push(categoryOptions)
+            }
+            return newFiltered.slice(0, products.length)
+        })
+    }, [products.length, categoryOptions])
+
+    // Función mejorada para normalizar texto (quitar espacios extra y convertir a minúsculas)
+    const normalizeText = (text: string) => {
+        return text.toLowerCase().replace(/\s+/g, " ").trim()
+    }
+
+    // Manejar búsqueda de categorías con soporte para espacios
+    const handleCategorySearch = (productIndex: number, searchValue: string) => {
+        const newSearches = [...categorySearches]
+        newSearches[productIndex] = searchValue
+        setCategorySearches(newSearches)
+
+        // Filtrar opciones con búsqueda mejorada
+        const normalizedSearch = normalizeText(searchValue)
+        const filtered = categoryOptions.filter((option) => {
+            const normalizedLabel = normalizeText(option.label)
+            const normalizedParent = normalizeText(option.parentName)
+            const normalizedChild = normalizeText(option.childName)
+
+            return (
+                normalizedLabel.includes(normalizedSearch) ||
+                normalizedParent.includes(normalizedSearch) ||
+                normalizedChild.includes(normalizedSearch) ||
+                // Búsqueda por palabras separadas
+                normalizedSearch.split(" ").every((word) => normalizedLabel.includes(word))
+            )
+        })
+
+        const newFiltered = [...filteredOptions]
+        newFiltered[productIndex] = filtered
+        setFilteredOptions(newFiltered)
+
+        // Mostrar dropdown si hay texto
+        const newDropdowns = [...showCategoryDropdowns]
+        newDropdowns[productIndex] = searchValue.length > 0
+        setShowCategoryDropdowns(newDropdowns)
+    }
+
+    // Seleccionar categoría del dropdown
+    const handleCategorySelect = (productIndex: number, option: CategoryOption) => {
+        const newProducts = [...products]
+        newProducts[productIndex].category = option.parentName
+        newProducts[productIndex].childCategory = option.childName
+        setProducts(newProducts)
+
+        const newSearches = [...categorySearches]
+        newSearches[productIndex] = option.label
+        setCategorySearches(newSearches)
+
+        const newDropdowns = [...showCategoryDropdowns]
+        newDropdowns[productIndex] = false
+        setShowCategoryDropdowns(newDropdowns)
+
+        setErrors(validate(newProducts))
+    }
+
+    // Cerrar dropdown al hacer click fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            categoryRefs.current.forEach((ref, index) => {
+                if (ref && !ref.contains(event.target as Node)) {
+                    const newDropdowns = [...showCategoryDropdowns]
+                    newDropdowns[index] = false
+                    setShowCategoryDropdowns(newDropdowns)
+                }
+            })
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [showCategoryDropdowns])
+
     const validate = (data: CreateProductFormData[]): ErrorState[] => {
         return data.map((product) => {
             const productErrors: ErrorState = {
@@ -57,7 +209,6 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
-                // SKU: solo validar si el usuario lo ingresó manualmente
                 if (size.sku && !/^1\d{11}$/.test(size.sku)) {
                     sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
                 }
@@ -80,15 +231,38 @@ export default function CreateProductForm() {
     const handleProductChange = (productIndex: number, field: keyof CreateProductFormData, value: string) => {
         const newProducts = [...products]
         newProducts[productIndex] = { ...newProducts[productIndex], [field]: value }
-        // Si cambias la categoría padre, limpia la subcategoría seleccionada
-        if (field === "category") {
-            newProducts[productIndex].childCategory = ""
-        }
+        setProducts(newProducts)
+        setErrors(validate(newProducts))
+    }
+
+    // Función mejorada para manejar cambios de precio que se sincroniza entre tallas
+    const handlePriceChange = (
+        productIndex: number,
+        sizeIndex: number,
+        field: "priceCost" | "priceList",
+        value: number
+    ) => {
+        const newProducts = [...products]
+        const product = newProducts[productIndex]
+
+        // Actualizar todas las tallas del producto con el nuevo valor
+        product.sizes = product.sizes.map((size) => ({
+            ...size,
+            [field]: value,
+        }))
+
         setProducts(newProducts)
         setErrors(validate(newProducts))
     }
 
     const handleSizeChange = (productIndex: number, sizeIndex: number, field: keyof Size, value: unknown) => {
+        // Si es un cambio de precio, usar la función de sincronización
+        if (field === "priceCost" || field === "priceList") {
+            handlePriceChange(productIndex, sizeIndex, field, value as number)
+            return
+        }
+
+        // Para otros campos, comportamiento normal
         const newProducts = [...products]
         const newSizes = [...newProducts[productIndex].sizes]
         newSizes[sizeIndex] = { ...newSizes[sizeIndex], [field]: value }
@@ -139,9 +313,10 @@ export default function CreateProductForm() {
     const addSize = (productIndex: number) => {
         const newProducts = [...products]
         const sizes = newProducts[productIndex].sizes
-        // Si ya hay al menos una talla, copia los precios de la primera
+        // Copiar los precios de la primera talla existente
         const basePriceCost = sizes[0]?.priceCost ?? 0
         const basePriceList = sizes[0]?.priceList ?? 0
+
         newProducts[productIndex].sizes.push({
             sizeNumber: "",
             priceCost: basePriceCost,
@@ -169,7 +344,6 @@ export default function CreateProductForm() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        // Antes de validar, rellenar los SKU vacíos
         const productsWithSku = products.map((product) => ({
             ...product,
             sizes: product.sizes.map((size) => ({
@@ -199,26 +373,10 @@ export default function CreateProductForm() {
 
     const handleSkuBlur = (productIndex: number, sizeIndex: number, value: string) => {
         if (value.trim() === "") {
-            // Genera y asigna el SKU si está vacío
             handleSizeChange(productIndex, sizeIndex, "sku", generateRandomSku())
         }
     }
 
-    const [categories, setCategories] = useState<ICategory[]>([])
-
-    useEffect(() => {
-        getAllCategories().then(setCategories)
-    }, [])
-
-    // Nuevo estado para subcategorías
-    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
-
-    useEffect(() => {
-        getAllCategories().then(setCategories)
-        getAllChildCategories().then(setChildCategories)
-    }, [])
-
-    // Para generar SKU aleatorio
     function generateRandomSku() {
         let sku = "1"
         for (let i = 0; i < 11; i++) {
@@ -235,14 +393,14 @@ export default function CreateProductForm() {
                     <div className="flex items-center gap-4 mb-6">
                         <button
                             onClick={() => router.push("/home/inventory")}
-                            className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-slate-700"
+                            className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-slate-900 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-slate-700"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Volver al inventario
                         </button>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
                                 <Package className="w-8 h-8 text-white" />
@@ -280,7 +438,7 @@ export default function CreateProductForm() {
                     {products.map((product, pIndex) => (
                         <div
                             key={pIndex}
-                            className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                            className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
                         >
                             {/* Product Header */}
                             <div className="bg-gradient-to-r from-blue-700 via-purple-500 to-indigo-600 px-8 py-6">
@@ -337,7 +495,7 @@ export default function CreateProductForm() {
 
                                     <div className="space-y-3">
                                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            <Image className="w-4 h-4" />
+                                            <ImageIcon className="w-4 h-4" />
                                             URL de imagen
                                         </label>
                                         <Input
@@ -363,94 +521,79 @@ export default function CreateProductForm() {
                                             <Users className="w-4 h-4" />
                                             Género
                                         </label>
-                                        <Select
+                                        <select
                                             value={product.genre}
-                                            onValueChange={(value) => handleProductChange(pIndex, "genre", value)}
+                                            onChange={(e) => handleProductChange(pIndex, "genre", e.target.value)}
+                                            className={`h-12 text-base border-2 transition-all duration-200 rounded-md px-3 bg-white dark:bg-slate-900 ${
+                                                errors[pIndex]?.genre
+                                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                                            }`}
                                         >
-                                            <SelectTrigger
-                                                className={`h-12 text-base border-2 transition-all duration-200 ${
-                                                    errors[pIndex]?.genre
-                                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                                                        : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
-                                                } bg-white dark:bg-slate-800`}
-                                            >
-                                                <SelectValue placeholder="Selecciona género" />
-                                            </SelectTrigger>
-                                            <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
-                                                <SelectItem value="Hombre">Hombre</SelectItem>
-                                                <SelectItem value="Mujer">Mujer</SelectItem>
-                                                <SelectItem value="Unisex">Unisex</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                            <option value="">Selecciona género</option>
+                                            <option value="Hombre">Hombre</option>
+                                            <option value="Mujer">Mujer</option>
+                                            <option value="Unisex">Unisex</option>
+                                        </select>
                                         {errors[pIndex]?.genre && (
                                             <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                {errors[pIndex].name}
+                                                {errors[pIndex].genre}
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
+                                {/* Category Autocomplete */}
                                 <div className="space-y-3">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         <Users className="w-4 h-4" />
                                         Categoría
                                     </label>
-                                    <Select
-                                        value={product.category}
-                                        onValueChange={(value) => handleProductChange(pIndex, "category", value)}
-                                    >
-                                        <SelectTrigger
+                                    <div className="relative" ref={(el) => (categoryRefs.current[pIndex] = el)}>
+                                        <Input
+                                            value={categorySearches[pIndex] || ""}
+                                            onChange={(e) => handleCategorySearch(pIndex, e.target.value)}
+                                            placeholder="Buscar categoría... ej: Calzado Deportivo, Ropa Casual"
                                             className={`h-12 text-base border-2 transition-all duration-200 ${
                                                 errors[pIndex]?.category
                                                     ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                                                     : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
-                                            } bg-white dark:bg-slate-800`}
-                                        >
-                                            <SelectValue placeholder="Selecciona categoría" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
-                                            {categories.map((cat) => (
-                                                <SelectItem key={cat.categoryID} value={cat.categoryID.toString()}>
-                                                    {cat.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                            }`}
+                                        />
+                                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+                                        {/* Dropdown de opciones */}
+                                        {showCategoryDropdowns[pIndex] &&
+                                            filteredOptions[pIndex] &&
+                                            filteredOptions[pIndex].length > 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                                    {filteredOptions[pIndex].map((option, optIndex) => (
+                                                        <button
+                                                            key={optIndex}
+                                                            type="button"
+                                                            onClick={() => handleCategorySelect(pIndex, option)}
+                                                            className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                    {option.parentName}
+                                                                </div>
+                                                                <ChevronDown className="w-3 h-3 text-gray-400 rotate-[-90deg]" />
+                                                                <div className="text-sm text-gray-600 dark:text-gray-300">
+                                                                    {option.childName}
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                    </div>
                                     {errors[pIndex]?.category && (
                                         <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                             {errors[pIndex].category}
                                         </p>
-                                    )}
-
-                                    {/* Select para subcategoría */}
-                                    {product.category && (
-                                        <div className="mt-3">
-                                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                <Users className="w-4 h-4" />
-                                                Subcategoría
-                                            </label>
-                                            <Select
-                                                value={product.childCategory}
-                                                onValueChange={(value) =>
-                                                    handleProductChange(pIndex, "childCategory", value)
-                                                }
-                                            >
-                                                <SelectTrigger className="h-12 text-base border-2 transition-all duration-200 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800">
-                                                    <SelectValue placeholder="Selecciona subcategoría" />
-                                                </SelectTrigger>
-                                                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600">
-                                                    {childCategories
-                                                        .filter((sub) => sub.parentID === product.category)
-                                                        .map((sub) => (
-                                                            <SelectItem key={sub.name} value={sub.name}>
-                                                                {sub.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
                                     )}
                                 </div>
 
@@ -477,7 +620,7 @@ export default function CreateProductForm() {
                                         {product.sizes.map((size, sIndex) => (
                                             <div
                                                 key={sIndex}
-                                                className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-gray-200 dark:border-slate-600 p-6 transition-all hover:shadow-lg"
+                                                className="relative bg-transparent dark:bg-slate-800 rounded-2xl border-2 border-gray-200 dark:border-slate-600 p-6 transition-all hover:shadow-lg"
                                             >
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                                                     <div className="space-y-3">
@@ -499,7 +642,7 @@ export default function CreateProductForm() {
                                                                 errors[pIndex]?.sizes[sIndex]?.sizeNumber
                                                                     ? "border-red-300 focus:border-red-500"
                                                                     : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
-                                                            } bg-white dark:bg-slate-800`}
+                                                            } bg-white dark:bg-slate-900`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.sizeNumber && (
                                                             <p className="text-red-500 text-xs">
@@ -529,7 +672,7 @@ export default function CreateProductForm() {
                                                                 errors[pIndex]?.sizes[sIndex]?.priceCost
                                                                     ? "border-red-300 focus:border-red-500"
                                                                     : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
-                                                            } bg-white dark:bg-slate-800`}
+                                                            } bg-white dark:bg-slate-900`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.priceCost && (
                                                             <p className="text-red-500 text-xs">
@@ -559,7 +702,7 @@ export default function CreateProductForm() {
                                                                 errors[pIndex]?.sizes[sIndex]?.priceList
                                                                     ? "border-red-300 focus:border-red-500"
                                                                     : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
-                                                            } bg-white dark:bg-slate-800`}
+                                                            } bg-white dark:bg-slate-900`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.priceList && (
                                                             <p className="text-red-500 text-xs">
@@ -586,7 +729,7 @@ export default function CreateProductForm() {
                                                                 errors[pIndex]?.sizes[sIndex]?.sku
                                                                     ? "border-red-300 focus:border-red-500"
                                                                     : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
-                                                            } bg-white dark:bg-slate-800`}
+                                                            } bg-white dark:bg-slate-900`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.sku && (
                                                             <p className="text-red-500 text-xs">
@@ -616,7 +759,7 @@ export default function CreateProductForm() {
                                                                 errors[pIndex]?.sizes[sIndex]?.stockQuantity
                                                                     ? "border-red-300 focus:border-red-500"
                                                                     : "border-gray-300 dark:border-slate-500 focus:border-blue-500"
-                                                            } bg-white dark:bg-slate-800`}
+                                                            } bg-white dark:bg-slate-900`}
                                                         />
                                                         {errors[pIndex]?.sizes[sIndex]?.stockQuantity && (
                                                             <p className="text-red-500 text-xs">
@@ -659,7 +802,7 @@ export default function CreateProductForm() {
                     ))}
 
                     {/* Action Buttons */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
                         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
                             <button
                                 type="button"

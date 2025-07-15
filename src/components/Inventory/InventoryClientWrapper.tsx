@@ -4,11 +4,11 @@ import React, { useState, useMemo, useEffect } from "react"
 import { toast } from "sonner"
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
-import { CategoryProgress } from "@/components/Inventory/CategoryProgress"
-import { InventoryTable } from "@/components/Inventory/InventoryTable"
+import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
+import { InventoryTable } from "@/components/Inventory/TableSection/InventoryTable"
 import { useProductFilters } from "@/hooks/use-product-filters"
-import InventoryHeader from "@/components/Inventory/InventoryHeader"
-import InventoryPagination from "@/components/Inventory/InventoryPagination"
+import InventoryHeader from "@/components/Inventory/HeaderSetion/InventoryHeader"
+import InventoryPagination from "@/components/Inventory/TableSection/InventoryPagination"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { deleteProduct } from "@/actions/products/deleteProduct"
 import type { IProduct } from "@/interfaces/products/IProduct"
@@ -205,7 +205,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         <main className="p-6 flex-1 flex flex-col h-screen">
             {/* Category Progress */}
             <MotionItem delay={1}>
-                <CategoryProgress products={searchedProducts} />
+                <CategoryProgress products={searchedProducts} categories={categories} />
             </MotionItem>
 
             {/* Header Section */}

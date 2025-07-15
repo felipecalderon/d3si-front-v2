@@ -7,15 +7,7 @@ import { register } from "@/actions/auth/authActions"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { getAllUsers } from "@/actions/users/getAllUsers"
-import { useTienda } from "@/stores/tienda.store"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function RegistroForm() {
     const [nombre, setNombre] = useState("")
@@ -24,7 +16,7 @@ export default function RegistroForm() {
     const [role, setRole] = useState("")
 
     const router = useRouter()
-    const { setUsers, users } = useTienda()
+    const { setUsers, users } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -55,7 +47,10 @@ export default function RegistroForm() {
             <h2 className="text-xl font-semibold mb-4 dark:text-white text-gray-800">Crear usuarios</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="nombre">
+                    <label
+                        className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700"
+                        htmlFor="nombre"
+                    >
                         Nombre
                     </label>
                     <input
@@ -85,7 +80,10 @@ export default function RegistroForm() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700" htmlFor="password">
+                    <label
+                        className="block text-sm font-medium mb-1 dark:text-slate-500 text-gray-700"
+                        htmlFor="password"
+                    >
                         Clave
                     </label>
                     <input
@@ -114,7 +112,6 @@ export default function RegistroForm() {
                             <SelectItem value="tercero">Tercero</SelectItem>
                         </SelectContent>
                     </Select>
-
                 </div>
 
                 <Button

@@ -3,7 +3,7 @@
 import React from "react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
-import DateCell from "@/components/DateCell"
+import DateCell from "../../DateCell"
 
 interface Props {
     sales: ISaleResponse[]

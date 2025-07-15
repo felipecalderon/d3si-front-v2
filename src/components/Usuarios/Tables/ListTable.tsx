@@ -8,6 +8,7 @@ import { getAllStores } from "@/actions/stores/getAllStores"
 import UsersTable from "./UsersTable"
 import StoresTable from "./StoresTable"
 import TableSkeleton from "../../ListTable/TableSkeleton"
+import { useAuth } from "@/stores/user.store"
 
 type ViewType = "initial" | "users" | "stores"
 
@@ -17,7 +18,8 @@ interface ListTableProps {
 }
 
 export default function ListTable({ defaultView = "initial", onViewChange }: ListTableProps) {
-    const { users, stores, setUsers, setStores } = useTienda()
+    const { stores, setStores } = useTienda()
+    const { users, setUsers } = useAuth()
     const [currentView, setCurrentView] = useState<ViewType>(defaultView)
     const [isLoading, setIsLoading] = useState(false)
     const [showSkeleton, setShowSkeleton] = useState(false)

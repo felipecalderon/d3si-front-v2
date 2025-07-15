@@ -205,11 +205,11 @@ export function CategoryManagementModal({
             }
 
             // Siempre redireccionar a la página especificada
-            window.location.href = "http://localhost:3000/home/controlDeMando"
+            window.location.href = "http://localhost:3000/home/inventory"
         } catch (error) {
             console.error("Error saving categories:", error)
             // Incluso si hay error, redirigir para mostrar el estado actual
-            window.location.href = "http://localhost:3000/home/controlDeMando"
+            window.location.href = "http://localhost:3000/home/inventory"
         } finally {
             setSaving(false)
         }
@@ -222,7 +222,7 @@ export function CategoryManagementModal({
         setNewSubcategoryName("")
         onClose()
         // Recargar la página de control de mando para mostrar los cambios
-        window.location.href = "http://localhost:3000/home/controlDeMando"
+        window.location.href = "http://localhost:3000/home/inventory"
     }
 
     return (
