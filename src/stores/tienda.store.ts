@@ -1,15 +1,15 @@
 import { create } from "zustand"
 import { IStore } from "@/interfaces/stores/IStore"
-import { IUser } from "@/interfaces/users/IUser"
 
 interface TempStore {
     storeID: string
     name: string
+    isAdminStore: boolean
 }
 
 interface TiendaStore {
     stores: IStore[]
-    storeSelected: { storeID: string; name: string } | null
+    storeSelected: TempStore | null
     setStoreSelected: (store: TempStore) => void
     setStores: (stores: IStore[]) => void
     users: IUser[]

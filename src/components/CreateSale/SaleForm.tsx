@@ -16,39 +16,38 @@ export const SaleForm = () => {
     const [resumen, setResumen] = useState<IProductoEnVenta[]>([])
     const [isAdding] = useState(false)
     const { storeSelected } = useTienda()
+
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!codigo) return
-        if (!storeSelected) {
-            return toast("Debes elegir una tienda")
-        }
+        if (!storeSelected) return toast("Debes elegir una tienda")
 
         const storeID = storeSelected.storeID
+        const isAdmin = storeSelected?.isAdminStore ?? false
 
         try {
             const productoEncontrado = await getProductById(storeID, codigo)
-
             if (!productoEncontrado) {
                 toast("Producto no encontrado")
                 return
             }
 
-            if (productoEncontrado.stock <= 0) {
+            const stockDisponible = productoEncontrado.stockQuantity ?? 0
+
+            if (stockDisponible <= 0) {
                 toast("No hay stock disponible para este producto.")
                 return
             }
 
-            // Si la tienda es central se utiliza variationID, si no usa storeProductID
-            const idProducto = productoEncontrado.variationID
+            const idProducto = isAdmin ? productoEncontrado.variationID : productoEncontrado.storeProductID
 
             setProductos((prev) => {
                 const index = prev.findIndex((p) => p.storeProductID === idProducto)
-
                 if (index !== -1) {
                     const updated = [...prev]
                     const cantidadActual = updated[index].cantidad
 
-                    if (cantidadActual + 1 > productoEncontrado.stock) {
+                    if (cantidadActual + 1 > stockDisponible) {
                         toast("No se puede agregar más, stock insuficiente.")
                         return prev
                     }
@@ -63,9 +62,10 @@ export const SaleForm = () => {
                         storeProductID: idProducto,
                         nombre: productoEncontrado.name,
                         precio: Number(productoEncontrado.priceList),
-                        storeID: storeID,
+                        storeID,
                         image: productoEncontrado.image || "",
                         cantidad: 1,
+                        stockDisponible: stockDisponible,
                     },
                 ]
             })

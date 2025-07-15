@@ -16,19 +16,25 @@ const HomePage = async () => {
         <>
             <div className="space-y-10 px-4 sm:px-6 md:px-8 py-6">
                 {/* Sección de estadísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Facturación */}
-                    <Facturacion resume={resume} />
+                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Facturación */}
+                        <div className="flex flex-col gap-4">
+                            <Facturacion resume={resume} />
+                        </div>
 
-                    {/* Gráfico */}
-                    <div className="flex justify-center items-center order-first lg:order-none">
-                        <div className="w-full max-w-xs sm:max-w-sm mx-auto">
-                            <Grafico />
+                        {/* Gráfico */}
+                        <div className="flex justify-center items-center">
+                            <div className="w-full max-w-xs sm:max-w-sm mx-auto">
+                                <Grafico />
+                            </div>
+                        </div>
+
+                        {/* Ventas */}
+                        <div className="flex flex-col gap-4">
+                            <Ventas resume={resume} />
                         </div>
                     </div>
-
-                    {/* Ventas */}
-                    <Ventas resume={resume} />
                 </div>
 
                 {/* Métodos de pago */}
