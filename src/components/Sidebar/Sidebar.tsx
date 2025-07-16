@@ -12,8 +12,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { navItems } from "@/utils/navItems"
 import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa"
 import { motion } from "framer-motion"
+import { useAuth } from "@/stores/user.store"
 
 export default function Sidebar() {
+    const { user } = useAuth()
     const router = useRouter()
     const { stores, storeSelected, setStoreSelected, setStores } = useTienda()
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -75,6 +77,16 @@ export default function Sidebar() {
             setIsMobileOpen(false)
         }
     }
+
+    const filteredNavItems = React.useMemo(() => {
+        if (!user) return []
+
+        if (user.role === "store_manager") {
+            return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
+        }
+
+        return navItems
+    }, [user])
 
     // Determine if sidebar should show collapsed content
     // On mobile: never collapsed when open, always show full content
@@ -186,7 +198,7 @@ export default function Sidebar() {
 
                         {/* Navigation */}
                         <nav className="flex-1 px-2 py-2 lg:py-4 space-y-1 overflow-y-auto">
-                            {navItems.map((item) => {
+                            {filteredNavItems.map((item) => {
                                 const sectionId = item.label.toLowerCase().replace(/\s+/g, "")
                                 return (
                                     <div key={item.label} className="space-y-1">

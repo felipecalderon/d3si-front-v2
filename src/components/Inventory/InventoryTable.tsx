@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import { ICategory } from "@/interfaces/categories/ICategory"
+import { useAuth } from "@/stores/user.store"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -70,6 +72,9 @@ export function InventoryTable({
     adminStoreIDs,
     categories,
 }: InventoryTableProps) {
+    const { user } = useAuth()
+    const isEditable = user?.role !== "store_manager"
+
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -217,8 +222,13 @@ export function InventoryTable({
 
                                         {/* Columna TALLA */}
                                         <TableCell
-                                            className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer py-2"
+                                            className={`text-center py-2 ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-900 hover:bg-gray-100"
+                                                    : ""
+                                            }`}
                                             onClick={() => {
+                                                if (!isEditable) return
                                                 setEditingField({ sku: variation.sku, field: "sizeNumber" })
                                                 setEditValue(variation.sizeNumber)
                                             }}
@@ -246,8 +256,13 @@ export function InventoryTable({
 
                                         {/* Columna PRECIO COSTO */}
                                         <TableCell
-                                            className="w-32 text-center dark:hover:bg-gray-800 hover:bg-gray-50 cursor-pointer py-3 transition-colors"
+                                            className={`w-32 text-center py-3 transition-colors ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50"
+                                                    : ""
+                                            }`}
                                             onClick={() => {
+                                                if (!isEditable) return
                                                 setEditingField({ sku: variation.sku, field: "priceCost" })
                                                 setEditValue(String(variation.priceCost))
                                             }}
@@ -272,8 +287,13 @@ export function InventoryTable({
 
                                         {/* Columna PRECIO PLAZA */}
                                         <TableCell
-                                            className="w-32 text-center dark:hover:bg-gray-800 hover:bg-gray-50 cursor-pointer py-3 transition-colors"
+                                            className={`w-32 text-center py-3 transition-colors ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50"
+                                                    : ""
+                                            }`}
                                             onClick={() => {
+                                                if (!isEditable) return
                                                 setEditingField({ sku: variation.sku, field: "priceList" })
                                                 setEditValue(String(variation.priceList))
                                             }}
@@ -322,8 +342,13 @@ export function InventoryTable({
                                         </TableCell>
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
-                                            className="w-32 text-center dark:hover:bg-gray-800 hover:bg-gray-50 cursor-pointer py-3 transition-colors"
+                                            className={`w-32 text-center py-3 transition-colors ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50"
+                                                    : ""
+                                            }`}
                                             onClick={() => {
+                                                if (!isEditable) return
                                                 setEditingField({ sku: variation.sku, field: "stockQuantity" })
                                                 setEditValue(String(variation.stockQuantity))
                                             }}

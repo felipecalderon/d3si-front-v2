@@ -1,21 +1,19 @@
+// authActions.ts
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
+import { IUser } from "@/interfaces/users/IUser"
 
 type AuthResponse = {
-    token: string
-    user: {
-        id: string
-        email: string
-        //Se pueden agregar mas campos según sea necesario (cuando el backend devuelva mas datos)
-    }
+    message: string
+    cleanUsr: IUser
 }
 
 type ErrorMessage = {
-    error: string
+    error?: string // ← opcional por si no siempre lo trae
 }
 
 export async function login(email: string, password: string) {
-    return await fetcher<AuthResponse & ErrorMessage>(`${API_URL}/auth/login`, {
+    return await fetcher<AuthResponse>(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -30,7 +28,7 @@ export async function register(name: string, email: string, role: string, passwo
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, role ,password}),
+        body: JSON.stringify({ name, email, role, password }),
     })
 }
 
@@ -40,6 +38,6 @@ export async function deleteUser(email: string) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({email}),
+        body: JSON.stringify({ email }),
     })
 }

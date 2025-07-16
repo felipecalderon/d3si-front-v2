@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CategoryManagementModal } from "../EditCategory/CategoryManagementModal"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import type { ICategory } from "@/interfaces/categories/ICategory"
+import { useAuth } from "@/stores/user.store"
 
 interface Props {
     initialProducts: IProduct[]
@@ -46,6 +47,9 @@ export default function ProductRanking({ initialProducts, categories }: Props) {
     }
 
     const handleModalClose = () => setShowModal(false)
+
+    const { user } = useAuth()
+    const isStoreManager = user?.role === "store_manager"
 
     // Remover esta función:
     // const handleCategoriesUpdate = (updatedCategories: ICategory[]) => {
@@ -136,9 +140,8 @@ export default function ProductRanking({ initialProducts, categories }: Props) {
                         </div>
                     )}
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                        <Button onClick={() => setShowModal(true)} disabled={loading} className="w-full">
-                            Administrar Categorías
-                        </Button>
+                        {/* Botón para abrir modal (solo si no es store_manager) */}
+                        {!isStoreManager && <Button onClick={() => setShowModal(true)}>Administrar Categorías</Button>}
                     </div>
                 </CardContent>
             </Card>
