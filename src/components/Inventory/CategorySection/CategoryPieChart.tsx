@@ -49,42 +49,49 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
-        {viewMode === "categoria" ? "Categorías Principales" : "Distribución por Tipo"}
-      </h3>
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="totalValue"
-              label={({ totalValue }) => {
-                const total = data.reduce((sum, item) => sum + item.totalValue, 0)
-                const percentage = total > 0 ? (totalValue / total) * 100 : 0
-                return percentage > 5 ? `${percentage.toFixed(0)}%` : ""
-              }}
-              labelLine={false}
-              onClick={onPieClick}
-              style={{ cursor: viewMode === "categoria" ? "pointer" : "default" }}
-            >
-              {data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.color}
-                  stroke={viewMode === "categoria" && selectedCategoryId === (entry as any).id ? "#000" : "none"}
-                  strokeWidth={viewMode === "categoria" && selectedCategoryId === (entry as any).id ? 2 : 0}
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="space-y-4">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
+              {viewMode === "categoria" ? "Categorías Principales" : "Distribución por Tipo"}
+          </h3>
+          <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                      <Pie
+                          data={data}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="totalValue"
+                          label={({ name, totalValue }) => {
+                              const total = data.reduce((sum, item) => sum + item.totalValue, 0)
+                              const percentage = total > 0 ? (totalValue / total) * 100 : 0
+                              // Always show name, show percentage if > 0
+                              return `${name} ${percentage > 0 ? `(${percentage.toFixed(0)}%)` : ""}`
+                          }}
+                          labelLine={false}
+                          onClick={onPieClick}
+                          style={{ cursor: viewMode === "categoria" ? "pointer" : "default" }}
+                      >
+                          {data.map((entry, index) => (
+                              <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.color}
+                                  stroke={
+                                      viewMode === "categoria" && selectedCategoryId === (entry as any).id
+                                          ? "#000"
+                                          : "none"
+                                  }
+                                  strokeWidth={
+                                      viewMode === "categoria" && selectedCategoryId === (entry as any).id ? 2 : 0
+                                  }
+                              />
+                          ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+              </ResponsiveContainer>
+          </div>
       </div>
-    </div>
   )
 }

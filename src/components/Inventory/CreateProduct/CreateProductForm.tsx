@@ -7,6 +7,9 @@ import { useState, useTransition, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import type { Size, CreateProductFormData, ErrorState } from "@/interfaces/products/ICreateProductForm"
 import {
@@ -391,13 +394,13 @@ export default function CreateProductForm() {
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-4 mb-6">
-                        <button
+                        <Button
                             onClick={() => router.push("/home/inventory")}
                             className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-slate-900 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-slate-700"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Volver al inventario
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-slate-700">
@@ -455,14 +458,14 @@ export default function CreateProductForm() {
                                         </div>
                                     </div>
                                     {products.length > 1 && (
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={() => removeProduct(pIndex)}
                                             className="p-3 rounded-xl text-white hover:bg-white/20 transition-colors backdrop-blur-sm"
                                             title="Eliminar producto"
                                         >
                                             <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                             </div>
@@ -471,10 +474,10 @@ export default function CreateProductForm() {
                                 {/* Product Basic Info */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold">
                                             <Shirt className="w-4 h-4" />
                                             Nombre del producto
-                                        </label>
+                                        </Label>
                                         <Input
                                             value={product.name}
                                             onChange={(e) => handleProductChange(pIndex, "name", e.target.value)}
@@ -494,10 +497,10 @@ export default function CreateProductForm() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                             <ImageIcon className="w-4 h-4" />
                                             URL de imagen
-                                        </label>
+                                        </Label>
                                         <Input
                                             value={product.image}
                                             onChange={(e) => handleProductChange(pIndex, "image", e.target.value)}
@@ -517,24 +520,23 @@ export default function CreateProductForm() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                             <Users className="w-4 h-4" />
                                             Género
-                                        </label>
-                                        <select
+                                        </Label>
+                                        <Select
                                             value={product.genre}
-                                            onChange={(e) => handleProductChange(pIndex, "genre", e.target.value)}
-                                            className={`h-12 text-base border-2 transition-all duration-200 rounded-md px-3 bg-white dark:bg-slate-900 ${
-                                                errors[pIndex]?.genre
-                                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
-                                            }`}
+                                            onValueChange={(value) => handleProductChange(pIndex, "genre", value)}
                                         >
-                                            <option value="">Selecciona género</option>
-                                            <option value="Hombre">Hombre</option>
-                                            <option value="Mujer">Mujer</option>
-                                            <option value="Unisex">Unisex</option>
-                                        </select>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona género" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Hombre">Hombre</SelectItem>
+                                                <SelectItem value="Mujer">Mujer</SelectItem>
+                                                <SelectItem value="Unisex">Unisex</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         {errors[pIndex]?.genre && (
                                             <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -546,11 +548,16 @@ export default function CreateProductForm() {
 
                                 {/* Category Autocomplete */}
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         <Users className="w-4 h-4" />
                                         Categoría
-                                    </label>
-                                    <div className="relative" ref={(el) => (categoryRefs.current[pIndex] = el)}>
+                                    </Label>
+                                    <div
+                                        className="relative"
+                                        ref={(el) => {
+                                            categoryRefs.current[pIndex] = el
+                                        }}
+                                    >
                                         <Input
                                             value={categorySearches[pIndex] || ""}
                                             onChange={(e) => handleCategorySearch(pIndex, e.target.value)}
@@ -569,7 +576,7 @@ export default function CreateProductForm() {
                                             filteredOptions[pIndex].length > 0 && (
                                                 <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
                                                     {filteredOptions[pIndex].map((option, optIndex) => (
-                                                        <button
+                                                        <Button
                                                             key={optIndex}
                                                             type="button"
                                                             onClick={() => handleCategorySelect(pIndex, option)}
@@ -584,7 +591,7 @@ export default function CreateProductForm() {
                                                                     {option.childName}
                                                                 </div>
                                                             </div>
-                                                        </button>
+                                                        </Button>
                                                     ))}
                                                 </div>
                                             )}
@@ -606,14 +613,14 @@ export default function CreateProductForm() {
                                             </div>
                                             Tallas y Precios
                                         </h4>
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={() => addSize(pIndex)}
                                             className="flex lg:mt-0 mt-3 items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                         >
                                             <Plus className="w-4 h-4" />
                                             Agregar talla
-                                        </button>
+                                        </Button>
                                     </div>
 
                                     <div className="space-y-6">
@@ -623,10 +630,10 @@ export default function CreateProductForm() {
                                                 className="relative bg-transparent dark:bg-slate-800 rounded-2xl border-2 border-gray-200 dark:border-slate-600 p-6 transition-all hover:shadow-lg"
                                             >
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                                                    <div className="space-y-3">
-                                                        <label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                                    <div className="space-y-3 -mt-3">
+                                                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             Talla
-                                                        </label>
+                                                        </Label>
                                                         <Input
                                                             placeholder="XL, 42, M..."
                                                             value={size.sizeNumber}
@@ -652,10 +659,10 @@ export default function CreateProductForm() {
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                                        <Label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <DollarSign className="w-3 h-3" />
                                                             Costo Neto
-                                                        </label>
+                                                        </Label>
                                                         <Input
                                                             type="number"
                                                             placeholder="0.00"
@@ -682,10 +689,10 @@ export default function CreateProductForm() {
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                                        <Label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <DollarSign className="w-3 h-3" />
                                                             Precio Plaza
-                                                        </label>
+                                                        </Label>
                                                         <Input
                                                             type="number"
                                                             placeholder="0.00"
@@ -712,10 +719,10 @@ export default function CreateProductForm() {
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                                        <Label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <Hash className="w-3 h-3" />
                                                             SKU
-                                                        </label>
+                                                        </Label>
                                                         <Input
                                                             placeholder="ABC123"
                                                             value={size.sku}
@@ -739,10 +746,10 @@ export default function CreateProductForm() {
                                                     </div>
 
                                                     <div className="space-y-3">
-                                                        <label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                                        <Label className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                             <Package className="w-3 h-3" />
                                                             Stock
-                                                        </label>
+                                                        </Label>
                                                         <Input
                                                             type="number"
                                                             placeholder="0"
@@ -784,14 +791,14 @@ export default function CreateProductForm() {
 
                                                 {/* Remove Size Button */}
                                                 {product.sizes.length > 1 && (
-                                                    <button
+                                                    <Button
                                                         type="button"
                                                         onClick={() => removeSize(pIndex, sIndex)}
                                                         className="absolute top-4 right-4 p-2 rounded-xl text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                                                         title="Eliminar talla"
                                                     >
                                                         <Minus className="w-5 h-5" />
-                                                    </button>
+                                                    </Button>
                                                 )}
                                             </div>
                                         ))}
@@ -804,16 +811,16 @@ export default function CreateProductForm() {
                     {/* Action Buttons */}
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
                         <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={addProduct}
                                 className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                             >
                                 <Plus className="w-5 h-5" />
                                 Agregar otro producto
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
                                 type="submit"
                                 disabled={isPending || hasErrors(errors)}
                                 className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
@@ -833,7 +840,7 @@ export default function CreateProductForm() {
                                         Guardar Productos
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </form>

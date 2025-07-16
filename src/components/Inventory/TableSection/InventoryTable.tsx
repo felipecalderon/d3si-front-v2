@@ -125,87 +125,82 @@ export function InventoryTable({
                                         } text-sm dark:text-gray-300 text-gray-800 h-16`}
                                     >
                                         {isFirst && (
-                                            <MotionItem
-                                                key={`${product.productID}-${variation.variationID}`}
-                                                delay={index + 3}
-                                            >
-                                                <TableCell className="py-2 px-3 text-left w-1/4">
-                                                    <div className="relative w-full flex items-center gap-3">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="absolute top-0 left-0 z-10 h-8 w-8 p-0 dark:hover:bg-gray-900 hover:bg-gray-100"
-                                                                >
-                                                                    <MoreVertical className="w-4 h-4 text-gray-600" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="start">
-                                                                <DropdownMenuItem
-                                                                    onClick={() =>
-                                                                        setAddSizeModalProductID(product.productID)
-                                                                    }
-                                                                >
-                                                                    Agregar talla
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                    onClick={() => handleDeleteProduct(product)}
-                                                                    className="text-red-600"
-                                                                >
-                                                                    Eliminar producto
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                            <TableCell className="py-2 px-3 text-left w-1/4">
+                                                <div className="relative w-full flex items-center gap-3">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="absolute top-0 left-0 z-10 h-8 w-8 p-0 dark:hover:bg-gray-900 hover:bg-gray-100"
+                                                            >
+                                                                <MoreVertical className="w-4 h-4 text-gray-600" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="start">
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setAddSizeModalProductID(product.productID)
+                                                                }
+                                                            >
+                                                                Agregar talla
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDeleteProduct(product)}
+                                                                className="text-red-600"
+                                                            >
+                                                                Eliminar producto
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
 
-                                                        <AddSizeModal
-                                                            productID={product.productID}
-                                                            name={product.name}
-                                                            image={product.image}
-                                                            genre={product.genre}
-                                                            open={addSizeModalProductID === product.productID}
-                                                            onOpenChange={(open) => {
-                                                                if (!open) setAddSizeModalProductID(null)
-                                                            }}
-                                                            onAddSize={(newSize) => {
-                                                                setRawProducts((prev) =>
-                                                                    prev.map((p) =>
-                                                                        p.productID === product.productID
-                                                                            ? {
-                                                                                  ...p,
-                                                                                  ProductVariations: [
-                                                                                      ...p.ProductVariations,
-                                                                                      newSize,
-                                                                                  ],
-                                                                              }
-                                                                            : p
-                                                                    )
+                                                    <AddSizeModal
+                                                        productID={product.productID}
+                                                        name={product.name}
+                                                        image={product.image}
+                                                        genre={product.genre}
+                                                        open={addSizeModalProductID === product.productID}
+                                                        onOpenChange={(open) => {
+                                                            if (!open) setAddSizeModalProductID(null)
+                                                        }}
+                                                        onAddSize={(newSize) => {
+                                                            setRawProducts((prev) =>
+                                                                prev.map((p) =>
+                                                                    p.productID === product.productID
+                                                                        ? {
+                                                                              ...p,
+                                                                              ProductVariations: [
+                                                                                  ...p.ProductVariations,
+                                                                                  newSize,
+                                                                              ],
+                                                                          }
+                                                                        : p
                                                                 )
-                                                            }}
-                                                        />
+                                                            )
+                                                        }}
+                                                    />
 
-                                                        <img
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            className="w-12 h-12 object-cover rounded border"
-                                                        />
-                                                        <div className="flex-1 min-w-0">
-                                                            <span className="font-medium text-sm block truncate">
-                                                                {product.name}
+                                                    <img
+                                                        src={product.image}
+                                                        alt={product.name}
+                                                        className="w-12 h-12 object-cover rounded border"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className="font-medium text-sm block truncate">
+                                                            {product.name}
+                                                        </span>
+                                                        {/* SKU debajo de la imagen */}
+                                                        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">
+                                                            {variation.sku}
+                                                        </span>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
+                                                                Stock: {totalStock}
                                                             </span>
-                                                            {/* SKU debajo de la imagen */}
-                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">
-                                                                {variation.sku}
-                                                            </span>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
-                                                                    Stock: {totalStock}
-                                                                </span>
-                                                            </div>
                                                         </div>
                                                     </div>
-                                                </TableCell>
-                                            </MotionItem>
+                                                </div>
+                                            </TableCell>
                                         )}
                                         {!isFirst && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
