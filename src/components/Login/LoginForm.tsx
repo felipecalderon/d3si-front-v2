@@ -14,8 +14,8 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
-    const { setUser } = useAuth()
-    const { setStores, setUsers } = useTienda()
+    const { setUser, setUsers } = useAuth()
+    const { setStores } = useTienda()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

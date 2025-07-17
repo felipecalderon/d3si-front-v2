@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { exportInventoryToExcel } from "@/utils/exportInventoryToExcel"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 
 export default function InventoryActions({ products }: { products: IProduct[] }) {
     const router = useRouter()

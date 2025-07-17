@@ -1,19 +1,11 @@
 import { create } from "zustand"
 import { IStore } from "@/interfaces/stores/IStore"
 
-interface TempStore {
-    storeID: string
-    name: string
-    isAdminStore: boolean
-}
-
 interface TiendaStore {
     stores: IStore[]
-    storeSelected: TempStore | null
-    setStoreSelected: (store: TempStore) => void
+    storeSelected: IStore | null
+    setStoreSelected: (store: IStore) => void
     setStores: (stores: IStore[]) => void
-    users: IUser[]
-    setUsers: (users: IUser[]) => void
 }
 
 export const useTienda = create<TiendaStore>((set) => ({
@@ -23,6 +15,4 @@ export const useTienda = create<TiendaStore>((set) => ({
         set({ storeSelected: store })
     },
     setStores: (stores) => set({ stores }),
-    users: [],
-    setUsers: (users) => set({ users }),
 }))

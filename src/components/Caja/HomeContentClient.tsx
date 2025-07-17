@@ -1,16 +1,16 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import SalesTable from "@/components/ListTable/SalesTable"
+import SalesTable from "@/components/Caja/ListTable/SalesTable"
 import Link from "next/link"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { IResume } from "@/interfaces/sales/ISalesResume"
-import Facturacion from "./Facturacion"
-import Ventas from "./Ventas"
-import Payment from "./PaymentMethods"
-import Filters from "./Filters"
+import Facturacion from "../Caja/Dashboard/Facturacion"
+import Ventas from "../Caja/Dashboard/Ventas"
+import Payment from "../Caja/Dashboard/PaymentMethods"
+import Filters from "../Caja/Dashboard/Filters"
 
-const GaugeChart = dynamic(() => import("@/components/dashboard/GaugeChart"), {
+const GaugeChart = dynamic(() => import("@/components/Caja/VentasTotalesGrafico/GaugeChart"), {
     ssr: false,
 })
 

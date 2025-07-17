@@ -1,12 +1,12 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/sales/getResume"
-import SalesTable from "@/components/ListTable/SalesTable"
+import SalesTable from "@/components/Caja/Table/SalesTable"
 import Link from "next/link"
-import Facturacion from "@/components/dashboard/Facturacion"
-import Ventas from "@/components/dashboard/Ventas"
-import Payment from "@/components/dashboard/PaymentMethods"
-import Filters from "@/components/dashboard/Filters"
-import Grafico from "@/components/dashboard/Grafico"
+import Facturacion from "@/components/Caja/Dashboard/Facturacion"
+import Ventas from "@/components/Caja/Dashboard/Ventas"
+import Payment from "@/components/Caja/Dashboard/PaymentMethods"
+import Filters from "@/components/Caja/Dashboard/Filters"
+import Grafico from "@/components/Caja/VentasTotalesGrafico/Grafico"
 
 const HomePage = async () => {
     const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"

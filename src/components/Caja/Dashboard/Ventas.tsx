@@ -1,11 +1,11 @@
-import StatCard from "@/components/dashboard/StatCard"
+import StatCard from "@/components/Caja/Dashboard/StatCard"
 import { DollarSign } from "lucide-react"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 
 const Ventas = ({ resume }: { resume: IResume }) => {
     return (
         <>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-9">
                 <StatCard
                     icon={<DollarSign />}
                     label="Ventas del día"

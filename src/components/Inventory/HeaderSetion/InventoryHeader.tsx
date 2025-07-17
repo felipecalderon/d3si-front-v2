@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import { Input } from "@/components/ui/input"
-import InventoryActions from "@/components/Inventory/InventoryActions"
+import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActions"
 import { ListFilters } from "@/components/ListTable/ListFilters"
-import InventoryStats from "@/components/Inventory/InventoryStats"
+import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
 import { useAuth } from "@/stores/user.store"
 
 interface InventoryHeaderProps {

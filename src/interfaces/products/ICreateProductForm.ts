@@ -9,11 +9,11 @@ export interface Size {
 }
 
 export interface CreateProductFormData {
-    category: string
-    childCategory: string
     name: string
     image: string
+    categoryID: string
     genre: string
+    brand: string
     sizes: Size[]
 }
 

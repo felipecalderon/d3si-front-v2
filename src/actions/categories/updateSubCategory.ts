@@ -19,13 +19,13 @@ import { API_URL } from "@/lib/enviroments"
 }
  */
 
-export async function updateSubCategory(name: string ,subCategoriaID: string, categoriaID: boolean) {
-    const store = await fetcher(`${API_URL}/categories/${subCategoriaID}`,{
+export async function updateSubCategory(name: string, subCategoriaID: string, categoriaID: string) {
+    const store = await fetcher(`${API_URL}/categories/${subCategoriaID}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({name: name, parentID:  categoriaID }),
+        body: JSON.stringify({ name: name, parentID: categoriaID }),
     })
     return store
 }

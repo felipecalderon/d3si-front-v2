@@ -9,9 +9,11 @@ import { createStore } from "@/actions/stores/createStore"
 import { Input } from "@/components/ui/input"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { useAuth } from "@/stores/user.store"
 
 export default function TiendasForm() {
-    const { users, setStores } = useTienda()
+    const { users } = useAuth()
+    const { setStores } = useTienda()
 
     const [rut, setRut] = useState("")
     const [nombre, setNombre] = useState("")

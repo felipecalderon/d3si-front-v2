@@ -16,9 +16,11 @@ import { IStore } from "@/interfaces/stores/IStore"
 import { Edit, Trash2, Store as StoreIcon } from "lucide-react"
 import { deleteStore } from "@/actions/stores/deleteStore"
 import { getAllStores } from "@/actions/stores/getAllStores"
+import { useAuth } from "@/stores/user.store"
 
 export default function StoresTable() {
-    const { stores, users, setStores } = useTienda()
+    const { stores, setStores } = useTienda()
+    const { users } = useAuth()
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
     const [editingStore, setEditingStore] = useState<IStore | null>(null)
 

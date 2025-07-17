@@ -1,29 +1,31 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { IUser } from "@/interfaces/users/IUser"
-//import { IStore } from "@/interfaces/stores/IStore"
 import { useTienda } from "./tienda.store"
 
 interface UserStore {
-    user: IUser | null
-    setUser: (user: IUser) => void
+    user: any
+    users: IUser[]
+    setUsers: (users: any) => void
+    setUser: (user: any) => void
     logout: () => void
 }
 
-export const useAuth = create<UserStore>()(
-    persist(
+export const useAuth = create(
+    persist<UserStore>(
         (set) => ({
             user: null,
             setUser: (user) => set({ user }),
+            users: [],
+            setUsers: (users) => set({ users }),
             logout: () => {
-                const { setStores, setUsers } = useTienda.getState()
+                const { setStores } = useTienda.getState()
+                const { setUsers } = useAuth.getState()
                 setStores([])
                 setUsers([])
                 set({ user: null })
             },
         }),
-        {
-            name: "auth-storage", // nombre de la clave en localStorage
-        }
+        { name: "auth-storage" }
     )
 )
