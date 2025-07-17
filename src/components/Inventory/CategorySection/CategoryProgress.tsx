@@ -196,7 +196,7 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
         console.log("--- Finished categoryStats calculation. Final stats array:", finalStatsArray)
         return finalStatsArray
     }, [products, categories, allCategoriesMap])
-
+    console.log({ categoryStats })
     // Datos para subcategorías de la categoría seleccionada
     const subcategoryStats = useMemo(() => {
         console.log("--- Starting subcategoryStats calculation ---")

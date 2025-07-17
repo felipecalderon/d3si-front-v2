@@ -14,8 +14,10 @@ import { navItems } from "@/utils/navItems"
 import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa"
 import { motion } from "framer-motion"
 import { MotionItem } from "../Animations/motionItem"
+import { useAuth } from "@/stores/user.store"
 
 export default function Sidebar() {
+    const { user } = useAuth()
     const router = useRouter()
     const pathname = usePathname()
 
@@ -79,6 +81,16 @@ export default function Sidebar() {
             setIsMobileOpen(false)
         }
     }
+
+    const filteredNavItems = React.useMemo(() => {
+        if (!user) return []
+
+        if (user.role === "store_manager") {
+            return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
+        }
+
+        return navItems
+    }, [user])
 
     // Check if a section has active items
     const hasActiveSubItem = (subItems: any[]) => {
@@ -199,7 +211,7 @@ export default function Sidebar() {
 
                             {/* Navigation */}
                             <nav className="flex-1 px-0 py-2 lg:py-4 space-y-1 overflow-y-auto overflow-x-hidden">
-                                {navItems.map((item, index) => {
+                                {filteredNavItems.map((item, index) => {
                                     const sectionId = item.label.toLowerCase().replace(/\s+/g, "")
                                     const isActive = pathname === item.route
                                     const hasActiveChild = item.subItems && hasActiveSubItem(item.subItems)

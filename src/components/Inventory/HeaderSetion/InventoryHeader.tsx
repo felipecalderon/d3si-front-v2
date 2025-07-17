@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActions"
 import { ListFilters } from "@/components/ListTable/ListFilters"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
+import { useAuth } from "@/stores/user.store"
 
 interface InventoryHeaderProps {
     search: string
@@ -42,6 +43,7 @@ export default function InventoryHeader({
     uniqueProductsInCurrentPage,
     searchedProductsLength,
 }: InventoryHeaderProps) {
+    const { user } = useAuth()
     return (
         <div className="flex flex-col gap-4 mb-6">
             <div className="flex lg:flex-row flex-col items-center gap-4">
@@ -52,9 +54,12 @@ export default function InventoryHeader({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <div className="h-11">
-                    <InventoryActions products={rawProducts} />
-                </div>
+                {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager */}
+                {user?.role !== "store_manager" && (
+                    <div className="h-11">
+                        <InventoryActions products={rawProducts} />
+                    </div>
+                )}
             </div>
             <ListFilters
                 products={rawProducts}

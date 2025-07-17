@@ -46,9 +46,9 @@ export default function CreateProductForm() {
         {
             name: "",
             image: "",
+            categoryID: "",
             genre: "",
-            category: "",
-            childCategory: "",
+            brand: "Otro",
             sizes: [
                 {
                     sizeNumber: "",
@@ -76,7 +76,7 @@ export default function CreateProductForm() {
     const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
     const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
-
+    // console.log(categoryOptions[0])
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
             setCategories(cats)
@@ -88,6 +88,7 @@ export default function CreateProductForm() {
             childCats.forEach((child) => {
                 const parent = cats.find((cat) => cat.categoryID === child.parentID)
                 if (parent) {
+                    console.log(child)
                     options.push({
                         id: child.categoryID,
                         label: `${parent.name} > ${child.name}`,
@@ -168,8 +169,7 @@ export default function CreateProductForm() {
     // Seleccionar categoría del dropdown
     const handleCategorySelect = (productIndex: number, option: CategoryOption) => {
         const newProducts = [...products]
-        newProducts[productIndex].category = option.parentName
-        newProducts[productIndex].childCategory = option.childName
+        newProducts[productIndex].categoryID = option.id
         setProducts(newProducts)
 
         const newSearches = [...categorySearches]
@@ -280,9 +280,9 @@ export default function CreateProductForm() {
             {
                 name: "",
                 image: "",
+                categoryID: "",
                 genre: "",
-                category: "",
-                childCategory: "",
+                brand: "Otro",
                 sizes: [
                     {
                         sizeNumber: "",
@@ -580,7 +580,7 @@ export default function CreateProductForm() {
                                                             key={optIndex}
                                                             type="button"
                                                             onClick={() => handleCategorySelect(pIndex, option)}
-                                                            className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+                                                            className="w-full text-left px-4 py-3 dark:bg-slate-800 bg-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0"
                                                         >
                                                             <div className="flex items-center gap-2">
                                                                 <div className="text-sm font-medium text-gray-900 dark:text-white">

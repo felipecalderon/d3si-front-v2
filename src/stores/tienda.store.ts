@@ -1,16 +1,10 @@
 import { create } from "zustand"
 import { IStore } from "@/interfaces/stores/IStore"
-import { IUser } from "@/interfaces/users/IUser"
-
-interface TempStore {
-    storeID: string
-    name: string
-}
 
 interface TiendaStore {
     stores: IStore[]
-    storeSelected: { storeID: string; name: string } | null
-    setStoreSelected: (store: TempStore) => void
+    storeSelected: IStore | null
+    setStoreSelected: (store: IStore) => void
     setStores: (stores: IStore[]) => void
 }
 

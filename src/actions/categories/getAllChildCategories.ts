@@ -10,6 +10,7 @@ export const getAllChildCategories = async (): Promise<IChildCategory[]> => {
     const subcategories: IChildCategory[] = allCategories.flatMap((category) =>
         (category.subcategories || []).map((sub) => ({
             name: sub.name ?? "",
+            categoryID: sub.categoryID ?? "",
             parentID: sub.parentID ?? "",
             createdAt: sub.createdAt ?? "",
             updatedAt: sub.updatedAt ?? "",

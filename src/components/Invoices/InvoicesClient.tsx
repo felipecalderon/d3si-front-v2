@@ -8,8 +8,11 @@ import OrderDetailModal from "@/components/Modals/OrderDetailModal"
 import PrintOrderView from "@/components/Print/PrintOrderView"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
+import { useAuth } from "@/stores/user.store"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
+    const { user } = useAuth()
+    const isStoreManager = user?.role === "store_manager"
     const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -124,14 +127,16 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                             >
                                                 Imprimir
                                             </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => handleDelete(order.orderID)}
-                                                className="hover:bg-red-700"
-                                            >
-                                                Anular
-                                            </Button>
+                                            {!isStoreManager && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={() => handleDelete(order.orderID)}
+                                                    className="hover:bg-red-700"
+                                                >
+                                                    Anular
+                                                </Button>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>

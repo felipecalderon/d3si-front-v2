@@ -4,5 +4,6 @@ export interface IProductoEnVenta {
     precio: number
     cantidad: number
     storeID: string
-    image?: string
+    image: string
+    stockDisponible: number
 }

@@ -15,6 +15,7 @@ import type { IProduct } from "@/interfaces/products/IProduct"
 import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
 import { FlattenedItem } from "@/interfaces/products/IFlatternProduct"
+import { useAuth } from "@/stores/user.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function InventoryClientWrapper({ initialProducts, categories, stores }: Props) {
+    const { user } = useAuth()
     const [search, setSearch] = useState("")
     const [isLoading] = useState(false)
     const [rawProducts, setRawProducts] = useState<IProduct[]>(initialProducts)
@@ -137,6 +139,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             image: product.image,
             genre: product.genre,
             category: categoryName,
+            childCategory: "",
             sizes: [
                 {
                     sku: variation.sku,
@@ -203,10 +206,12 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
-            {/* Category Progress */}
-            <MotionItem delay={1}>
-                <CategoryProgress products={searchedProducts} categories={categories} />
-            </MotionItem>
+            {/* Category Progress, no se muestra si es store manager */}
+            {user?.role !== "store_manager" && (
+                <MotionItem delay={1}>
+                    <CategoryProgress products={searchedProducts} categories={categories} />
+                </MotionItem>
+            )}
 
             {/* Header Section */}
             <MotionItem delay={0}>

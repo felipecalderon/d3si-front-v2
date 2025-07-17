@@ -14,22 +14,23 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
-    const { setUser } = useAuth()
-    const { setStores, setUsers } = useTienda()
+    const { setUser, setUsers } = useAuth()
+    const { setStores } = useTienda()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         try {
             const data = await login(email, password)
+            console.log("Respuesta del login:", data)
 
-            if (data.error) {
-                toast.error(data.error)
+            if (!data.cleanUsr) {
+                toast.error("Usuario no encontrado")
                 return
             }
 
-            // 1. Guardar usuario autenticado
-            setUser(data.user)
+            // Guarda el usuario completo en Zustand
+            setUser(data.cleanUsr)
 
             // 2. Cargar y guardar usuarios y tiendas
             const [usuarios, tiendas] = await Promise.all([getAllUsers(), getAllStores()])

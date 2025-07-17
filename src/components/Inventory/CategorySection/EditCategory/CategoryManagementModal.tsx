@@ -14,29 +14,13 @@ import { updateCategory } from "@/actions/categories/updateCategory"
 import { updateSubCategory } from "@/actions/categories/updateSubCategory"
 import { deleteCategory } from "@/actions/categories/deleteCategory"
 import { Edit2, Trash2, Check } from "lucide-react"
-
-interface Subcategory {
-    categoryID: string
-    name: string
-    parentID: string
-    createdAt: string
-    updatedAt: string
-}
-
-interface Category {
-    categoryID: string
-    name: string
-    parentID: string | null
-    subcategories: Subcategory[]
-    createdAt: string
-    updatedAt: string
-}
+import { ICategory } from "@/interfaces/categories/ICategory"
 
 interface CategoryManagementModalProps {
     isOpen: boolean
     onClose: () => void
-    categories: Category[]
-    onCategoriesUpdate?: (categories: Category[]) => void // Agregar esta línea
+    categories: ICategory[]
+    onCategoriesUpdate?: (categories: ICategory[]) => void // Agregar esta línea
 }
 
 interface NewSubcategory {
@@ -50,7 +34,7 @@ export function CategoryManagementModal({
     categories: initialCategories,
     onCategoriesUpdate, // Agregar esta línea
 }: CategoryManagementModalProps) {
-    const [categories, setCategories] = useState<Category[]>(initialCategories)
+    const [categories, setCategories] = useState<ICategory[]>(initialCategories)
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [newParentCategory, setNewParentCategory] = useState("")
@@ -119,14 +103,17 @@ export function CategoryManagementModal({
         }
     }
 
-    const handleEditSubcategory = (subcategoryId: string, currentName: string) => {
+    const handleEditSubcategory = (subcategoryId?: string, currentName?: string) => {
+        if (!subcategoryId) return
+        if (!currentName) return
         setEditingSubcategory(subcategoryId)
         setEditSubcategoryName(currentName)
     }
 
-    const handleSaveEditSubcategory = async (subcategoryId: string, parentId: string) => {
+    const handleSaveEditSubcategory = async (subcategoryId?: string, parentId?: string) => {
         if (!editSubcategoryName.trim()) return
-
+        if (!subcategoryId) return
+        if (!parentId) return
         try {
             await updateSubCategory(editSubcategoryName.trim(), subcategoryId, parentId)
             // Actualizar el estado local
@@ -162,7 +149,7 @@ export function CategoryManagementModal({
         try {
             await deleteCategory(categoryId)
 
-            let updatedCategories: Category[]
+            let updatedCategories: ICategory[]
             if (isSubcategory) {
                 // Eliminar subcategoría del estado local
                 updatedCategories = categories.map((cat) => ({
@@ -387,9 +374,12 @@ export function CategoryManagementModal({
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                onClick={() =>
+                                                                onClick={() => {
+                                                                    if (!subcategory) return
+                                                                    if (!subcategory.categoryID) return
+
                                                                     handleDeleteCategory(subcategory.categoryID, true)
-                                                                }
+                                                                }}
                                                                 disabled={deleting === subcategory.categoryID}
                                                                 className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
                                                             >
