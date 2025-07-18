@@ -87,6 +87,8 @@ export default function Sidebar() {
 
         if (user.role === "store_manager") {
             return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
+        }else if (user.role === "consignado") {
+            return navItems.filter((item) => item.label !== "Caja" && item.label !== "Inventario" && item.label !== "UTI" && item.label !== "Control de Mando" && item.label !== "Estado de Resultados")
         }
 
         return navItems

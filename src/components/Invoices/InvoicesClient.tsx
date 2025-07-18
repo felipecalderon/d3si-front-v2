@@ -127,16 +127,17 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                             >
                                                 Imprimir
                                             </Button>
-                                            {!isStoreManager && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={() => handleDelete(order.orderID)}
-                                                    className="hover:bg-red-700"
-                                                >
-                                                    Anular
-                                                </Button>
-                                            )}
+                                            {!isStoreManager ||
+                                                (user.role == "consignado" && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => handleDelete(order.orderID)}
+                                                        className="hover:bg-red-700"
+                                                    >
+                                                        Anular
+                                                    </Button>
+                                                ))}
                                         </div>
                                     </TableCell>
                                 </TableRow>
