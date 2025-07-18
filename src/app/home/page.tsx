@@ -16,7 +16,7 @@ const HomePage = async () => {
         <>
             <div className="space-y-10 px-4 sm:px-6 md:px-8 py-6">
                 {/* Sección de estadísticas */}
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
+                <div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Facturación */}
                         <div className="flex flex-col gap-4">
