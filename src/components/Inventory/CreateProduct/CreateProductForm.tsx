@@ -47,7 +47,7 @@ export default function CreateProductForm() {
             name: "",
             image: "",
             categoryID: "",
-            genre: "",
+            genre: "Unisex",
             brand: "Otro",
             sizes: [
                 {
@@ -281,7 +281,7 @@ export default function CreateProductForm() {
                 name: "",
                 image: "",
                 categoryID: "",
-                genre: "",
+                genre: "Unisex",
                 brand: "Otro",
                 sizes: [
                     {
