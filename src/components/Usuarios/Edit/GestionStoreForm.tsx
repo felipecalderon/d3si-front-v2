@@ -12,12 +12,29 @@ import { updateStore } from "@/actions/stores/updateStore"
 import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
 import ModalUserTienda from "./ModalUserTienda"
-import { Store, User, Plus, Trash2, Save, X, Building, Phone, MapPin, Hash, Map, MapPinned, UserRoundCheck, AtSign} from "lucide-react"
+import {
+    Store,
+    User,
+    Plus,
+    Trash2,
+    Save,
+    X,
+    Building,
+    Phone,
+    MapPin,
+    Hash,
+    Map,
+    MapPinned,
+    UserRoundCheck,
+    AtSign,
+} from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "../../ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { getAllUsers } from "@/actions/users/getAllUsers"
+import { Role } from "@/lib/userRoles"
+import { useAuth } from "@/stores/user.store"
 
 interface GestionStoreFormProps {
     isOpen: boolean
@@ -26,7 +43,8 @@ interface GestionStoreFormProps {
 }
 
 export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionStoreFormProps) {
-    const { users, stores, setStores, setUsers } = useTienda()
+    const { stores, setStores } = useTienda()
+    const { users, setUsers } = useAuth()
 
     const [nombre, setNombre] = useState(tienda.name)
     const [rut, setRut] = useState(tienda.rut)
@@ -38,7 +56,7 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
     const [roleSelected, setRoleSelected] = useState(role || "")
     const [email, setEmail] = useState(tienda.email)
     const [isAdminLocal, setIsAdminLocal] = useState<boolean>(role === "admin")
-    const [gestoresAsignados, setGestoresAsignados] = useState(
+    const [gestoresAsignados, setGestoresAsignados] = useState<IUser[]>(
         users.filter((user) => user.Stores?.some((s) => s.storeID === tienda.storeID)) || []
     )
     const [selectedUserId, setSelectedUserId] = useState("")
@@ -118,13 +136,13 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
 
     const rolTraducido = (rol: string) => {
         switch (rol) {
-            case "admin":
+            case Role.Admin:
                 return "Admin"
-            case "store_manager":
+            case Role.Vendedor:
                 return "Store Manager"
-            case "consignado":
+            case Role.Consignado:
                 return "Consignado"
-            case "tercero":
+            case Role.Tercero:
                 return "Tercero"
             default:
                 return "Selecciona tipo"
@@ -266,7 +284,7 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                                     <SelectItem value={role} disabled className="opacity-50 cursor-not-allowed">
                                         {rolTraducido(role)}
                                     </SelectItem>
-                                    {["admin", "store_manager", "consignado", "tercero"]
+                                    {[Role.Admin, Role.Vendedor, Role.Consignado, Role.Tercero]
                                         .filter((r) => r !== role)
                                         .map((r) => (
                                             <SelectItem key={r} value={r}>

@@ -14,6 +14,7 @@ import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import { ICategory } from "@/interfaces/categories/ICategory"
 import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -73,7 +74,7 @@ export function InventoryTable({
     categories,
 }: InventoryTableProps) {
     const { user } = useAuth()
-    const isEditable = user?.role !== "store_manager"
+    const isEditable = user?.role !== Role.Vendedor
 
     return (
         <div className="flex-1 flex flex-col">

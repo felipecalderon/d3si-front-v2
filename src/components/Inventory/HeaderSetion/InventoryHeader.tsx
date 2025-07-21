@@ -5,6 +5,7 @@ import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActio
 import { ListFilters } from "@/components/ListTable/ListFilters"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
 import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 
 interface InventoryHeaderProps {
     search: string
@@ -55,7 +56,7 @@ export default function InventoryHeader({
                     onChange={(e) => setSearch(e.target.value)}
                 />
                 {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager */}
-                {user?.role !== "store_manager" && (
+                {user?.role !== Role.Vendedor && (
                     <div className="h-11">
                         <InventoryActions products={rawProducts} />
                     </div>

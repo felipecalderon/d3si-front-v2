@@ -8,6 +8,7 @@ import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Role } from "@/lib/userRoles"
 
 export default function RegistroForm() {
     const [nombre, setNombre] = useState("")
@@ -106,10 +107,10 @@ export default function RegistroForm() {
                             <SelectValue placeholder="Seleccionar tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="store_manager">Store Manager</SelectItem>
-                            <SelectItem value="consignado">Consignado</SelectItem>
-                            <SelectItem value="tercero">Tercero</SelectItem>
+                            <SelectItem value={Role.Admin}>Admin</SelectItem>
+                            <SelectItem value={Role.Vendedor}>Store Manager</SelectItem>
+                            <SelectItem value={Role.Consignado}>Consignado</SelectItem>
+                            <SelectItem value={Role.Tercero}>Tercero</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

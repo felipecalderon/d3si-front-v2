@@ -15,9 +15,11 @@ import { FaBars, FaMoon, FaSun, FaTimes } from "react-icons/fa"
 import { motion } from "framer-motion"
 import { MotionItem } from "../Animations/motionItem"
 import { useAuth } from "@/stores/user.store"
+import { toast } from "sonner"
+import { Role } from "@/lib/userRoles"
 
 export default function Sidebar() {
-    const { user } = useAuth()
+    const { user, users } = useAuth()
     const router = useRouter()
     const pathname = usePathname()
 
@@ -28,6 +30,15 @@ export default function Sidebar() {
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
     const [isMobile, setIsMobile] = useState(false)
 
+    useEffect(() => {
+        if (storeSelected) {
+            router.push(`/home?storeID=${storeSelected.storeID}`)
+        }
+        // else {
+        //     toast("No tiene tiendas, solicite al administrador que le asigne")
+        //     return router.push("/")
+        // }
+    }, [storeSelected])
     // Detect mobile screen size
     useEffect(() => {
         const handleResize = () => {
@@ -55,11 +66,11 @@ export default function Sidebar() {
     useEffect(() => {
         const cargarTiendas = async () => {
             try {
-                const tiendas = await getAllStores()
-                setStores(tiendas)
-                if (tiendas.length > 0) {
-                    setStoreSelected({ storeID: tiendas[0].storeID, name: tiendas[0].name })
-                }
+                // const tiendas = await getAllStores()
+                // setStores(tiendas)
+                const userWithStore = users.find((u) => u.userID === user?.userID)
+                const tiendasDelUser = userWithStore?.Stores ?? []
+                setStoreSelected(tiendasDelUser[0])
             } catch (error) {
                 console.error("Error loading data:", error)
             }
@@ -75,6 +86,11 @@ export default function Sidebar() {
     }
 
     const handleNavClick = (route: string) => {
+        if (route === "/home") {
+            if (storeSelected) {
+                return router.push(`/home?storeID=${storeSelected.storeID}`)
+            }
+        }
         router.push(route)
         // Close mobile menu after navigation
         if (isMobile) {
@@ -84,16 +100,24 @@ export default function Sidebar() {
 
     const filteredNavItems = React.useMemo(() => {
         if (!user) return []
-
-        if (user.role === "store_manager") {
+        console.log(user)
+        if (user.role === Role.Vendedor) {
+            console.log("Es vendedor")
             return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
-        }else if (user.role === "consignado") {
-            return navItems.filter((item) => item.label !== "Caja" && item.label !== "Inventario" && item.label !== "UTI" && item.label !== "Control de Mando" && item.label !== "Estado de Resultados")
+        } else if (user.role === Role.Consignado) {
+            console.log("Es Consignado")
+            return navItems.filter(
+                (item) =>
+                    item.label !== "Caja" &&
+                    item.label !== "Inventario" &&
+                    item.label !== "UTI" &&
+                    item.label !== "Control de Mando" &&
+                    item.label !== "Estado de Resultados"
+            )
         }
-
+        console.log("Es admin")
         return navItems
     }, [user])
-
     // Check if a section has active items
     const hasActiveSubItem = (subItems: any[]) => {
         return subItems?.some((sub) => pathname === sub.route)
@@ -182,31 +206,35 @@ export default function Sidebar() {
                             {!shouldShowCollapsed && (
                                 <div className="px-3 lg:px-4 mb-4">
                                     <MotionItem>
-                                        <Select
-                                            value={storeSelected?.storeID || ""}
-                                            onValueChange={(value) => {
-                                                const tienda = stores.find((t) => t.storeID === value)
-                                                if (tienda) setStoreSelected(tienda)
-                                            }}
-                                        >
-                                            <SelectTrigger
-                                                title="select"
-                                                className="dark:bg-gray-800 bg-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 transition-all w-full"
+                                        {user?.role === Role.Vendedor && user?.role === Role.Admin && (
+                                            <Select
+                                                value={storeSelected?.storeID || ""}
+                                                onValueChange={(value) => {
+                                                    const tienda = stores.find((t) => t.storeID === value)
+                                                    const userWithStore = users.find((u) => u.userID === user?.userID)
+                                                    const tiendasDelUser = userWithStore?.Stores ?? []
+                                                    if (tienda) setStoreSelected(tiendasDelUser[0])
+                                                }}
                                             >
-                                                <SelectValue placeholder="Selecciona una tienda" />
-                                            </SelectTrigger>
-                                            <SelectContent className="dark:bg-gray-800 bg-slate-300 z-50">
-                                                {stores.map((tienda) => (
-                                                    <SelectItem
-                                                        key={tienda.storeID}
-                                                        value={tienda.storeID}
-                                                        className="dark:bg-gray-800 data-[highlighted]:bg-gray-700"
-                                                    >
-                                                        {tienda.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                                <SelectTrigger
+                                                    title="select"
+                                                    className="dark:bg-gray-800 bg-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 transition-all w-full"
+                                                >
+                                                    <SelectValue placeholder="Selecciona una tienda" />
+                                                </SelectTrigger>
+                                                <SelectContent className="dark:bg-gray-800 bg-slate-300 z-50">
+                                                    {stores.map((tienda) => (
+                                                        <SelectItem
+                                                            key={tienda.storeID}
+                                                            value={tienda.storeID}
+                                                            className="dark:bg-gray-800 data-[highlighted]:bg-gray-700"
+                                                        >
+                                                            {tienda.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                     </MotionItem>
                                 </div>
                             )}

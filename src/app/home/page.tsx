@@ -8,8 +8,16 @@ import Payment from "@/components/Caja/Dashboard/PaymentMethods"
 import Filters from "@/components/Caja/Dashboard/Filters"
 import Grafico from "@/components/Caja/VentasTotalesGrafico/Grafico"
 
-const HomePage = async () => {
-    const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+interface SerchParams {
+    searchParams: Promise<{
+        storeID: string
+    }>
+}
+const HomePage = async ({ searchParams }: SerchParams) => {
+    // const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+    const { storeID } = await searchParams
+    console.log(storeID)
+    if (!storeID) return null
     const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
 
     return (

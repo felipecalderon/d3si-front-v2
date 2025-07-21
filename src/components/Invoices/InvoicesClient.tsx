@@ -9,10 +9,11 @@ import PrintOrderView from "@/components/Print/PrintOrderView"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
 import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
     const { user } = useAuth()
-    const isStoreManager = user?.role === "store_manager"
+    const isStoreManager = user?.role === Role.Vendedor
     const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -128,7 +129,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                                 Imprimir
                                             </Button>
                                             {!isStoreManager ||
-                                                (user.role == "consignado" && (
+                                                (user.role == Role.Consignado && (
                                                     <Button
                                                         size="sm"
                                                         variant="destructive"

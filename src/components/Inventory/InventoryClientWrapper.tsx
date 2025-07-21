@@ -16,6 +16,8 @@ import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
 import { FlattenedItem } from "@/interfaces/products/IFlatternProduct"
 import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
+import { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
 
 const ITEMS_PER_PAGE = 10
 
@@ -140,6 +142,8 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             genre: product.genre,
             category: categoryName,
             childCategory: "",
+            brand: "Otro",
+            categoryID: "",
             sizes: [
                 {
                     sku: variation.sku,
@@ -152,7 +156,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                             : variation.stockQuantity,
                 },
             ],
-        }
+        } as CreateProductFormData
 
         toast.promise(createMassiveProducts({ products: [updated] }), {
             loading: "Actualizando producto...",
@@ -207,7 +211,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
             {/* Category Progress, no se muestra si es store manager */}
-            {user?.role !== "store_manager" && (
+            {user?.role !== Role.Vendedor && (
                 <MotionItem delay={1}>
                     <CategoryProgress products={searchedProducts} categories={categories} />
                 </MotionItem>

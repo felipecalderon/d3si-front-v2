@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 
 export default function TiendasForm() {
     const { users } = useAuth()
@@ -37,7 +38,7 @@ export default function TiendasForm() {
 
         try {
             let isAdmin = false
-            if (tipoTienda === "admin") {
+            if (tipoTienda === Role.Admin) {
                 isAdmin = true
             }
             await createStore(nombre, gestor.userID, sucursal, rut, telefono, direccion, ciudad, isAdmin)
@@ -237,10 +238,10 @@ export default function TiendasForm() {
                                 <SelectValue placeholder="Selecciona tipo" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="store_manager">Store Manager</SelectItem>
-                                <SelectItem value="consignado">Consignado</SelectItem>
-                                <SelectItem value="tercero">Tercero</SelectItem>
+                                <SelectItem value={Role.Admin}>Admin</SelectItem>
+                                <SelectItem value={Role.Vendedor}>Store Manager</SelectItem>
+                                <SelectItem value={Role.Consignado}>Consignado</SelectItem>
+                                <SelectItem value={Role.Tercero}>Tercero</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

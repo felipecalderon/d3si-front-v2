@@ -4,7 +4,7 @@ import { IStore } from "@/interfaces/stores/IStore"
 interface TiendaStore {
     stores: IStore[]
     storeSelected: IStore | null
-    setStoreSelected: (store: IStore) => void
+    setStoreSelected: (store: IStore | null) => void
     setStores: (stores: IStore[]) => void
 }
 

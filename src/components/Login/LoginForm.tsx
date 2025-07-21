@@ -9,6 +9,7 @@ import { getAllStores } from "@/actions/stores/getAllStores"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { useTienda } from "@/stores/tienda.store"
+import { Role } from "@/lib/userRoles"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -39,6 +40,9 @@ export default function LoginForm() {
             setStores(tiendas)
 
             toast.success("Inicio de sesión exitoso")
+            if (data.cleanUsr.role === Role.Consignado) {
+                return router.push("/home/purchaseOrder")
+            }
             router.push("/home")
         } catch (err) {
             console.error(err)
