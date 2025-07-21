@@ -3,31 +3,34 @@ import { DollarSign } from "lucide-react"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 
 const Ventas = ({ resume }: { resume: IResume }) => {
+    const { sales } = resume.totales
     return (
         <>
             <div className="flex flex-col gap-9">
                 <StatCard
                     icon={<DollarSign />}
-                    label="Ventas del día"
-                    value={`${resume.sales.today.count} productos - $${resume.sales.today.amount.toLocaleString(
-                        "es-CL"
-                    )}`}
+                    label={`Ventas del día (${sales.today.total.count})`}
+                    value={`$${sales.today.total.amount.toLocaleString("es-CL", {
+                        maximumFractionDigits: 0,
+                    })}`}
                     color="text-green-600"
                 />
 
                 <StatCard
                     icon={<DollarSign />}
-                    label="Ventas de ayer"
-                    value={`${resume.sales.yesterday.count} productos - $${resume.sales.yesterday.amount.toLocaleString(
-                        "es-CL"
-                    )}`}
+                    label={`Ventas de ayer (${sales.yesterday.total.count})`}
+                    value={`Efectivo: $${sales.yesterday.efectivo.amount.toLocaleString("es-CL", {
+                        maximumFractionDigits: 0,
+                    })}, Débito/Crédito: $${sales.yesterday.debitoCredito.amount.toLocaleString("es-CL", {
+                        maximumFractionDigits: 0,
+                    })}`}
                     color="text-yellow-600"
                 />
 
                 <StatCard
                     icon={<DollarSign />}
-                    label="Ventas Semana móvil"
-                    value={`$${resume.sales.last7.amount.toLocaleString("es-CL")}`}
+                    label={`Ventas Semana móvil (${sales.last7.total.count})`}
+                    value={`$${sales.last7.total.amount.toLocaleString("es-CL")}`}
                     color="text-red-600"
                 />
             </div>
