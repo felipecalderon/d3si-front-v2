@@ -103,7 +103,7 @@ importers:
         specifier: ^3
         version: 3.3.1
       '@types/node':
-        specifier: ^20
+        specifier: ^20.19.7
         version: 20.19.7
       '@types/react':
         specifier: ^19
