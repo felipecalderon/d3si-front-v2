@@ -24,11 +24,6 @@ export default function Navbar() {
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
                         Bienvenido, {user?.name || "Usuario"}
                     </h1>
-                    {user?.message && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {user.message}
-                        </p>
-                    )}
                 </div>
 
                 {/* Mobile: User info and controls */}
@@ -47,12 +42,7 @@ export default function Navbar() {
                         {/* User Info */}
                         <div className="flex items-center gap-3">
                             <div className="text-right">
-                                <p className="font-semibold text-blue-600">
-                                    {user?.name || "Usuario"}
-                                </p>
-                                {user?.message && (
-                                    <p className="text-sm text-muted-foreground">{user.message}</p>
-                                )}
+                                <p className="font-semibold text-blue-600">{user?.name || "Usuario"}</p>
                             </div>
                             <Image
                                 src="/brand/user-default.jpeg"
@@ -82,11 +72,9 @@ export default function Navbar() {
                                     {user?.name || "Usuario"}
                                 </p>
                             </div>
-                            <FaChevronDown 
-                                size={12} 
-                                className={`text-gray-500 transition-transform ${
-                                    isMenuOpen ? 'rotate-180' : ''
-                                }`}
+                            <FaChevronDown
+                                size={12}
+                                className={`text-gray-500 transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
                             />
                         </button>
 
@@ -94,11 +82,8 @@ export default function Navbar() {
                         {isMenuOpen && (
                             <>
                                 {/* Backdrop */}
-                                <div 
-                                    className="fixed inset-0 z-10"
-                                    onClick={() => setIsMenuOpen(false)}
-                                />
-                                
+                                <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+
                                 {/* Dropdown Content */}
                                 <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-20">
                                     <div className="p-4 border-b border-gray-200 dark:border-gray-600">
@@ -108,15 +93,10 @@ export default function Navbar() {
                                                 <p className="font-semibold text-gray-800 dark:text-gray-200">
                                                     {user?.name || "Usuario"}
                                                 </p>
-                                                {user?.message && (
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                        {user.message}
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="p-2">
                                         <button
                                             onClick={handleLogout}

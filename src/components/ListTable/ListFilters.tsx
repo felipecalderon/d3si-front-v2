@@ -80,7 +80,7 @@ export function ListFilters({
 
     // Función helper para obtener el nombre de la categoría
     const getCategoryName = (categoryName: string) => {
-        const category = categoriesWithCount.find((cat) => cat.name === categoryName)
+        const category = categoriesWithCount.find((cat) => cat?.name === categoryName)
         return category ? category.name : categoryName
     }
 

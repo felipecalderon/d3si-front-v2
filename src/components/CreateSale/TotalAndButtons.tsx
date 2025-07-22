@@ -9,7 +9,7 @@ interface TotalAndButtonsProps {
     tipoPago: string
     setTipoPago: (tipo: string) => void
     total: number
-    handleSubmit: () => void
+    handleSubmit: () => Promise<boolean>
     resumen: IProductoEnVenta[]
 }
 

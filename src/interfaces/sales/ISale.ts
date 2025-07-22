@@ -1,10 +1,8 @@
-import { IProductoEnVenta } from "../products/IProductoEnVenta"
-
 // Para enviar una nueva venta desde el frontend
 export interface ISaleRequest {
     storeID: string
-    products: IProductoEnVenta[]
-    tipoPago: string
+    products: IProductSold[]
+    paymentType: "Efectivo" | "Débito" | "Crédito"
 }
 
 // Para representar un producto vendido

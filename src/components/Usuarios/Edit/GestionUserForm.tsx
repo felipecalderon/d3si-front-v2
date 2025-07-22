@@ -16,6 +16,7 @@ import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
 import Modal from "./ModalUserTienda"
 import { User, Store, Plus, Trash2, Save, X } from "lucide-react"
+import { useAuth } from "@/stores/user.store"
 
 interface GestionUserFormProps {
     isOpen: boolean
@@ -24,7 +25,8 @@ interface GestionUserFormProps {
 }
 
 export default function GestionUserForm({ isOpen, onClose, usuario }: GestionUserFormProps) {
-    const { stores, setUsers, setStores } = useTienda()
+    const { stores, setStores } = useTienda()
+    const { setUsers } = useAuth()
 
     // Estados para los campos del formulario
     const [nombre, setNombre] = useState(usuario.name)

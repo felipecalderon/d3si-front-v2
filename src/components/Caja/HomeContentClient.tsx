@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import SalesTable from "@/components/Caja/ListTable/SalesTable"
+import SalesTable from "./Table/SalesTable"
 import Link from "next/link"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { IResume } from "@/interfaces/sales/ISalesResume"
@@ -25,7 +25,7 @@ export default function HomeContentClient({ sales, resume }: Props) {
             <div className="grid grid-cols-3 gap-6 items-start">
                 {/* Facturación (izquierda) */}
                 <Facturacion resume={resume} />
-                
+
                 {/* Gauge Chart - Centered */}
                 <div className="flex justify-center items-center order-first lg:order-none">
                     <div className="w-full max-w-xs sm:max-w-sm mx-auto">
@@ -40,7 +40,7 @@ export default function HomeContentClient({ sales, resume }: Props) {
 
             {/* Filters and Action Button */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ">
-                <Filters/>
+                <Filters />
 
                 <Link href="/home/createsale" className="w-full sm:w-auto">
                     <button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">

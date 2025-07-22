@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DialogTitle, DialogDescription } from "@radix-ui/react-dialog"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { MassiveCreateProductData } from "@/interfaces/products/ICreateProductForm"
 
 interface AddSizeModalProps {
     productID: string
@@ -56,7 +57,7 @@ export function AddSizeModal({ open, onOpenChange, name, image, genre, onAddSize
                         ],
                     },
                 ],
-            }
+            } as MassiveCreateProductData
             const res = await createMassiveProducts(payload)
 
             if (res.success) {

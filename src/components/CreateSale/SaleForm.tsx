@@ -39,10 +39,8 @@ export const SaleForm = () => {
                 return
             }
 
-            const idProducto = isAdmin ? productoEncontrado.variationID : productoEncontrado.storeProductID
-
             setProductos((prev) => {
-                const index = prev.findIndex((p) => p.storeProductID === idProducto)
+                const index = prev.findIndex((p) => p.storeProductID === productoEncontrado.storeProductID)
                 if (index !== -1) {
                     const updated = [...prev]
                     const cantidadActual = updated[index].cantidad
@@ -59,7 +57,7 @@ export const SaleForm = () => {
                 return [
                     ...prev,
                     {
-                        storeProductID: idProducto,
+                        storeProductID: productoEncontrado.storeProductID,
                         nombre: productoEncontrado.name,
                         precio: Number(productoEncontrado.priceList),
                         storeID,
@@ -95,6 +93,7 @@ export const SaleForm = () => {
 
             const res = await postSale({
                 storeID,
+                paymentType: "Efectivo",
                 products: productosParaBackend,
             })
 
