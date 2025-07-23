@@ -123,9 +123,10 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         })
     }
 
-    async function handleSaveEdit(product: IProduct, variationID: string) {
-        const variation = product.ProductVariations.find((v) => v.variationID === variationID)
-        if (!variation) return
+    async function handleSaveEdit(product: IProduct, variationID?: string) {
+        if (!editingField) return
+
+        const { field } = editingField
 
         const categoryName =
             product.categoryID &&
@@ -136,29 +137,64 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                 ? product.categoryID[0].name
                 : "Sin categoría"
 
+        // Si es un campo del producto (no depende de una talla/variation)
+        if (!variationID) {
+            const updated = {
+                name: field === "name" ? editValue : product.name,
+                image: product.image,
+                genre: product.genre,
+                category: categoryName,
+                childCategory: "",
+                brand: field === "brand" ? editValue : product.brand,
+                categoryID: "",
+                sizes: product.ProductVariations.map((v) => ({
+                    sku: v.sku,
+                    sizeNumber: v.sizeNumber,
+                    priceList: v.priceList,
+                    priceCost: v.priceCost,
+                    stockQuantity: v.stockQuantity,
+                })),
+            } as CreateProductFormData
+
+            await toast.promise(createMassiveProducts({ products: [updated] }), {
+                loading: "Actualizando producto...",
+                success: () => {
+                    setRawProducts((prev) =>
+                        prev.map((p) => (p.productID === product.productID ? { ...p, [field]: editValue } : p))
+                    )
+                    setEditingField(null)
+                    return "Campo actualizado"
+                },
+                error: "Error al actualizar",
+            })
+
+            return
+        }
+
+        // Si es un campo de una talla/variation
+        const variation = product.ProductVariations.find((v) => v.variationID === variationID)
+        if (!variation) return
+
         const updated = {
             name: product.name,
             image: product.image,
             genre: product.genre,
             category: categoryName,
             childCategory: "",
-            brand: "Otro",
+            brand: product.brand,
             categoryID: "",
             sizes: [
                 {
                     sku: variation.sku,
-                    sizeNumber: editingField!.field === "sizeNumber" ? editValue : variation.sizeNumber,
-                    priceList: editingField!.field === "priceList" ? Number.parseFloat(editValue) : variation.priceList,
-                    priceCost: editingField!.field === "priceCost" ? Number.parseFloat(editValue) : variation.priceCost,
-                    stockQuantity:
-                        editingField!.field === "stockQuantity"
-                            ? Number.parseFloat(editValue)
-                            : variation.stockQuantity,
+                    sizeNumber: field === "sizeNumber" ? editValue : variation.sizeNumber,
+                    priceList: field === "priceList" ? Number(editValue) : variation.priceList,
+                    priceCost: field === "priceCost" ? Number(editValue) : variation.priceCost,
+                    stockQuantity: field === "stockQuantity" ? Number(editValue) : variation.stockQuantity,
                 },
             ],
         } as CreateProductFormData
 
-        toast.promise(createMassiveProducts({ products: [updated] }), {
+        await toast.promise(createMassiveProducts({ products: [updated] }), {
             loading: "Actualizando producto...",
             success: () => {
                 setRawProducts((prev) =>
@@ -170,10 +206,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                                       v.variationID === variationID
                                           ? {
                                                 ...v,
-                                                [editingField!.field]:
-                                                    editingField!.field === "sizeNumber"
-                                                        ? editValue
-                                                        : Number.parseFloat(editValue),
+                                                [field]: field === "sizeNumber" ? editValue : Number(editValue),
                                             }
                                           : v
                                   ),

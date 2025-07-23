@@ -27,17 +27,17 @@ interface InventoryTableProps {
     categories: ICategory[]
     editingField: {
         sku: string
-        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
+        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "brand"
     } | null
     setEditingField: (
         field: {
             sku: string
-            field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
+            field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "brand"
         } | null
     ) => void
     editValue: string
     setEditValue: (value: string) => void
-    handleSaveEdit: (product: IProduct, variationID: string) => void
+    handleSaveEdit: (product: IProduct, variationID?: string) => void
     handleDeleteProduct: (product: IProduct) => void
     addSizeModalProductID: string | null
     setAddSizeModalProductID: (id: string | null) => void
@@ -85,6 +85,9 @@ export function InventoryTable({
                             <TableRow>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRODUCTO
+                                </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    MARCA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     CATEGORÍA
@@ -211,6 +214,37 @@ export function InventoryTable({
                                         {!isFirst && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
+                                        {/* Columna MARCA */}
+                                        <TableCell
+                                            className={`text-center py-2 ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-900 hover:bg-gray-100"
+                                                    : ""
+                                            }`}
+                                            onClick={() => {
+                                                if (!isEditable) return
+                                                setEditingField({ sku: product.productID, field: "brand" })
+                                                setEditValue(product.brand || "")
+                                            }}
+                                        >
+                                            {editingField?.sku === product.productID &&
+                                            editingField?.field === "brand" ? (
+                                                <div className="flex justify-center">
+                                                    <Input
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        onBlur={() => handleSaveEdit(product)}
+                                                        className="w-24 h-8 px-2 py-1 text-center text-xs"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <MotionItem key={`brand-${product.productID}`} delay={index + 5}>
+                                                    <span className="font-medium">{product.brand}</span>
+                                                </MotionItem>
+                                            )}
+                                        </TableCell>
+
                                         {/* Columna CATEGORIA */}
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
                                             {getCategoryFullNameFromProduct(product, categories)}
