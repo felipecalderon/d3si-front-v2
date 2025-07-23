@@ -209,7 +209,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     }
 
     return (
-        <main className="p-6 flex-1 flex flex-col h-screen">
+        <main className="lg:p-6 flex-1 flex flex-col h-screen">
             {/* Category Progress, no se muestra si es store manager */}
             {user?.role !== Role.Vendedor && (
                 <MotionItem delay={1}>

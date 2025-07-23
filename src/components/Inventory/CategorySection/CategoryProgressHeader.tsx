@@ -13,27 +13,31 @@ interface CategoryProgressHeaderProps {
 
 export function CategoryProgressHeader({ viewMode, onModeChange, onManageCategories }: CategoryProgressHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
-      <CardTitle className="text-lg font-semibold">
-        Distribución de inventario por {viewMode === "categoria" ? "Categoría" : "Tipo"}
-      </CardTitle>
-      <div className="flex items-center gap-2">
-        <Button
-          variant={viewMode === "categoria" ? "default" : "outline"}
-          size="sm"
-          onClick={() => onModeChange("categoria")}
-        >
-          Categoría
-        </Button>
-        <Button variant={viewMode === "tipo" ? "default" : "outline"} size="sm" onClick={() => onModeChange("tipo")}>
-          Tipo
-        </Button>
-        {viewMode === "categoria" && (
-          <Button size="sm" onClick={onManageCategories} className="ml-2">
-            Administrar Categorías
-          </Button>
-        )}
+      <div className="flex lg:flex-row flex-col items-center justify-between">
+          <CardTitle className="text-lg font-semibold">
+              Distribución de inventario por {viewMode === "categoria" ? "Categoría" : "Tipo"}
+          </CardTitle>
+          <div className="flex items-center lg:mt-0 mt-4 gap-2">
+              <Button
+                  variant={viewMode === "categoria" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onModeChange("categoria")}
+              >
+                  Categoría
+              </Button>
+              <Button
+                  variant={viewMode === "tipo" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onModeChange("tipo")}
+              >
+                  Tipo
+              </Button>
+              {viewMode === "categoria" && (
+                  <Button size="sm" onClick={onManageCategories} className="ml-2">
+                      Administrar Categorías
+                  </Button>
+              )}
+          </div>
       </div>
-    </div>
   )
 }
