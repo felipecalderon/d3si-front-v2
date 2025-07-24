@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Minus, ShoppingCart } from "lucide-react"
+import { Plus, Minus, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { ListFilters } from "@/components/ListTable/ListFilters"
 import { useProductFilters } from "@/hooks/use-product-filters"
@@ -125,6 +125,7 @@ export default function PurchaseOrderClient({
         currentItems.forEach(({ product }) => uniqueProductIds.add(product.productID))
         return uniqueProductIds.size
     }, [currentItems])
+
     // Calcular subtotal de pedido
     const subtotal = useMemo(() => {
         return rawProducts.reduce((total, product) => {
@@ -159,8 +160,6 @@ export default function PurchaseOrderClient({
 
         return pages
     }
-
-    //  const userID = "2f13abf6-bbb6-402b-a5b2-e368a89c79e9" // O donde obtengas el userID
 
     return (
         <main className="p-6 flex-1 flex flex-col min-h-screen">
@@ -217,19 +216,23 @@ export default function PurchaseOrderClient({
                     </div>
 
                     <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
-                        <div className="flex items-center gap-4">
-                            <Badge variant="secondary" className="text-sm px-3 py-1">
-                                <ShoppingCart className="w-4 h-4 mr-1" />
-                                <span className="text-blue-600 dark:text-blue-400 font-bold">
-                                    {totalProductsInOrder}
-                                </span>
+                        <div className="flex lg:mb-0 mb-4 items-center gap-4">
+                            <Badge variant="secondary" className="text-sm px-3 py-1 lg:flex-row flex-col text-center">
+                                <div className="flex">
+                                    <ShoppingCart className="w-4 h-4 mr-1" />
+                                    <span className="text-blue-600 dark:text-blue-400 font-bold">
+                                        {totalProductsInOrder}
+                                    </span>
+                                </div>
                                 <span className="ml-1">productos en pedido</span>
                             </Badge>
-                            <Badge variant="outline" className="text-sm px-3 py-1">
-                                <span className="text-gray-600 dark:text-gray-400">Mostrando:</span>
-                                <span className="ml-1 font-bold text-blue-600 dark:text-blue-400">
-                                    {uniqueProductsInCurrentPage}
-                                </span>
+                            <Badge variant="outline" className="text-sm px-3 py-1 lg:flex-row flex-col text-center">
+                                <div>
+                                    <span className="text-gray-600 dark:text-gray-400">Mostrando:</span>
+                                    <span className="ml-1 font-bold text-blue-600 dark:text-blue-400">
+                                        {uniqueProductsInCurrentPage}
+                                    </span>
+                                </div>
                                 <span className="ml-1">de {searchedProducts.length} productos</span>
                             </Badge>
                         </div>
@@ -252,6 +255,7 @@ export default function PurchaseOrderClient({
                     />
                 </MotionItem>
             </div>
+
             {/* Paginación */}
             {totalPages > 1 && (
                 <MotionItem delay={currentItems.length + 2}>
@@ -259,43 +263,44 @@ export default function PurchaseOrderClient({
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                             disabled={currentPage === 1}
                             className="h-9 px-3 border-2"
                         >
+                            <ChevronLeft className="h-4 w-4" />
                             Anterior
                         </Button>
 
-                        {getVisiblePages().map((page, index) =>
-                            page === "..." ? (
-                                <span key={index} className="px-2 text-gray-500">
-                                    ...
-                                </span>
-                            ) : (
-                                <Button
-                                    key={index}
-                                    variant={currentPage === page ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setCurrentPage(page as number)}
-                                    className={`h-9 w-9 border-2 ${
-                                        currentPage === page
-                                            ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
-                                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    }`}
-                                >
-                                    {page}
-                                </Button>
-                            )
-                        )}
+                        {getVisiblePages().map((page, index) => (
+                            <React.Fragment key={index}>
+                                {page === "..." ? (
+                                    <span className="px-2 text-gray-500">...</span>
+                                ) : (
+                                    <Button
+                                        variant={currentPage === page ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page as number)}
+                                        className={`h-9 w-9 border-2 ${
+                                            currentPage === page
+                                                ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
+                                                : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        }`}
+                                    >
+                                        {page}
+                                    </Button>
+                                )}
+                            </React.Fragment>
+                        ))}
 
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
                             disabled={currentPage === totalPages}
                             className="h-9 px-3 border-2"
                         >
                             Siguiente
+                            <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
                 </MotionItem>

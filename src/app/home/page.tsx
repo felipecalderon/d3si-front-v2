@@ -13,8 +13,8 @@ interface SerchParams {
         storeID: string
     }>
 }
+
 const HomePage = async ({ searchParams }: SerchParams) => {
-    // const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
     const { storeID } = await searchParams
     console.log(storeID)
     if (!storeID) return null
@@ -22,24 +22,45 @@ const HomePage = async ({ searchParams }: SerchParams) => {
 
     return (
         <>
-            <div className="space-y-10 px-4 sm:px-6 md:px-8 py-6">
+            <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Sección de estadísticas */}
                 <div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Mobile: Stack vertically */}
+                    <div className="block lg:hidden space-y-6">
+                        {/* Gráfico primero en mobile */}
+                        <div className="flex justify-center">
+                            <div className="w-full max-w-[280px] mx-auto">
+                                <Grafico />
+                            </div>
+                        </div>
+
                         {/* Facturación */}
-                        <div className="flex flex-col gap-4">
+                        <div>
                             <Facturacion resume={resume} />
                         </div>
 
-                        {/* Gráfico */}
-                        <div className="flex justify-center items-center">
-                            <div className="w-full max-w-xs sm:max-w-sm mx-auto">
+                        {/* Ventas */}
+                        <div>
+                            <Ventas resume={resume} />
+                        </div>
+                    </div>
+
+                    {/* Desktop: Grid layout con altura igual */}
+                    <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                        {/* Facturación */}
+                        <div className="h-full flex flex-col justify-between gap-4">
+                            <Facturacion resume={resume} />
+                        </div>
+
+                        {/* Gráfico - Centrado verticalmente */}
+                        <div className="h-full flex justify-center items-center">
+                            <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
                                 <Grafico />
                             </div>
                         </div>
 
                         {/* Ventas */}
-                        <div className="flex flex-col gap-4">
+                        <div className="h-full flex flex-col justify-between gap-4">
                             <Ventas resume={resume} />
                         </div>
                     </div>
@@ -51,11 +72,13 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                 </div>
 
                 {/* Filtros + botón */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                    <Filters />
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
+                    <div className="w-full sm:w-auto">
+                        <Filters />
+                    </div>
 
-                    <Link href="/home/createsale" className="w-full sm:w-auto">
-                        <button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors">
+                    <Link href="/home/createsale" className="w-full sm:w-auto flex-shrink-0">
+                        <button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors whitespace-nowrap">
                             Vender 🛍️
                         </button>
                     </Link>
