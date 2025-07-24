@@ -1,8 +1,9 @@
 import { API_URL } from "@/lib/enviroments"
 import { fetcher } from "@/lib/fetcher"
-import { ISale } from "@/interfaces/sales/ISale"
+import { ISaleRequest } from "@/interfaces/sales/ISale"
 
-export const postSale = async (saleData: ISale) => {
+export const postSale = async (saleData: ISaleRequest) => {
+    console.log(saleData)
     try {
         const data = await fetcher(`${API_URL}/sale`, {
             method: "POST",
@@ -10,10 +11,10 @@ export const postSale = async (saleData: ISale) => {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(saleData),
-        });
-        return data;
+        })
+        return data
     } catch (error) {
-        console.error("Error saving the sale", error);
-        return null;
+        console.error("Error saving the sale", error)
+        return null
     }
-};
+}

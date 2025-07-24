@@ -1,193 +1,70 @@
-import React, { useEffect, useState } from "react"
-import Link from "next/link"
-import { ArrowRightLeft, CreditCard, HandCoins, Wallet, FileText, FileCheck2, DollarSign } from "lucide-react"
-import StatCard from "@/components/dashboard/StatCard"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { getSales } from "@/actions/sales/getSales"
-import GaugeChart from "@/components/dashboard/GaugeChart"
-import { useMount } from "@/hooks/useMount"
-interface Sale {
-    saleID: string
-    total: number
-    status: string
-    createdAt: string
-    paymentType?: string
-    Store?: {
-        name: string
-    }
-    SaleProducts?: {
-        quantitySold: number
-        unitPrice: number
-        StoreProduct?: {
-            ProductVariation?: {
-                Product?: {
-                    name: string
-                }
-            }
-        }
-    }[]
+import { getResume } from "@/actions/sales/getResume"
+import SalesTable from "@/components/Caja/Table/SalesTable"
+import Link from "next/link"
+import Facturacion from "@/components/Caja/Dashboard/Facturacion"
+import Ventas from "@/components/Caja/Dashboard/Ventas"
+import Payment from "@/components/Caja/Dashboard/PaymentMethods"
+import Filters from "@/components/Caja/Dashboard/Filters"
+import Grafico from "@/components/Caja/VentasTotalesGrafico/Grafico"
+
+interface SerchParams {
+    searchParams: Promise<{
+        storeID: string
+    }>
 }
+const HomePage = async ({ searchParams }: SerchParams) => {
+    // const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52"
+    const { storeID } = await searchParams
+    console.log(storeID)
+    if (!storeID) return null
+    const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
 
-const HomePage = async () => {
-    const storeID = "f3c9d8e0-ccaf-4300-a416-c3591c4d8b52" // ID hardcodeado por ahora
-    const sales = (await getSales(storeID)) as Sale[]
-    // const [sales, setSales] = useState<Sale[]>([])
-    // const [loading, setLoading] = useState(true)
-    // const { isMount } = useMount()
-    // useEffect(() => {
-    //     const fetchSales = async () => {
-    //         try {
-    //             const data = (await getSales(storeID)) as Sale[]
-    //             setSales(data)
-    //         } catch (error) {
-    //             console.error("Error fetching sales:", error)
-    //         } finally {
-    //             setLoading(false)
-    //         }
-    //     }
-
-    //     fetchSales()
-    // }, [])
-
-    // if (!isMount) return null
     return (
         <>
-            <div className="grid grid-cols-3 gap-6 items-start">
-                <div className="flex flex-col gap-4">
-                    <StatCard icon={<FileText />} label="Boletas Emitidas" value="128" />
-                    <StatCard icon={<FileCheck2 />} label="Facturas Emitidas" value="31" />
-                    <StatCard icon={<DollarSign />} label="Facturación" value="$45.846.410" />
-                </div>
+            <div className="space-y-10 px-4 sm:px-6 md:px-8 py-6">
+                {/* Sección de estadísticas */}
+                <div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Facturación */}
+                        <div className="flex flex-col gap-4">
+                            <Facturacion resume={resume} />
+                        </div>
 
-                <div className="flex justify-center items-center h-full">
-                    <div className="w-full max-w-sm mx-auto">
-                        <GaugeChart />
+                        {/* Gráfico */}
+                        <div className="flex justify-center items-center">
+                            <div className="w-full max-w-xs sm:max-w-sm mx-auto">
+                                <Grafico />
+                            </div>
+                        </div>
+
+                        {/* Ventas */}
+                        <div className="flex flex-col gap-4">
+                            <Ventas resume={resume} />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-4">
-                    <StatCard icon={<DollarSign />} label="Ventas del día" value="$435.670" color="text-green-600" />
-                    <StatCard icon={<DollarSign />} label="Ventas de ayer" value="$635.800" color="text-yellow-600" />
-                    <StatCard
-                        icon={<DollarSign />}
-                        label="Ventas Semana móvil"
-                        value="$3.535.800"
-                        color="text-red-600"
-                    />
+                {/* Métodos de pago */}
+                <div>
+                    <Payment />
                 </div>
-            </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-4 mt-5">
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <ArrowRightLeft className="mx-auto mb-2" />
-                    <p>Débito</p>
-                    <p className="text-sm">152 Pares - $11.1MM</p>
-                </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <CreditCard className="mx-auto mb-2" />
-                    <p>Crédito</p>
-                    <p className="text-sm">40 Pares - $1.6MM</p>
-                </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <HandCoins className="mx-auto mb-2" />
-                    <p>Efectivo</p>
-                    <p className="text-sm">192 Pares - $12.7MM</p>
-                </div>
-                <div className="dark:bg-slate-700 bg-white p-4 shadow rounded text-center">
-                    <Wallet className="mx-auto mb-2" />
-                    <p>Total Caja</p>
-                    <p className="text-lg font-bold">$435.670</p>
-                </div>
-            </div>
+                {/* Filtros + botón */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                    <Filters />
 
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-4">
-                    <select title="meses" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
-                        <option>Filtrar por mes</option>
-                        <option>Enero</option>
-                        <option>Febrero</option>
-                        <option>Marzo</option>
-                        <option>Abril</option>
-                        <option>Mayo</option>
-                        <option>Junio</option>
-                        <option>Julio</option>
-                        <option>Agosto</option>
-                        <option>Septiembre</option>
-                        <option>Octubre</option>
-                        <option>Noviembre</option>
-                        <option>Diciembre</option>
-                    </select>
-                    <select title="años" className="px-4 py-2 dark:bg-slate-700 bg-white rounded shadow border">
-                        <option>Filtrar por año</option>
-                        <option>2025</option>
-                        <option>2024</option>
-                        <option>2023</option>
-                    </select>
+                    <Link href="/home/createsale" className="w-full sm:w-auto">
+                        <button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-colors">
+                            Vender 🛍️
+                        </button>
+                    </Link>
                 </div>
-                <Link href="/home/createsale">
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded">
-                        Vender 🛍️
-                    </button>
-                </Link>
-            </div>
 
-            {/* Tabla de ventas */}
-            <div className="dark:bg-slate-700 bg-white rounded shadow overflow-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Sucursal</TableHead>
-                            <TableHead>Fecha de Venta</TableHead>
-                            <TableHead>Venta con IVA</TableHead>
-                            <TableHead>Productos</TableHead>
-                            <TableHead>Estado</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {sales.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6}>No hay ventas para mostrar.</TableCell>
-                            </TableRow>
-                        ) : (
-                            sales.map((sale) => {
-                                const storeName = sale.Store?.name || "Sucursal"
-
-                                const productsDescription =
-                                    Array.isArray(sale.SaleProducts) && sale.SaleProducts.length > 0
-                                        ? sale.SaleProducts.map((sp) => {
-                                              const productName =
-                                                  sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                              const quantity = sp.quantitySold ?? "-"
-                                              const price = sp.unitPrice ?? "-"
-                                              return `${quantity} x ${productName} ($${price})`
-                                          }).join(", ")
-                                        : "-"
-
-                                return (
-                                    <TableRow key={sale.saleID}>
-                                        <TableCell>{storeName}</TableCell>
-                                        <TableCell>
-                                            {new Date(sale.createdAt).toLocaleString("es-AR", {
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </TableCell>
-                                        <TableCell>
-                                            {typeof sale.total === "number"
-                                                ? `$${sale.total.toLocaleString("es-AR")}`
-                                                : "Sin dato"}
-                                        </TableCell>
-                                        <TableCell>{productsDescription}</TableCell>
-                                        <TableCell className="text-green-600 font-medium">{sale.status}</TableCell>
-                                    </TableRow>
-                                )
-                            })
-                        )}
-                    </TableBody>
-                </Table>
+                {/* Tabla de ventas */}
+                <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <SalesTable sales={sales} />
+                </div>
             </div>
         </>
     )

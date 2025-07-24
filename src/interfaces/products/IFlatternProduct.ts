@@ -1,3 +1,5 @@
+import { IProduct } from "./IProduct"
+
 export interface FlattenedProduct {
     id: string
     name: string
@@ -9,4 +11,12 @@ export interface FlattenedProduct {
     centralStock: number
     totalStock: number
     totalProducts: number // <-- agrega aquí
+}
+
+export interface FlattenedItem {
+    product: IProduct
+    variation: IProduct["ProductVariations"][number]
+    isFirst: boolean
+    totalStock: number
+    rowSpan: number
 }

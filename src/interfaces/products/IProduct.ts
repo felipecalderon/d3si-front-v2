@@ -1,7 +1,10 @@
+//import { ICategory } from "../categories/ICategory"
+import { ICategory } from "../categories/ICategory"
 import { IProductVariation } from "./IProductVariation"
 
 export interface IProduct {
-    genre: string
+    genre: "Hombre" | "Mujer" | "Unisex"
+    brand: "D3SI" | "Otro"
     productID: string
     name: string
     image: string
@@ -9,4 +12,7 @@ export interface IProduct {
     createdAt: string
     updatedAt: string
     ProductVariations: IProductVariation[]
+    categoryID: string | null
+    stock: number
+    Category?: ICategory
 }

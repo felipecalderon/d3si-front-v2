@@ -8,12 +8,13 @@ interface Producto {
     cantidad: number
     storeProductID: string
     image: string
+    stockDisponible: number
 }
 
 interface ProductRowProps {
     producto: Producto
     onDelete: (id: string) => void
-    onCantidadChange: (id: string, cantidad: number) => void  // nuevo prop
+    onCantidadChange: (id: string, cantidad: number) => void
 }
 
 const ProductRow: FC<ProductRowProps> = ({ producto, onDelete, onCantidadChange }) => {
@@ -23,6 +24,9 @@ const ProductRow: FC<ProductRowProps> = ({ producto, onDelete, onCantidadChange 
     const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newCantidad = parseInt(e.target.value)
         if (isNaN(newCantidad) || newCantidad < 1) newCantidad = 1
+        if (newCantidad > producto.stockDisponible) {
+            newCantidad = producto.stockDisponible
+        }
         onCantidadChange(storeProductID, newCantidad)
     }
 
@@ -33,14 +37,21 @@ const ProductRow: FC<ProductRowProps> = ({ producto, onDelete, onCantidadChange 
                 <span>{nombre}</span>
             </TableCell>
             <TableCell className="p-2 text-center">
-                <input title="candidad"
-                    type="number"
-                    min={1}
-                    value={cantidad}
-                    onChange={handleCantidadChange}
-                    className="w-16 text-center rounded border border-gray-300 p-1"
-                />
+                <div>
+                    <input
+                        title="Cantidad"
+                        type="number"
+                        min={1}
+                        max={producto.stockDisponible}
+                        value={cantidad}
+                        onChange={handleCantidadChange}
+                        className="w-16 text-center rounded border border-gray-300 p-1"
+                    />
+
+                    <p className="text-xs text-gray-500 mt-1">Stock: {producto.stockDisponible}</p>
+                </div>
             </TableCell>
+
             <TableCell className="p-2 text-center">${precio.toFixed(2)}</TableCell>
             <TableCell className="p-2 text-center">${subtotal}</TableCell>
             <TableCell className="p-2 text-center">
