@@ -29,33 +29,35 @@ export function PurchaseOrderSummary({
     router,
 }: Props) {
     return (
-        <div className="mt-6 space-y-4">
-            <div className="flex justify-center lg:justify-end">
-                <p className="text-lg font-bold">Subtotal general: ${subtotal.toLocaleString("es-CL")}</p>
+        <div className="mt-2 space-y-2">
+            <div className="flex justify-center lg:justify-end text-sm font-semibold">
+                <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
             </div>
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="p-4 space-y-2 text-sm border rounded-lg bg-white dark:bg-slate-900">
-                    <div className="flex justify-between">
-                        <span className="font-medium">Total de productos:</span>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                {/* Cuadro resumen con fondo verde */}
+                <div className="p-1 rounded-md text-sm min-w-[300px] bg-green-600 text-white shadow-sm w-full md:w-[320px]">
+                    <div className="flex justify-between mb-1">
+                        <span>Total productos:</span>
                         <span className="font-bold">{totalProductsInOrder}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="font-medium">Total neto:</span>
+                    <div className="flex justify-between mb-1">
+                        <span>Neto:</span>
                         <span className="font-bold">${subtotal.toLocaleString("es-CL")}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="font-medium">IVA (19%):</span>
+                    <div className="flex justify-between mb-1">
+                        <span>IVA (19%):</span>
                         <span className="font-bold">${(subtotal * 0.19).toLocaleString("es-CL")}</span>
                     </div>
-                    <div className="flex justify-between border-t pt-2">
+                    <div className="flex justify-between border-t border-white pt-2 mt-2">
                         <span className="font-bold">Total:</span>
-                        <span className="font-bold text-green-600">${(subtotal * 1.19).toLocaleString("es-CL")}</span>
+                        <span className="font-bold text-yellow-200">${(subtotal * 1.19).toLocaleString("es-CL")}</span>
                     </div>
                 </div>
 
                 <Button
-                    size="lg"
+                    size="sm"
+                    className="h-10 px-6"
                     disabled={isLoading || totalProductsInOrder === 0 || !selectedStoreID}
                     onClick={async () => {
                         try {

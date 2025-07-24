@@ -6,7 +6,7 @@ const Ventas = ({ resume }: { resume: IResume }) => {
     const { sales } = resume.totales
     return (
         <>
-            <div className="flex flex-col gap-9">
+            <div className="flex flex-col gap-6">
                 <StatCard
                     icon={<DollarSign />}
                     label={`Ventas del día (${sales.today.total.count})`}
