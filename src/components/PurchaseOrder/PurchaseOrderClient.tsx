@@ -162,161 +162,182 @@ export default function PurchaseOrderClient({
     }
 
     return (
-        <main className="p-6 flex-1 flex flex-col min-h-screen">
-            {/* Header Section */}
-            <MotionItem delay={0}>
-                <div className="flex flex-col gap-4 mb-6">
-                    <div className="flex lg:flex-row flex-col items-center gap-4">
-                        <Input
-                            type="text"
-                            placeholder="Buscar producto o código EAN..."
-                            className="flex-1 h-11 border-2 dark:bg-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+        <>
+            <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
+                {/* Header Section */}
+                <MotionItem delay={0}>
+                    <div className="flex flex-col gap-4 mb-6">
+                        <div className="flex lg:flex-row flex-col items-center gap-4">
+                            <Input
+                                type="text"
+                                placeholder="Buscar producto o código EAN..."
+                                className="flex-1 h-11 border-2 dark:bg-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={handleAgregarCalzados}
+                                    className="h-11 bg-green-600 hover:bg-green-700"
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Agregar
+                                </Button>
+                                <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
+                                    <Minus className="w-4 h-4 mr-2" />
+                                    Quitar
+                                </Button>
+                            </div>
+                        </div>
+                        {/* Filtros */}
+                        <ListFilters
+                            products={rawProducts}
+                            categories={categories}
+                            selectedFilter={selectedFilter}
+                            sortDirection={sortDirection}
+                            selectedCategory={selectedCategory}
+                            selectedGenre={selectedGenre}
+                            onFilterChange={setSelectedFilter}
+                            onSortDirectionChange={setSortDirection}
+                            onCategoryChange={setSelectedCategory}
+                            onGenreChange={setSelectedGenre}
+                            onClearFilters={clearFilters}
                         />
-                        <div className="flex gap-2">
-                            <Button onClick={handleAgregarCalzados} className="h-11 bg-green-600 hover:bg-green-700">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Agregar
-                            </Button>
-                            <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
-                                <Minus className="w-4 h-4 mr-2" />
-                                Quitar
-                            </Button>
+                        <div className="flex lg:flex-row flex-col items-center gap-4">
+                            <span className="text-sm font-semibold whitespace-nowrap">Orden de compra para:</span>
+                            <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                <SelectTrigger className="w-[300px] h-11 border-2">
+                                    <SelectValue placeholder="Seleccionar tienda" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {stores.map((store) => (
+                                        <SelectItem key={store.storeID} value={store.storeID}>
+                                            {store.name} - {store.city}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </div>
-                    {/* Filtros */}
-                    <ListFilters
-                        products={rawProducts}
-                        categories={categories}
-                        selectedFilter={selectedFilter}
-                        sortDirection={sortDirection}
-                        selectedCategory={selectedCategory}
-                        selectedGenre={selectedGenre}
-                        onFilterChange={setSelectedFilter}
-                        onSortDirectionChange={setSortDirection}
-                        onCategoryChange={setSelectedCategory}
-                        onGenreChange={setSelectedGenre}
-                        onClearFilters={clearFilters}
-                    />
-                    <div className="flex lg:flex-row flex-col items-center gap-4">
-                        <span className="text-sm font-semibold whitespace-nowrap">Orden de compra para:</span>
-                        <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                            <SelectTrigger className="w-[300px] h-11 border-2">
-                                <SelectValue placeholder="Seleccionar tienda" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {stores.map((store) => (
-                                    <SelectItem key={store.storeID} value={store.storeID}>
-                                        {store.name} - {store.city}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
 
-                    <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
-                        <div className="flex lg:mb-0 mb-4 items-center gap-4">
-                            <Badge variant="secondary" className="text-sm px-3 py-1 lg:flex-row flex-col text-center">
-                                <div className="flex">
-                                    <ShoppingCart className="w-4 h-4 mr-1" />
-                                    <span className="text-blue-600 dark:text-blue-400 font-bold">
-                                        {totalProductsInOrder}
-                                    </span>
-                                </div>
-                                <span className="ml-1">productos en pedido</span>
-                            </Badge>
-                            <Badge variant="outline" className="text-sm px-3 py-1 lg:flex-row flex-col text-center">
-                                <div>
-                                    <span className="text-gray-600 dark:text-gray-400">Mostrando:</span>
-                                    <span className="ml-1 font-bold text-blue-600 dark:text-blue-400">
-                                        {uniqueProductsInCurrentPage}
-                                    </span>
-                                </div>
-                                <span className="ml-1">de {searchedProducts.length} productos</span>
-                            </Badge>
+                        <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
+                            <div className="flex lg:mb-0 mb-4 items-center gap-4">
+                                <Badge
+                                    variant="secondary"
+                                    className="text-sm px-3 py-1 lg:flex-row flex-col text-center"
+                                >
+                                    <div className="flex">
+                                        <ShoppingCart className="w-4 h-4 mr-1" />
+                                        <span className="text-blue-600 dark:text-blue-400 font-bold">
+                                            {totalProductsInOrder}
+                                        </span>
+                                    </div>
+                                    <span className="ml-1">productos en pedido</span>
+                                </Badge>
+                                <Badge variant="outline" className="text-sm px-3 py-1 lg:flex-row flex-col text-center">
+                                    <div>
+                                        <span className="text-gray-600 dark:text-gray-400">Mostrando:</span>
+                                        <span className="ml-1 font-bold text-blue-600 dark:text-blue-400">
+                                            {uniqueProductsInCurrentPage}
+                                        </span>
+                                    </div>
+                                    <span className="ml-1">de {searchedProducts.length} productos</span>
+                                </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Página {currentPage} de {totalPages} - {searchedProducts.length} productos (
+                                {flattenedProducts.length} variaciones)
+                            </p>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Página {currentPage} de {totalPages} - {searchedProducts.length} productos (
-                            {flattenedProducts.length} variaciones)
-                        </p>
                     </div>
+                </MotionItem>
+
+                {/* Tabla de productos */}
+                <div className="flex-1 overflow-y-auto flex flex-col">
+                    <MotionItem delay={1} className="flex-1">
+                        <PurchaseOrderTable
+                            currentItems={currentItems}
+                            pedido={pedido}
+                            adminStoreIDs={[]}
+                            setPedido={setPedido}
+                        />
+                    </MotionItem>
                 </div>
-            </MotionItem>
 
-            {/* Tabla de productos */}
-            <div className="flex-1 overflow-y-auto flex flex-col">
-                <MotionItem delay={1} className="flex-1">
-                    <PurchaseOrderTable
-                        currentItems={currentItems}
-                        pedido={pedido}
-                        adminStoreIDs={[]}
-                        setPedido={setPedido}
-                    />
-                </MotionItem>
+                {/* Paginación */}
+                {totalPages > 1 && (
+                    <MotionItem delay={currentItems.length + 2}>
+                        <div className="flex items-center justify-center gap-2 mt-6 pb-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="h-9 px-3 border-2"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Anterior
+                            </Button>
+
+                            {getVisiblePages().map((page, index) => (
+                                <React.Fragment key={index}>
+                                    {page === "..." ? (
+                                        <span className="px-2 text-gray-500">...</span>
+                                    ) : (
+                                        <Button
+                                            variant={currentPage === page ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setCurrentPage(page as number)}
+                                            className={`h-9 w-9 border-2 ${
+                                                currentPage === page
+                                                    ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
+                                                    : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                            }`}
+                                        >
+                                            {page}
+                                        </Button>
+                                    )}
+                                </React.Fragment>
+                            ))}
+
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="h-9 px-3 border-2"
+                            >
+                                Siguiente
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </MotionItem>
+                )}
+            </main>
+            {/*Barra de resumen del total estatica*/}
+            <div
+                style={{
+                    position: "fixed",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 50,
+                    background: "rgba(255,255,255,0.97)",
+                    boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
+                    borderTop: "1px solid #e5e7eb",
+                    padding: "0.25rem 2rem",
+                }}
+            >
+                <PurchaseOrderSummary
+                    totalProductsInOrder={totalProductsInOrder}
+                    subtotal={subtotal}
+                    isLoading={false}
+                    selectedStoreID={selectedStoreID}
+                    pedido={pedido}
+                    rawProducts={rawProducts}
+                    setPedido={setPedido}
+                    router={router}
+                />
             </div>
-
-            {/* Paginación */}
-            {totalPages > 1 && (
-                <MotionItem delay={currentItems.length + 2}>
-                    <div className="flex items-center justify-center gap-2 mt-6 pb-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="h-9 px-3 border-2"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Anterior
-                        </Button>
-
-                        {getVisiblePages().map((page, index) => (
-                            <React.Fragment key={index}>
-                                {page === "..." ? (
-                                    <span className="px-2 text-gray-500">...</span>
-                                ) : (
-                                    <Button
-                                        variant={currentPage === page ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => setCurrentPage(page as number)}
-                                        className={`h-9 w-9 border-2 ${
-                                            currentPage === page
-                                                ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
-                                                : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        }`}
-                                    >
-                                        {page}
-                                    </Button>
-                                )}
-                            </React.Fragment>
-                        ))}
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="h-9 px-3 border-2"
-                        >
-                            Siguiente
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </MotionItem>
-            )}
-
-            {/* Resumen y acción de crear orden */}
-            <PurchaseOrderSummary
-                totalProductsInOrder={totalProductsInOrder}
-                subtotal={subtotal}
-                isLoading={false}
-                selectedStoreID={selectedStoreID}
-                pedido={pedido}
-                rawProducts={rawProducts}
-                setPedido={setPedido}
-                router={router}
-            />
-        </main>
+        </>
     )
 }
