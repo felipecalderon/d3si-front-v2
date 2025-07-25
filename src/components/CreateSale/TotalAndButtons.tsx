@@ -93,7 +93,7 @@ export const TotalAndButtons = ({ tipoPago, setTipoPago, total, handleSubmit, re
                         onClick={finalizarVenta}
                         className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition"
                     >
-                        Finalizar Venta
+                        Vender
                     </button>
                 </div>
             )}

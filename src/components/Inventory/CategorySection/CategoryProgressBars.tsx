@@ -39,7 +39,7 @@ export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: C
                   <div key={item.name} className="space-y-2">
                       <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                              <div className={`w-3 h-3 rounded-full" bg-[${item.color}]`} />
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.name}</span>
                           </div>
                           <span className="text-sm font-bold text-blue-600 dark:text-blue-400">

@@ -33,6 +33,7 @@ export default function Sidebar() {
     useEffect(() => {
         if (storeSelected) {
             router.push(`/home?storeID=${storeSelected.storeID}`)
+            console.log(storeSelected)
         }
         // else {
         //     toast("No tiene tiendas, solicite al administrador que le asigne")
@@ -85,10 +86,11 @@ export default function Sidebar() {
         }))
     }
 
-    const handleNavClick = (route: string) => {
+    const handleNavClick = async (route: string) => {
         if (route === "/home") {
             if (storeSelected) {
-                return router.push(`/home?storeID=${storeSelected.storeID}`)
+                let store = await storeSelected.storeID
+                return router.push(`/home?storeID=${store}`)
             }
         }
         router.push(route)
