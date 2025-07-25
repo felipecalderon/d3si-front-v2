@@ -192,7 +192,7 @@ export function CategoryManagementModal({
             }
 
             // Siempre redireccionar a la página especificada
-            let location = window.location.href
+            const location = window.location.href
             if (location === "http://localhost:3000/home/inventory/create") {
                 window.location.href = "http://localhost:3000/home/inventory/create"
             } else {

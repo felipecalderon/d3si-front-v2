@@ -89,7 +89,7 @@ export default function Sidebar() {
     const handleNavClick = async (route: string) => {
         if (route === "/home") {
             if (storeSelected) {
-                let store = await storeSelected.storeID
+                const store = await storeSelected.storeID
                 return router.push(`/home?storeID=${store}`)
             }
         }
