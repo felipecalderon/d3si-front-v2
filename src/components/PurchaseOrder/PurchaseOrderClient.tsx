@@ -40,12 +40,10 @@ export default function PurchaseOrderClient({
     const {
         selectedFilter,
         sortDirection,
-        selectedCategory,
         selectedGenre,
         filteredAndSortedProducts,
         setSelectedFilter,
         setSortDirection,
-        setSelectedCategory,
         setSelectedGenre,
         clearFilters,
     } = useProductFilters(rawProducts)
@@ -86,7 +84,7 @@ export default function PurchaseOrderClient({
     // Resetear página cuando cambian filtros o búsqueda
     useEffect(() => {
         setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedCategory, selectedGenre])
+    }, [search, selectedFilter, sortDirection, selectedGenre])
 
     const totalProductsInOrder = useMemo(() => {
         return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
@@ -192,14 +190,11 @@ export default function PurchaseOrderClient({
                         {/* Filtros */}
                         <ListFilters
                             products={rawProducts}
-                            categories={categories}
                             selectedFilter={selectedFilter}
                             sortDirection={sortDirection}
-                            selectedCategory={selectedCategory}
                             selectedGenre={selectedGenre}
                             onFilterChange={setSelectedFilter}
                             onSortDirectionChange={setSortDirection}
-                            onCategoryChange={setSelectedCategory}
                             onGenreChange={setSelectedGenre}
                             onClearFilters={clearFilters}
                         />
