@@ -35,7 +35,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
     const [editingField, setEditingField] = useState<{
         sku: string
-        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber"
+        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
     } | null>(null)
     const [editValue, setEditValue] = useState<string>("")
     const [currentPage, setCurrentPage] = useState(1)

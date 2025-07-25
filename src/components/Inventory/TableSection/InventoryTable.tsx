@@ -27,12 +27,12 @@ interface InventoryTableProps {
     categories: ICategory[]
     editingField: {
         sku: string
-        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "brand"
+        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
     } | null
     setEditingField: (
         field: {
             sku: string
-            field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "brand"
+            field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
         } | null
     ) => void
     editValue: string
