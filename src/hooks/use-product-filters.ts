@@ -5,34 +5,12 @@ import type { IProduct } from "@/interfaces/products/IProduct"
 import type { FilterType, SortDirection } from "@/components/ListTable/ListFilters"
 
 export function useProductFilters(products: IProduct[]) {
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>("category")
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("genre")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
   const [selectedGenre, setSelectedGenre] = useState<string | undefined>()
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products]
-
-    // Aplicar filtros específicos con validaciones
-    if (selectedCategory) {
-      // Filtrar por categoría usando el array categoryID con validaciones exhaustivas
-      filtered = filtered.filter((product) => {
-        // Validaciones de seguridad
-        if (!product || !product.categoryID) {
-          return false
-        }
-
-        // Verificar que categoryID es un array válido
-        if (!Array.isArray(product.categoryID) || product.categoryID.length === 0) {
-          return false
-        }
-
-        // Verificar que al menos una categoría coincide
-        return product.categoryID.some((cat) => {
-          return cat && cat.name && cat.name === selectedCategory
-        })
-      })
-    }
 
     if (selectedGenre) {
       filtered = filtered.filter((product) => product && product.genre === selectedGenre)
@@ -43,29 +21,6 @@ export function useProductFilters(products: IProduct[]) {
       let comparison = 0
 
       switch (selectedFilter) {
-        case "category":
-          // Usar el primer nombre de categoría para ordenar, con validaciones
-          const categoryA =
-            a &&
-            a.categoryID &&
-            Array.isArray(a.categoryID) &&
-            a.categoryID.length > 0 &&
-            a.categoryID[0] &&
-            a.categoryID[0].name
-              ? a.categoryID[0].name
-              : ""
-          const categoryB =
-            b &&
-            b.categoryID &&
-            Array.isArray(b.categoryID) &&
-            b.categoryID.length > 0 &&
-            b.categoryID[0] &&
-            b.categoryID[0].name
-              ? b.categoryID[0].name
-              : ""
-          comparison = categoryA.localeCompare(categoryB)
-          break
-
         case "genre":
           const genreA = (a && a.genre) || ""
           const genreB = (b && b.genre) || ""
@@ -120,22 +75,19 @@ export function useProductFilters(products: IProduct[]) {
 
       return sortDirection === "asc" ? comparison : -comparison
     })
-  }, [products, selectedFilter, sortDirection, selectedCategory, selectedGenre])
+  }, [products, selectedFilter, sortDirection,  selectedGenre])
 
   const clearFilters = () => {
-    setSelectedCategory(undefined)
     setSelectedGenre(undefined)
   }
 
   return {
     selectedFilter,
     sortDirection,
-    selectedCategory,
     selectedGenre,
     filteredAndSortedProducts,
     setSelectedFilter,
     setSortDirection,
-    setSelectedCategory,
     setSelectedGenre,
     clearFilters,
   }

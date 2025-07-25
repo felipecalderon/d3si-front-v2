@@ -5,20 +5,17 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Filter, X, TrendingUp, TrendingDown, Users, DollarSign, Package, Calendar, Clock } from "lucide-react"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import type { ICategory } from "@/interfaces/categories/ICategory"
 
 export type FilterType = "genre" | "cost" | "quantity" | "created" | "updated"
 export type SortDirection = "asc" | "desc"
 
 interface ProductFiltersProps {
     products: IProduct[]
-    categories: ICategory[]
     selectedFilter: FilterType
     sortDirection: SortDirection
     selectedGenre?: string
     onFilterChange: (filter: FilterType) => void
     onSortDirectionChange: (direction: SortDirection) => void
-    onCategoryChange: (category: string | undefined) => void
     onGenreChange: (genre: string | undefined) => void
     onClearFilters: () => void
 }

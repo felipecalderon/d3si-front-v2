@@ -43,12 +43,10 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     const {
         selectedFilter,
         sortDirection,
-        selectedCategory,
         selectedGenre,
         filteredAndSortedProducts,
         setSelectedFilter,
         setSortDirection,
-        setSelectedCategory,
         setSelectedGenre,
         clearFilters,
     } = useProductFilters(rawProducts)
@@ -79,7 +77,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             return nameMatch || skuMatch || sizeMatch || categoryMatch
         })
     }, [search, filteredAndSortedProducts])
-    
+
     const flattenedProducts = useMemo<FlattenedItem[]>(() => {
         const flattened: FlattenedItem[] = []
         searchedProducts.forEach((product) => {
@@ -111,7 +109,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
     useEffect(() => {
         setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedCategory, selectedGenre])
+    }, [search, selectedFilter, sortDirection, selectedGenre])
 
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
@@ -229,14 +227,11 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                     search={search}
                     setSearch={setSearch}
                     rawProducts={rawProducts}
-                    categories={categories}
                     selectedFilter={selectedFilter}
                     sortDirection={sortDirection}
-                    selectedCategory={selectedCategory}
                     selectedGenre={selectedGenre}
                     setSelectedFilter={setSelectedFilter}
                     setSortDirection={setSortDirection}
-                    setSelectedCategory={setSelectedCategory}
                     setSelectedGenre={setSelectedGenre}
                     clearFilters={clearFilters}
                     totalStockCentral={totalStockCentral}
