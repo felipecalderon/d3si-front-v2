@@ -26,7 +26,7 @@ export default function LoginForm() {
             console.log("Respuesta del login:", data)
 
             if (!data.cleanUsr) {
-                toast.error("Usuario no encontrado")
+                toast.error("Email o contraseña incorrectos")
                 return
             }
 
