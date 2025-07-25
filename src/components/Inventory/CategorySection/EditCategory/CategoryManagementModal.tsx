@@ -192,11 +192,20 @@ export function CategoryManagementModal({
             }
 
             // Siempre redireccionar a la página especificada
-            window.location.href = "http://localhost:3000/home/inventory"
+            let location = window.location.href
+            if (location === "http://localhost:3000/home/inventory/create") {
+                window.location.href = "http://localhost:3000/home/inventory/create"
+            } else {
+                window.location.href = "http://localhost:3000/home/inventory"
+            }
         } catch (error) {
             console.error("Error saving categories:", error)
             // Incluso si hay error, redirigir para mostrar el estado actual
-            window.location.href = "http://localhost:3000/home/inventory"
+            if (window.location.href === "http://localhost:3000/home/inventory/create") {
+                window.location.href = "http://localhost:3000/home/inventory/create"
+            } else {
+                window.location.href = "http://localhost:3000/home/inventory"
+            }
         } finally {
             setSaving(false)
         }
@@ -209,7 +218,9 @@ export function CategoryManagementModal({
         setNewSubcategoryName("")
         onClose()
         // Recargar la página de control de mando para mostrar los cambios
-        window.location.href = "http://localhost:3000/home/inventory"
+        console.log(window.location.href)
+
+        // window.location.href = "http://localhost:3000/home/inventory"
     }
 
     return (

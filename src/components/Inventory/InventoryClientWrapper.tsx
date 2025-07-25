@@ -67,13 +67,19 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     const searchedProducts = useMemo(() => {
         if (!search.trim()) return filteredAndSortedProducts
         const lower = search.toLowerCase()
-        return filteredAndSortedProducts.filter(
-            (product) =>
-                product.name.toLowerCase().includes(lower) ||
-                product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
-        )
-    }, [search, filteredAndSortedProducts])
 
+        return filteredAndSortedProducts.filter((product) => {
+            const nameMatch = product.name.toLowerCase().includes(lower)
+            const skuMatch = product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
+            const sizeMatch = product.ProductVariations.some((v) => v.sizeNumber?.toLowerCase().includes(lower))
+
+            const categoryName = product.Category?.name?.toLowerCase() || ""
+            const categoryMatch = categoryName.includes(lower)
+
+            return nameMatch || skuMatch || sizeMatch || categoryMatch
+        })
+    }, [search, filteredAndSortedProducts])
+    
     const flattenedProducts = useMemo<FlattenedItem[]>(() => {
         const flattened: FlattenedItem[] = []
         searchedProducts.forEach((product) => {

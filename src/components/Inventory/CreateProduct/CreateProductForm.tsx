@@ -30,6 +30,7 @@ import { getAllCategories } from "@/actions/categories/getAllCategories"
 import type { ICategory } from "@/interfaces/categories/ICategory"
 import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
 import type { IChildCategory } from "@/interfaces/categories/ICategory"
+import { CategoryManagementModal } from "@/components/Inventory/CategorySection/EditCategory/CategoryManagementModal"
 
 interface CategoryOption {
     id: string
@@ -41,6 +42,7 @@ interface CategoryOption {
 export default function CreateProductForm() {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
+    const [showModal, setShowModal] = useState(false)
 
     const [products, setProducts] = useState<CreateProductFormData[]>([
         {
@@ -548,10 +550,24 @@ export default function CreateProductForm() {
 
                                 {/* Category Autocomplete */}
                                 <div className="space-y-3">
-                                    <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        <Users className="w-4 h-4" />
-                                        Categoría
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            <Users className="w-4 h-4" />
+                                            Categoría
+                                        </Label>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setShowModal(true)}
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center"
+                                        >
+                                            <Plus className="w-4 h-4 mr-1" />
+                                        </Button>
+                                        <CategoryManagementModal
+                                            isOpen={showModal}
+                                            onClose={() => setShowModal(false)}
+                                            categories={categories}
+                                        />
+                                    </div>
                                     <div
                                         className="relative"
                                         ref={(el) => {
