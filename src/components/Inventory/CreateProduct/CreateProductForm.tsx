@@ -72,18 +72,16 @@ export default function CreateProductForm() {
 
     // Estados para autocompletado de categorías
     const [categories, setCategories] = useState<ICategory[]>([])
-    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
     const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
     const [categorySearches, setCategorySearches] = useState<string[]>([])
     const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
     const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
     // console.log(categoryOptions[0])
+
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
             setCategories(cats)
-            setChildCategories(childCats)
-
             // Crear opciones combinadas para autocompletado
             const options: CategoryOption[] = []
 
@@ -356,7 +354,7 @@ export default function CreateProductForm() {
                 sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
             })),
         }))
-
+        console.log({ productsWithSku })
         const validationErrors = validate(productsWithSku)
         setErrors(validationErrors)
 

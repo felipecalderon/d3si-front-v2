@@ -147,10 +147,8 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                 name: field === "name" ? editValue : product.name,
                 image: product.image,
                 genre: product.genre,
-                category: categoryName,
-                childCategory: "",
                 brand: field === "brand" ? editValue : product.brand,
-                categoryID: "",
+                categoryID: product.categoryID,
                 sizes: product.ProductVariations.map((v) => ({
                     sku: v.sku,
                     sizeNumber: v.sizeNumber,
@@ -159,8 +157,8 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                     stockQuantity: v.stockQuantity,
                 })),
             } as CreateProductFormData
-
-            await toast.promise(createMassiveProducts({ products: [updated] }), {
+            console.log({ updated })
+            toast.promise(createMassiveProducts({ products: [updated] }), {
                 loading: "Actualizando producto...",
                 success: () => {
                     setRawProducts((prev) =>
@@ -198,7 +196,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             ],
         } as CreateProductFormData
 
-        await toast.promise(createMassiveProducts({ products: [updated] }), {
+        toast.promise(createMassiveProducts({ products: [updated] }), {
             loading: "Actualizando producto...",
             success: () => {
                 setRawProducts((prev) =>
