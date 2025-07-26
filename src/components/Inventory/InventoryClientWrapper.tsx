@@ -132,23 +132,17 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
         const { field } = editingField
 
-        const categoryName =
-            product.categoryID &&
-            Array.isArray(product.categoryID) &&
-            product.categoryID.length > 0 &&
-            product.categoryID[0] &&
-            product.categoryID[0].name
-                ? product.categoryID[0].name
-                : "Sin categoría"
+        const isEditingBrand = field === "brand"
+        const isProductBrand = product.brand === "D3SI" || product.brand === "Otro"
+        const isEmptyCategory = product.categoryID === ""
 
-        // Si es un campo del producto (no depende de una talla/variation)
         if (!variationID) {
             const updated = {
                 name: field === "name" ? editValue : product.name,
                 image: product.image,
                 genre: product.genre,
-                brand: field === "brand" ? editValue : product.brand,
-                categoryID: product.categoryID,
+                brand: isEditingBrand ? editValue : isProductBrand ? product.brand : "Otro",
+                categoryID: isEmptyCategory ? null : product.categoryID,
                 sizes: product.ProductVariations.map((v) => ({
                     sku: v.sku,
                     sizeNumber: v.sizeNumber,
@@ -157,7 +151,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                     stockQuantity: v.stockQuantity,
                 })),
             } as CreateProductFormData
-            console.log({ updated })
+            console.log(updated)
             toast.promise(createMassiveProducts({ products: [updated] }), {
                 loading: "Actualizando producto...",
                 success: () => {
@@ -176,15 +170,12 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         // Si es un campo de una talla/variation
         const variation = product.ProductVariations.find((v) => v.variationID === variationID)
         if (!variation) return
-
         const updated = {
             name: product.name,
             image: product.image,
             genre: product.genre,
-            category: categoryName,
-            childCategory: "",
-            brand: product.brand,
-            categoryID: "",
+            brand: isProductBrand ? product.brand : "Otro",
+            categoryID: isEmptyCategory ? null : product.categoryID,
             sizes: [
                 {
                     sku: variation.sku,
