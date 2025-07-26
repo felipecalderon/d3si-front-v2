@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,14 +24,16 @@ import { format } from "date-fns"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
-import { QuoteDocument } from "@/components/pdf/QuoteDocument"
+import { QuoteDocument } from "@/components/Cotizar/pdf/QuoteDocument"
 import { pdf } from "@react-pdf/renderer"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function QuotesPage() {
     const [discounts, setDiscounts] = useState<
         { id: number; type: "Descuento" | "Cargo"; description: string; percentage: number }[]
     >([])
-
+    const productRefs = useRef<(HTMLDivElement | null)[]>([])
     const [vencimientoCantidad, setVencimientoCantidad] = useState("30")
     const [vencimientoPeriodo, setVencimientoPeriodo] = useState<"dias" | "semanas" | "meses">("dias")
     const [discountType, setDiscountType] = useState<"Descuento" | "Cargo">("Descuento")
@@ -115,6 +117,7 @@ export default function QuotesPage() {
     const [giro, setGiro] = useState("")
     const [comuna, setComuna] = useState("")
     const [email, setEmail] = useState("")
+    const [telefono, setTelefono] = useState("")
     const [observaciones, setObservaciones] = useState("")
 
     const [nroCotizacion, setNroCotizacion] = useState(5100)
@@ -145,6 +148,7 @@ export default function QuotesPage() {
                     giro,
                     comuna,
                     email,
+                    telefono,
                 }}
                 observaciones={observaciones}
             />
@@ -310,6 +314,12 @@ export default function QuotesPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="bg-white dark:bg-slate-700"
                                 />
+                                <Input
+                                    placeholder="Teléfono"
+                                    value={telefono}
+                                    onChange={(e) => setTelefono(e.target.value)}
+                                    className="bg-white dark:bg-slate-700"
+                                />
                             </div>
                         </CardContent>
                     </Card>
@@ -331,8 +341,6 @@ export default function QuotesPage() {
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* Agregar Productos */}
                     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-white">

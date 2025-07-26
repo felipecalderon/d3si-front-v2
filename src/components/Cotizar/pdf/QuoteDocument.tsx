@@ -34,6 +34,7 @@ interface QuoteDocumentProps {
         giro: string
         comuna: string
         email: string
+        telefono: string
     }
     observaciones: string
 }
@@ -98,6 +99,7 @@ export const QuoteDocument: React.FC<QuoteDocumentProps> = ({
                 <Text>Giro: {clientData.giro}</Text>
                 <Text>Comuna: {clientData.comuna}</Text>
                 <Text>Email: {clientData.email}</Text>
+                <Text>Teléfono: {clientData.telefono}</Text>
             </View>
 
             {/* Productos */}
