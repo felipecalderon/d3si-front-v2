@@ -4,38 +4,31 @@ import { Input } from "@/components/ui/input"
 import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActions"
 import { ListFilters } from "@/components/ListTable/ListFilters"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
+import { inventoryStore } from "@/stores/inventory.store"
+import { useProductFilter } from "@/stores/productsFilters"
 
 interface InventoryHeaderProps {
-    search: string
-    setSearch: (value: string) => void
-    rawProducts: any[]
-    selectedFilter: any
-    sortDirection: any
-    selectedGenre: any
-    setSelectedFilter: (val: any) => void
-    setSortDirection: (val: any) => void
-    setSelectedGenre: (val: any) => void
-    clearFilters: () => void
     totalStockCentral: number
     uniqueProductsInCurrentPage: number
     searchedProductsLength: number
 }
 
 export default function InventoryHeader({
-    search,
-    setSearch,
-    rawProducts,
-    selectedFilter,
-    sortDirection,
-    selectedGenre,
-    setSelectedFilter,
-    setSortDirection,
-    setSelectedGenre,
-    clearFilters,
     totalStockCentral,
     uniqueProductsInCurrentPage,
     searchedProductsLength,
 }: InventoryHeaderProps) {
+    const { rawProducts, search, setSearch } = inventoryStore()
+    const {
+        clearFilters,
+        selectedFilter,
+        setSelectedFilter,
+        setSelectedGenre,
+        setSortDirection,
+        sortDirection,
+        selectedGenre,
+    } = useProductFilter()
+
     return (
         <div className="flex flex-col gap-4 mb-6">
             <div className="flex lg:flex-row flex-col items-center gap-4">

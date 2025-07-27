@@ -15,6 +15,8 @@ import type { IProduct } from "@/interfaces/products/IProduct"
 import { ICategory } from "@/interfaces/categories/ICategory"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
+import { inventoryStore } from "@/stores/inventory.store"
+import Image from "next/image"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -24,25 +26,10 @@ interface InventoryTableProps {
         isFirst: boolean
         totalStock: number
     }>
-    categories: ICategory[]
-    editingField: {
-        sku: string
-        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
-    } | null
-    setEditingField: (
-        field: {
-            sku: string
-            field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
-        } | null
-    ) => void
-    editValue: string
-    setEditValue: (value: string) => void
     handleSaveEdit: (product: IProduct, variationID?: string) => void
     handleDeleteProduct: (product: IProduct) => void
-    addSizeModalProductID: string | null
-    setAddSizeModalProductID: (id: string | null) => void
-    setRawProducts: React.Dispatch<React.SetStateAction<IProduct[]>>
     adminStoreIDs: string[]
+    categories: ICategory[]
 }
 
 const calculateMarkup = (priceCost: number, priceList: number): string => {
@@ -61,19 +48,22 @@ const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory
 
 export function InventoryTable({
     currentItems,
-    editingField,
-    setEditingField,
-    editValue,
-    setEditValue,
     handleSaveEdit,
     handleDeleteProduct,
-    addSizeModalProductID,
-    setAddSizeModalProductID,
-    setRawProducts,
     adminStoreIDs,
     categories,
 }: InventoryTableProps) {
     const { user } = useAuth()
+    const {
+        rawProducts,
+        editingField,
+        setEditingField,
+        editValue,
+        setEditValue,
+        setRawProducts,
+        setAddSizeModalProductID,
+        addSizeModalProductID,
+    } = inventoryStore()
     const isEditable = user?.role !== Role.Vendedor
 
     return (
@@ -173,8 +163,8 @@ export function InventoryTable({
                                                             if (!open) setAddSizeModalProductID(null)
                                                         }}
                                                         onAddSize={(newSize) => {
-                                                            setRawProducts((prev) =>
-                                                                prev.map((p) =>
+                                                            setRawProducts(
+                                                                rawProducts.map((p) =>
                                                                     p.productID === product.productID
                                                                         ? {
                                                                               ...p,
@@ -188,12 +178,18 @@ export function InventoryTable({
                                                             )
                                                         }}
                                                     />
+                                                    {product.image ? (
+                                                        <Image
+                                                            src={product.image}
+                                                            alt={product.name}
+                                                            width={200}
+                                                            height={200}
+                                                            className="w-12 h-12 object-cover rounded border"
+                                                        />
+                                                    ) : (
+                                                        "--"
+                                                    )}
 
-                                                    <img
-                                                        src={product.image}
-                                                        alt={product.name}
-                                                        className="w-12 h-12 object-cover rounded border"
-                                                    />
                                                     <div className="flex-1 min-w-0">
                                                         <span className="font-medium text-sm block truncate">
                                                             {product.name}

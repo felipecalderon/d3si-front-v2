@@ -6,7 +6,6 @@ import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
 import { InventoryTable } from "@/components/Inventory/TableSection/InventoryTable"
-import { useProductFilters } from "@/hooks/use-product-filters"
 import InventoryHeader from "@/components/Inventory/HeaderSetion/InventoryHeader"
 import InventoryPagination from "@/components/Inventory/TableSection/InventoryPagination"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
@@ -18,6 +17,8 @@ import { FlattenedItem } from "@/interfaces/products/IFlatternProduct"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
+import { inventoryStore } from "@/stores/inventory.store"
+import { useProductFilter } from "@/stores/productsFilters"
 
 const ITEMS_PER_PAGE = 10
 
@@ -29,27 +30,27 @@ interface Props {
 
 export default function InventoryClientWrapper({ initialProducts, categories, stores }: Props) {
     const { user } = useAuth()
-    const [search, setSearch] = useState("")
-    const [isLoading] = useState(false)
-    const [rawProducts, setRawProducts] = useState<IProduct[]>(initialProducts)
-    const [addSizeModalProductID, setAddSizeModalProductID] = useState<string | null>(null)
-    const [editingField, setEditingField] = useState<{
-        sku: string
-        field: "priceCost" | "priceList" | "stockQuantity" | "sizeNumber" | "name" | "brand"
-    } | null>(null)
-    const [editValue, setEditValue] = useState<string>("")
-    const [currentPage, setCurrentPage] = useState(1)
+    const {
+        currentPage,
+        editValue,
+        editingField,
+        rawProducts,
+        search,
+        setCurrentPage,
+        setEditingField,
+        setRawProducts,
+    } = inventoryStore()
 
     const {
+        clearFilters,
+        filteredAndSortedProducts,
         selectedFilter,
+        setSelectedFilter,
+        setSelectedGenre,
+        setSortDirection,
         sortDirection,
         selectedGenre,
-        filteredAndSortedProducts,
-        setSelectedFilter,
-        setSortDirection,
-        setSelectedGenre,
-        clearFilters,
-    } = useProductFilters(rawProducts)
+    } = useProductFilter()
 
     const adminStoreIDs = useMemo(() => stores.filter((s) => s.isAdminStore).map((s) => s.storeID), [stores])
 
@@ -120,7 +121,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         toast.promise(deleteProduct(product.productID), {
             loading: "Eliminando producto...",
             success: () => {
-                setRawProducts((prev) => prev.filter((p) => p.productID !== product.productID))
+                setRawProducts(rawProducts.filter((p) => p.productID !== product.productID))
                 return "Producto eliminado con éxito"
             },
             error: "Hubo un error al eliminar el producto",
@@ -155,8 +156,8 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             toast.promise(createMassiveProducts({ products: [updated] }), {
                 loading: "Actualizando producto...",
                 success: () => {
-                    setRawProducts((prev) =>
-                        prev.map((p) => (p.productID === product.productID ? { ...p, [field]: editValue } : p))
+                    setRawProducts(
+                        rawProducts.map((p) => (p.productID === product.productID ? { ...p, [field]: editValue } : p))
                     )
                     setEditingField(null)
                     return "Campo actualizado"
@@ -190,8 +191,8 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         toast.promise(createMassiveProducts({ products: [updated] }), {
             loading: "Actualizando producto...",
             success: () => {
-                setRawProducts((prev) =>
-                    prev.map((p) =>
+                setRawProducts(
+                    rawProducts.map((p) =>
                         p.productID === product.productID
                             ? {
                                   ...p,
@@ -234,6 +235,11 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         return pages
     }
 
+    useEffect(() => {
+        setRawProducts(initialProducts)
+        setSelectedGenre()
+    }, [])
+
     return (
         <main className="lg:p-6 flex-1 flex flex-col h-screen">
             {/* Category Progress, no se muestra si es store manager */}
@@ -246,16 +252,6 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             {/* Header Section */}
             <MotionItem delay={0}>
                 <InventoryHeader
-                    search={search}
-                    setSearch={setSearch}
-                    rawProducts={rawProducts}
-                    selectedFilter={selectedFilter}
-                    sortDirection={sortDirection}
-                    selectedGenre={selectedGenre}
-                    setSelectedFilter={setSelectedFilter}
-                    setSortDirection={setSortDirection}
-                    setSelectedGenre={setSelectedGenre}
-                    clearFilters={clearFilters}
                     totalStockCentral={totalStockCentral}
                     uniqueProductsInCurrentPage={uniqueProductsInCurrentPage}
                     searchedProductsLength={searchedProducts.length}
@@ -270,37 +266,24 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
             {/* Table Section */}
             <div className="flex-1 flex flex-col">
-                {isLoading ? (
-                    <TableSkeleton />
-                ) : (
-                    <>
-                        <MotionItem delay={2} className="flex-1">
-                            <InventoryTable
-                                currentItems={currentItems}
-                                editingField={editingField}
-                                setEditingField={setEditingField}
-                                editValue={editValue}
-                                setEditValue={setEditValue}
-                                handleSaveEdit={handleSaveEdit}
-                                handleDeleteProduct={handleDeleteProduct}
-                                addSizeModalProductID={addSizeModalProductID}
-                                setAddSizeModalProductID={setAddSizeModalProductID}
-                                setRawProducts={setRawProducts}
-                                adminStoreIDs={adminStoreIDs}
-                                categories={[]}
-                            />
-                        </MotionItem>
-                        {totalPages > 1 && (
-                            <MotionItem delay={currentItems.length + 3}>
-                                <InventoryPagination
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    getVisiblePages={getVisiblePages}
-                                    setCurrentPage={setCurrentPage}
-                                />
-                            </MotionItem>
-                        )}
-                    </>
+                <MotionItem delay={2} className="flex-1">
+                    <InventoryTable
+                        currentItems={currentItems}
+                        handleSaveEdit={handleSaveEdit}
+                        handleDeleteProduct={handleDeleteProduct}
+                        adminStoreIDs={adminStoreIDs}
+                        categories={[]}
+                    />
+                </MotionItem>
+                {totalPages > 1 && (
+                    <MotionItem delay={currentItems.length + 3}>
+                        <InventoryPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            getVisiblePages={getVisiblePages}
+                            setCurrentPage={setCurrentPage}
+                        />
+                    </MotionItem>
                 )}
             </div>
         </main>

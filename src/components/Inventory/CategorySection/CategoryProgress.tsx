@@ -144,7 +144,6 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
     // Datos para subcategorías de la categoría seleccionada
     const subcategoryStats = useMemo(() => {
         if (!selectedCategoryId || selectedCategoryId === "sin-categoria") {
-            console.log("  No category selected or 'Sin Categoría'. Returning empty array.")
             return []
         }
 
