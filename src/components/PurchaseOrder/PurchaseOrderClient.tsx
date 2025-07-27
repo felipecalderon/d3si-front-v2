@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { ListFilters } from "@/components/ListTable/ListFilters"
-import { useProductFilters } from "@/hooks/use-product-filters"
 import { useRouter } from "next/navigation"
 import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
+import { useProductFilter } from "@/stores/productsFilters"
 
 const ITEMS_PER_PAGE = 10
 
@@ -29,8 +29,6 @@ export default function PurchaseOrderClient({
 
     // Estados
     const [search, setSearch] = useState("")
-    const [rawProducts] = useState<IProduct[]>(initialProducts)
-    const [categories] = useState<ICategory[]>(initialCategories)
     const [stores] = useState<IStore[]>(initialStores)
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
@@ -46,7 +44,7 @@ export default function PurchaseOrderClient({
         setSortDirection,
         setSelectedGenre,
         clearFilters,
-    } = useProductFilters(rawProducts)
+    } = useProductFilter()
 
     // Filtrar productos según búsqueda
     const searchedProducts = useMemo(() => {
@@ -126,7 +124,7 @@ export default function PurchaseOrderClient({
 
     // Calcular subtotal de pedido
     const subtotal = useMemo(() => {
-        return rawProducts.reduce((total, product) => {
+        return initialProducts.reduce((total, product) => {
             return (
                 total +
                 product.ProductVariations.reduce((sub, variation) => {
@@ -135,7 +133,7 @@ export default function PurchaseOrderClient({
                 }, 0)
             )
         }, 0)
-    }, [pedido, rawProducts])
+    }, [pedido, initialProducts])
 
     // Función para obtener páginas visibles en paginación
     const getVisiblePages = () => {
@@ -189,7 +187,7 @@ export default function PurchaseOrderClient({
                         </div>
                         {/* Filtros */}
                         <ListFilters
-                            products={rawProducts}
+                            products={filteredAndSortedProducts}
                             selectedFilter={selectedFilter}
                             sortDirection={sortDirection}
                             selectedGenre={selectedGenre}
@@ -328,7 +326,7 @@ export default function PurchaseOrderClient({
                     isLoading={false}
                     selectedStoreID={selectedStoreID}
                     pedido={pedido}
-                    rawProducts={rawProducts}
+                    rawProducts={initialProducts}
                     setPedido={setPedido}
                     router={router}
                 />
