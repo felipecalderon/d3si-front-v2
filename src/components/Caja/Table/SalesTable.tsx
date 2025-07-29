@@ -1,5 +1,3 @@
-"use client"
-
 import React from "react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
@@ -44,12 +42,12 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                     const storeName = sale.Store?.name || "Sucursal"
                                     const productsDescription = sale.SaleProducts?.length
                                         ? sale.SaleProducts.map((sp) => {
-                                            const productName =
-                                                sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                            const quantity = sp.quantitySold ?? "-"
-                                            const price = sp.unitPrice ?? "-"
-                                            return `${quantity} x ${productName} ($${price})`
-                                        }).join(", ")
+                                              const productName =
+                                                  sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                              const quantity = sp.quantitySold ?? "-"
+                                              const price = sp.unitPrice ?? "-"
+                                              return `${quantity} x ${productName} ($${price})`
+                                          }).join(", ")
                                         : "-"
 
                                     return (
@@ -60,14 +58,14 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                             </TableCell>
                                             <TableCell className="min-w-[150px]">
                                                 {typeof sale.total === "number"
-                                                    ? `$${sale.total.toLocaleString("es-AR")}`
+                                                    ? `$${sale.total.toLocaleString("es-CL")}`
                                                     : "Sin dato"}
                                             </TableCell>
                                             <TableCell className="min-w-[150px]">{productsDescription}</TableCell>
                                             <TableCell className="text-green-600 min-w-[160px] font-medium">
                                                 {sale.status}
                                             </TableCell>
-                                            <TableCell className="min-w-[150px]">Efectivo</TableCell>
+                                            <TableCell className="min-w-[150px]">{sale.paymentType}</TableCell>
                                         </TableRow>
                                     )
                                 })

@@ -24,7 +24,6 @@ const UploadImageToCloudinary = () => {
                 const buffer = await fileToArrayBuffer(file)
                 const upload = await uploadImageCDN(buffer)
                 setImageUrl(upload.url)
-                console.log({ upload: upload.url })
             })
         } catch (error) {
             console.error(error)

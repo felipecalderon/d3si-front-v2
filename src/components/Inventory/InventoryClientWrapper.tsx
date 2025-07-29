@@ -152,7 +152,6 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                     stockQuantity: v.stockQuantity,
                 })),
             } as CreateProductFormData
-            console.log(updated)
             toast.promise(createMassiveProducts({ products: [updated] }), {
                 loading: "Actualizando producto...",
                 success: () => {

@@ -7,7 +7,7 @@ export const getSales = async (storeID: string): Promise<(ISaleResponse & { crea
 
     return sales.map((sale) => ({
         ...sale,
-        createdAtFormatted: new Date(sale.createdAt).toLocaleString("es-AR", {
+        createdAtFormatted: new Date(sale.createdAt).toLocaleString("es-CL", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

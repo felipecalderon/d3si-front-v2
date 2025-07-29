@@ -3,7 +3,6 @@ import { fetcher } from "@/lib/fetcher"
 import { ISaleRequest } from "@/interfaces/sales/ISale"
 
 export const postSale = async (saleData: ISaleRequest) => {
-    console.log(saleData)
     try {
         const data = await fetcher(`${API_URL}/sale`, {
             method: "POST",

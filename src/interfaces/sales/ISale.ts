@@ -1,8 +1,11 @@
 // Para enviar una nueva venta desde el frontend
+export type PaymentType = "Efectivo" | "Débito" | "Crédito"
+export type PaymentStatus = "Pagado" | "Pendiente" | "Anulado"
+
 export interface ISaleRequest {
     storeID: string
     products: IProductSold[]
-    paymentType: "Efectivo" | "Débito" | "Crédito"
+    paymentType: PaymentType
 }
 
 // Para representar un producto vendido
@@ -15,7 +18,7 @@ export interface IProductSold {
 export interface ISaleResponse {
     saleID: string
     total: number
-    status: string
+    status: PaymentStatus
     createdAt: string
     paymentType?: string
     Store?: {

@@ -16,7 +16,6 @@ interface SerchParams {
 
 const HomePage = async ({ searchParams }: SerchParams) => {
     const { storeID } = await searchParams
-    console.log(storeID)
     if (!storeID) return null
     const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
 
