@@ -36,7 +36,7 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     TALLA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    PRECIO LISTA
+                                    PRECIO COSTO
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     STOCK CENTRAL
@@ -126,7 +126,7 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
-                                                    ${Number(variation.priceList).toLocaleString("es-CL")}
+                                                    ${Math.round(Number(variation.priceCost)).toLocaleString("es-CL")}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>

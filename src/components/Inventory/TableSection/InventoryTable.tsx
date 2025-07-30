@@ -64,7 +64,7 @@ export function InventoryTable({
         setAddSizeModalProductID,
         addSizeModalProductID,
     } = inventoryStore()
-    const isEditable = user?.role !== Role.Vendedor
+    const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
 
     return (
         <div className="flex-1 flex flex-col">
@@ -85,9 +85,12 @@ export function InventoryTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     TALLA
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    PRECIO COSTO
-                                </TableHead>
+                                {/* PRECIO COSTO solo si no es vendedor ni tercero */}
+                                {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        PRECIO COSTO
+                                    </TableHead>
+                                )}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
                                 </TableHead>
@@ -280,36 +283,40 @@ export function InventoryTable({
                                             )}
                                         </TableCell>
 
-                                        {/* Columna PRECIO COSTO */}
-                                        <TableCell
-                                            className={`w-32 text-center py-3 transition-colors ${
-                                                isEditable
-                                                    ? "cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50"
-                                                    : ""
-                                            }`}
-                                            onClick={() => {
-                                                if (!isEditable) return
-                                                setEditingField({ sku: variation.sku, field: "priceCost" })
-                                                setEditValue(String(variation.priceCost))
-                                            }}
-                                        >
-                                            {editingField?.sku === variation.sku &&
-                                            editingField?.field === "priceCost" ? (
-                                                <div className="flex justify-center">
-                                                    <Input
-                                                        value={editValue}
-                                                        onChange={(e) => setEditValue(e.target.value)}
-                                                        onBlur={() => handleSaveEdit(product, variation.variationID)}
-                                                        className="w-20 h-8 px-2 py-1 text-center text-xs"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <span className="font-semibold text-sm">
-                                                    ${Number(variation.priceCost).toLocaleString("es-CL")}
-                                                </span>
-                                            )}
-                                        </TableCell>
+                                        {/* Columna PRECIO COSTO solo si no es vendedor ni tercero */}
+                                        {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
+                                            <TableCell
+                                                className={`w-32 text-center py-3 transition-colors ${
+                                                    isEditable
+                                                        ? "cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50"
+                                                        : ""
+                                                }`}
+                                                onClick={() => {
+                                                    if (!isEditable) return
+                                                    setEditingField({ sku: variation.sku, field: "priceCost" })
+                                                    setEditValue(String(variation.priceCost))
+                                                }}
+                                            >
+                                                {editingField?.sku === variation.sku &&
+                                                editingField?.field === "priceCost" ? (
+                                                    <div className="flex justify-center">
+                                                        <Input
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() =>
+                                                                handleSaveEdit(product, variation.variationID)
+                                                            }
+                                                            className="w-20 h-8 px-2 py-1 text-center text-xs"
+                                                            autoFocus
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <span className="font-semibold text-sm">
+                                                        ${Number(variation.priceCost).toLocaleString("es-CL")}
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                        )}
 
                                         {/* Columna PRECIO PLAZA */}
                                         <TableCell

@@ -85,7 +85,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                 month: "short",
                                 year: "numeric",
                             })
-                            const total = parseFloat(order.total).toFixed(2)
+                            const total = Math.round(parseFloat(order.total))
                             return (
                                 <TableRow
                                     key={order.orderID}

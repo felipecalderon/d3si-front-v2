@@ -171,19 +171,6 @@ export default function PurchaseOrderClient({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            <div className="flex gap-2">
-                                <Button
-                                    onClick={handleAgregarCalzados}
-                                    className="h-11 bg-green-600 hover:bg-green-700"
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Agregar
-                                </Button>
-                                <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
-                                    <Minus className="w-4 h-4 mr-2" />
-                                    Quitar
-                                </Button>
-                            </div>
                         </div>
                         {/* Filtros */}
                         <ListFilters
@@ -197,19 +184,38 @@ export default function PurchaseOrderClient({
                             onClearFilters={clearFilters}
                         />
                         <div className="flex lg:flex-row flex-col items-center gap-4">
-                            <span className="text-sm font-semibold whitespace-nowrap">Orden de compra para:</span>
-                            <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                                <SelectTrigger className="w-[300px] h-11 border-2">
-                                    <SelectValue placeholder="Seleccionar tienda" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stores.map((store) => (
-                                        <SelectItem key={store.storeID} value={store.storeID}>
-                                            {store.name} - {store.city}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="flex w-full justify-between items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-semibold whitespace-nowrap">
+                                        Orden de compra para:
+                                    </span>
+                                    <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                        <SelectTrigger className="w-[300px] h-11 border-2">
+                                            <SelectValue placeholder="Seleccionar tienda" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {stores.map((store) => (
+                                                <SelectItem key={store.storeID} value={store.storeID}>
+                                                    {store.name} - {store.city}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={handleAgregarCalzados}
+                                        className="h-11 bg-green-600 hover:bg-green-700"
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Agregar +1
+                                    </Button>
+                                    <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
+                                        <Minus className="w-4 h-4 mr-2" />
+                                        Quitar -1
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
@@ -233,6 +239,8 @@ export default function PurchaseOrderClient({
                                             {uniqueProductsInCurrentPage}
                                         </span>
                                     </div>
+                                    {/*Aqui debe ir los botones de agregar o quitar */}
+
                                     <span className="ml-1">de {searchedProducts.length} productos</span>
                                 </Badge>
                             </div>
@@ -318,6 +326,9 @@ export default function PurchaseOrderClient({
                     boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
                     borderTop: "1px solid #e5e7eb",
                     padding: "0.25rem 2rem",
+                    marginLeft: window.innerWidth >= 1024 ? "260px" : 0,
+                    width: window.innerWidth >= 1024 ? `calc(100% - 260px)` : "100%",
+                    transition: "margin-left 0.3s, width 0.3s",
                 }}
             >
                 <PurchaseOrderSummary
