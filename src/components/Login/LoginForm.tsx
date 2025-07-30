@@ -23,8 +23,6 @@ export default function LoginForm() {
 
         try {
             const data = await login(email, password)
-            console.log("Respuesta del login:", data)
-
             if (!data.cleanUsr) {
                 toast.error("Email o contraseña incorrectos")
                 return

@@ -217,10 +217,6 @@ export function CategoryManagementModal({
         setAddingSubcategoryFor(null)
         setNewSubcategoryName("")
         onClose()
-        // Recargar la página de control de mando para mostrar los cambios
-        console.log(window.location.href)
-
-        // window.location.href = "http://localhost:3000/home/inventory"
     }
 
     return (

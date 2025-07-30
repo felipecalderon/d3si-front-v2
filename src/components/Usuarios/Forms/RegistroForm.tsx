@@ -21,7 +21,6 @@ export default function RegistroForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Registro with:", { nombre, email, role, password })
         try {
             const data = await register(nombre, email, role, password)
 

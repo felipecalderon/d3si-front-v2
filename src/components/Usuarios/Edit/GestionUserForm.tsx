@@ -88,7 +88,7 @@ export default function GestionUserForm({ isOpen, onClose, usuario }: GestionUse
                 await removeUserFromStore(usuario.userID, storeId)
                 setTiendasAsignadas((prev) => prev.filter((tienda) => tienda.storeID !== storeId.toString()))
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
         }
     }

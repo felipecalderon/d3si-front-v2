@@ -77,7 +77,6 @@ export default function CreateProductForm() {
     const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
     const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
-    // console.log(categoryOptions[0])
 
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
@@ -88,7 +87,6 @@ export default function CreateProductForm() {
             childCats.forEach((child) => {
                 const parent = cats.find((cat) => cat.categoryID === child.parentID)
                 if (parent) {
-                    console.log(child)
                     options.push({
                         id: child.categoryID,
                         label: `${parent.name} > ${child.name}`,
@@ -354,7 +352,6 @@ export default function CreateProductForm() {
                 sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
             })),
         }))
-        console.log({ productsWithSku })
         const validationErrors = validate(productsWithSku)
         setErrors(validationErrors)
 

@@ -33,12 +33,7 @@ export default function Sidebar() {
     useEffect(() => {
         if (storeSelected) {
             router.push(`/home?storeID=${storeSelected.storeID}`)
-            console.log(storeSelected)
         }
-        // else {
-        //     toast("No tiene tiendas, solicite al administrador que le asigne")
-        //     return router.push("/")
-        // }
     }, [storeSelected])
     // Detect mobile screen size
     useEffect(() => {
@@ -102,12 +97,9 @@ export default function Sidebar() {
 
     const filteredNavItems = React.useMemo(() => {
         if (!user) return []
-        console.log(user)
         if (user.role === Role.Vendedor) {
-            console.log("Es vendedor")
             return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
         } else if (user.role === Role.Consignado) {
-            console.log("Es Consignado")
             return navItems.filter(
                 (item) =>
                     item.label !== "Caja" &&
@@ -117,7 +109,6 @@ export default function Sidebar() {
                     item.label !== "Estado de Resultados"
             )
         }
-        console.log("Es admin")
         return navItems
     }, [user])
     // Check if a section has active items

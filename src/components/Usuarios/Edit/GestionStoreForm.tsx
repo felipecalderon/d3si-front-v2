@@ -83,7 +83,6 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                 toast.error("Por favor, completa todos los campos obligatorios.")
                 return
             }
-            console.log(isAdminLocal)
             try {
                 await updateStore(
                     tienda.storeID,
@@ -97,7 +96,7 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
                     isAdminLocal
                 )
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
             toast.success("Tienda actualizada exitosamente")
 
@@ -126,10 +125,9 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
             try {
                 await addUserStore(selectedUserId, tienda.storeID)
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
             setGestoresAsignados((prev) => [...prev, usuario])
-            // console.log("userID: " + selectedUserId + "        tiendaID:" + tienda.storeID)
             setSelectedUserId("")
         }
     }
@@ -154,7 +152,7 @@ export default function GestionStoreForm({ isOpen, onClose, tienda }: GestionSto
             try {
                 await removeUserFromStore(userId, tienda.storeID)
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
             setGestoresAsignados((prev) => prev.filter((gestor) => gestor.userID !== userId))
         }
