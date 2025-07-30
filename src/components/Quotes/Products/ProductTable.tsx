@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Trash2Icon, DollarSignIcon } from "lucide-react"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
@@ -13,14 +12,25 @@ import { IProductVariation } from "@/interfaces/products/IProductVariation"
 interface ProductTableProps {
     selectedProducts: {
         product: IProduct
-        variation: IProductVariation
+        variation?: IProductVariation
         quantity: number
+        availableModels: string
+        unitPrice: number
+        isCustomProduct?: boolean
     }[]
-    onQuantityChange: (variationId: string, quantity: number) => void
-    onRemoveProduct: (variationId: string) => void
+    onQuantityChange: (productId: string, quantity: number) => void
+    onModelsChange: (productId: string, models: string) => void
+    onUnitPriceChange: (productId: string, price: number) => void
+    onRemoveProduct: (productId: string) => void
 }
 
-export function ProductTable({ selectedProducts, onQuantityChange, onRemoveProduct }: ProductTableProps) {
+export function ProductTable({
+    selectedProducts,
+    onQuantityChange,
+    onModelsChange,
+    onUnitPriceChange,
+    onRemoveProduct,
+}: ProductTableProps) {
     return (
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80">
             <CardHeader>
@@ -32,7 +42,7 @@ export function ProductTable({ selectedProducts, onQuantityChange, onRemoveProdu
                         <TableHeader>
                             <TableRow className="bg-slate-50 dark:bg-slate-700">
                                 <TableHead className="font-semibold">Item</TableHead>
-                                <TableHead className="font-semibold">Talla</TableHead>
+                                <TableHead className="font-semibold">Modelos Disponibles</TableHead>
                                 <TableHead className="font-semibold">Cantidad</TableHead>
                                 <TableHead className="font-semibold">Precio Neto Unitario</TableHead>
                                 <TableHead className="font-semibold">Subtotal Neto</TableHead>
@@ -42,12 +52,17 @@ export function ProductTable({ selectedProducts, onQuantityChange, onRemoveProdu
                         <TableBody>
                             {selectedProducts.map((sp) => (
                                 <TableRow
-                                    key={sp.variation.variationID}
+                                    key={sp.product.productID}
                                     className="hover:bg-slate-50 dark:hover:bg-slate-700"
                                 >
                                     <TableCell className="font-medium">{sp.product.name}</TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">{sp.variation.sizeNumber || "N/A"}</Badge>
+                                        <Input
+                                            placeholder="Ej: XS, S, M, L, XL o 32, 36, 38, 40"
+                                            value={sp.availableModels}
+                                            onChange={(e) => onModelsChange(sp.product.productID, e.target.value)}
+                                            className="w-40 bg-white dark:bg-slate-700 text-sm"
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <Input
@@ -55,23 +70,34 @@ export function ProductTable({ selectedProducts, onQuantityChange, onRemoveProdu
                                             min="1"
                                             value={sp.quantity}
                                             onChange={(e) =>
-                                                onQuantityChange(sp.variation.variationID, Number(e.target.value))
+                                                onQuantityChange(sp.product.productID, Number(e.target.value))
                                             }
                                             className="w-20 bg-white dark:bg-slate-700"
                                         />
                                     </TableCell>
-                                    <TableCell className="flex items-center gap-1">
-                                        <DollarSignIcon className="h-4 w-4 text-green-600" />
-                                        {sp.variation.priceList}
+                                    <TableCell>
+                                        <div className="flex items-center gap-1">
+                                            <DollarSignIcon className="h-4 w-4 text-green-600" />
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={sp.unitPrice}
+                                                onChange={(e) =>
+                                                    onUnitPriceChange(sp.product.productID, Number(e.target.value))
+                                                }
+                                                className="w-24 bg-white dark:bg-slate-700 text-sm"
+                                            />
+                                        </div>
                                     </TableCell>
                                     <TableCell className="font-semibold text-green-600">
-                                        ${(sp.quantity * Number(sp.variation.priceList || 0)).toFixed(2)}
+                                        ${(sp.quantity * sp.unitPrice).toFixed(2)}
                                     </TableCell>
                                     <TableCell>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => onRemoveProduct(sp.variation.variationID)}
+                                            onClick={() => onRemoveProduct(sp.product.productID)}
                                             className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
                                         >
                                             <Trash2Icon size={16} />

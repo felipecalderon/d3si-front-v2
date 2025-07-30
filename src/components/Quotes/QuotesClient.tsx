@@ -20,6 +20,26 @@ interface QuotesClientProps {
     products: IProduct[]
 }
 
+// Tipo para descuentos/cargos procesados
+interface ProcessedDiscount {
+    id: number
+    type: "Descuento" | "Cargo"
+    description: string
+    typeAndDescription: string
+    percentage: number
+    amount: number
+}
+
+// Tipo extendido para productos seleccionados
+interface SelectedProduct {
+    product: IProduct
+    variation?: IProductVariation
+    quantity: number
+    availableModels: string
+    unitPrice: number
+    isCustomProduct?: boolean
+}
+
 export function QuotesClient({ products }: QuotesClientProps) {
     const [discounts, setDiscounts] = useState<
         { id: number; type: "Descuento" | "Cargo"; description: string; percentage: number }[]
@@ -27,17 +47,11 @@ export function QuotesClient({ products }: QuotesClientProps) {
     const [productsImage, setProductsImage] = useState<{ id: string; image: string }[]>([])
     const [vencimientoCantidad, setVencimientoCantidad] = useState("30")
     const [vencimientoPeriodo, setVencimientoPeriodo] = useState<"dias" | "semanas" | "meses">("dias")
-    const [selectedProductID, setSelectedProductID] = useState<string | null>(null)
-    const [selectedProducts, setSelectedProducts] = useState<
-        {
-            product: IProduct
-            variation: IProductVariation
-            quantity: number
-        }[]
-    >([])
+    const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
     const [observaciones, setObservaciones] = useState("")
     const [nroCotizacion, setNroCotizacion] = useState(5100)
-    
+    const [customProducts, setCustomProducts] = useState<IProduct[]>([]) // Para productos personalizados
+
     // Estados para datos del cliente
     const [clientData, setClientData] = useState({
         rut: "",
@@ -55,29 +69,16 @@ export function QuotesClient({ products }: QuotesClientProps) {
         }
     }, [])
 
-    // Productos filtrados que excluyen las variaciones ya seleccionadas
+    // Combinar productos originales con productos personalizados
+    const allProducts = useMemo(() => {
+        return [...products, ...customProducts]
+    }, [products, customProducts])
+
+    // Productos filtrados que excluyen los ya seleccionados
     const filteredProducts = useMemo(() => {
-        const selectedVariationIds = new Set(selectedProducts.map((sp) => sp.variation.variationID))
-
-        return products.filter((product) => {
-            const availableVariations = product.ProductVariations.filter(
-                (variation) => !selectedVariationIds.has(variation.variationID)
-            )
-            return availableVariations.length > 0
-        })
-    }, [products, selectedProducts])
-
-    // Variaciones disponibles para el producto seleccionado
-    const availableVariationsForSelectedProduct = useMemo(() => {
-        if (!selectedProductID) return []
-
-        const selectedVariationIds = new Set(selectedProducts.map((sp) => sp.variation.variationID))
-        const product = products.find((p) => p.productID === selectedProductID)
-
-        if (!product) return []
-
-        return product.ProductVariations.filter((variation) => !selectedVariationIds.has(variation.variationID))
-    }, [selectedProductID, products, selectedProducts])
+        const selectedProductIds = new Set(selectedProducts.map((sp) => sp.product.productID))
+        return allProducts.filter((product) => !selectedProductIds.has(product.productID))
+    }, [allProducts, selectedProducts])
 
     // Productos únicos seleccionados con contador
     const uniqueSelectedProducts = useMemo(() => {
@@ -127,23 +128,109 @@ export function QuotesClient({ products }: QuotesClientProps) {
         }
     }
 
-    const handleAddProduct = (variationID: string) => {
-        const product = products.find((p) => p.productID === selectedProductID)
+    const handleProductSelect = (productId: string) => {
+        const product = allProducts.find((p) => p.productID === productId)
         if (!product) return
-        const variation = product.ProductVariations.find((v) => v.variationID === variationID)
-        if (!variation) return
-        setSelectedProducts([...selectedProducts, { product, variation, quantity: 1 }])
-        setSelectedProductID(null)
+
+        // Obtener modelos disponibles del producto (filtrar valores vacíos y duplicados)
+        const availableModels = product.ProductVariations
+            ?.map(v => v.sizeNumber)
+            .filter(size => size && size.trim() !== "")
+            .filter((size, index, arr) => arr.indexOf(size) === index) // Eliminar duplicados
+            .join(", ") || ""
+        
+        // Calcular precio promedio o usar el primer precio disponible
+        const variations = product.ProductVariations || []
+        const validPrices = variations
+            .map(v => Number(v.priceList || 0))
+            .filter(price => price > 0)
+        
+        const avgPrice = validPrices.length > 0 
+            ? validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length
+            : 0
+
+        const newSelectedProduct: SelectedProduct = {
+            product,
+            quantity: 1,
+            availableModels,
+            unitPrice: Math.round(avgPrice), // Redondear al entero más cercano
+            isCustomProduct: customProducts.some(cp => cp.productID === productId)
+        }
+
+        setSelectedProducts([...selectedProducts, newSelectedProduct])
     }
 
-    const handleQuantityChange = (variationID: string, quantity: number) => {
+    const handleAddNewProduct = (productData: { name: string; image?: string }) => {
+        // Crear un producto personalizado
+        const newProductId = `custom_${Date.now()}`
+        const newProduct: IProduct = {
+            productID: newProductId,
+            name: productData.name,
+            image: productData.image || "",
+            ProductVariations: [], // Los productos personalizados no tienen variaciones predefinidas
+            totalProducts: 0,
+            categoryID: "",
+            genre: "Unisex",
+            brand: "Otro", // Usar una marca existente
+            stock: 0, // Agregar la propiedad stock requerida
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            Category: undefined
+        }
+
+        // Agregarlo a la lista de productos personalizados
+        setCustomProducts(prev => [...prev, newProduct])
+
+        // Agregarlo también a la imagen si tiene una
+        if (productData.image) {
+            setProductsImage(prev => [...prev, { id: newProductId, image: productData.image || "" }])
+        }
+
+        // Seleccionarlo automáticamente
+        const newSelectedProduct: SelectedProduct = {
+            product: newProduct,
+            quantity: 1,
+            availableModels: "",
+            unitPrice: 0,
+            isCustomProduct: true
+        }
+
+        setSelectedProducts([...selectedProducts, newSelectedProduct])
+    }
+
+    const handleQuantityChange = (productId: string, quantity: number) => {
         setSelectedProducts(
-            selectedProducts.map((sp) => (sp.variation.variationID === variationID ? { ...sp, quantity } : sp))
+            selectedProducts.map((sp) => 
+                sp.product.productID === productId ? { ...sp, quantity } : sp
+            )
         )
     }
 
-    const handleRemoveProduct = (variationID: string) => {
-        setSelectedProducts(selectedProducts.filter((sp) => sp.variation.variationID !== variationID))
+    const handleModelsChange = (productId: string, models: string) => {
+        setSelectedProducts(
+            selectedProducts.map((sp) => 
+                sp.product.productID === productId ? { ...sp, availableModels: models } : sp
+            )
+        )
+    }
+
+    const handleUnitPriceChange = (productId: string, price: number) => {
+        setSelectedProducts(
+            selectedProducts.map((sp) => 
+                sp.product.productID === productId ? { ...sp, unitPrice: price } : sp
+            )
+        )
+    }
+
+    const handleRemoveProduct = (productId: string) => {
+        setSelectedProducts(selectedProducts.filter((sp) => sp.product.productID !== productId))
+        
+        // Si es un producto personalizado y no se usa en ningún lado más, eliminarlo
+        const isCustomProduct = customProducts.some(cp => cp.productID === productId)
+        if (isCustomProduct) {
+            setCustomProducts(prev => prev.filter(cp => cp.productID !== productId))
+            setProductsImage(prev => prev.filter(pi => pi.id !== productId))
+        }
     }
 
     const periodoLabel = {
@@ -152,26 +239,73 @@ export function QuotesClient({ products }: QuotesClientProps) {
         meses: Number(vencimientoCantidad) === 1 ? "mes" : "meses",
     }
 
-    const montoNeto = selectedProducts.reduce((acc, sp) => acc + sp.quantity * Number(sp.variation.priceList || 0), 0)
+    // Cálculos financieros mejorados
+    const montoNeto = selectedProducts.reduce((acc, sp) => acc + sp.quantity * sp.unitPrice, 0)
 
+    // Separar descuentos (porcentaje) de cargos (valor fijo)
     const totalDescuentos = discounts
         .filter((d) => d.type === "Descuento")
         .reduce((acc, d) => acc + montoNeto * (d.percentage / 100), 0)
 
-    const totalCargos = discounts
-        .filter((d) => d.type === "Cargo")
-        .reduce((acc, d) => acc + montoNeto * (d.percentage / 100), 0)
+    const totalCargos = discounts.filter((d) => d.type === "Cargo").reduce((acc, d) => acc + d.percentage, 0)
 
     const subtotal = montoNeto - totalDescuentos + totalCargos
     const iva = subtotal * 0.19
     const montoTotal = subtotal + iva
 
+    // Procesamiento de descuentos/cargos para el PDF
+    const processedDiscounts: ProcessedDiscount[] = useMemo(() => {
+        return discounts.map((discount) => {
+            let calculatedPercentage: number
+            let calculatedAmount: number
+
+            if (discount.type === "Descuento") {
+                calculatedPercentage = discount.percentage
+                calculatedAmount = montoNeto * (discount.percentage / 100)
+            } else {
+                calculatedAmount = discount.percentage
+                calculatedPercentage = montoNeto > 0 ? (discount.percentage / montoNeto) * 100 : 0
+            }
+
+            return {
+                id: discount.id,
+                type: discount.type,
+                description: discount.description,
+                typeAndDescription: `[${discount.type.toUpperCase()}] ${discount.description}`,
+                percentage: Math.round(calculatedPercentage * 100) / 100,
+                amount: calculatedAmount
+            }
+        })
+    }, [discounts, montoNeto])
+
+    // Función helper para crear variaciones mock
+    const createMockVariation = (productId: string, models: string, price: number): IProductVariation => {
+        return {
+            variationID: `${productId}_default`,
+            productID: productId,
+            sizeNumber: models,
+            priceList: price.toString(),
+            priceCost: price.toString(),
+            sku: "",
+            stockQuantity: 0,
+            StoreProducts: [],
+            Stores: []
+        } as unknown as IProductVariation
+    }
+
     const handleGeneratePDF = async () => {
+        // Convertir selectedProducts al formato esperado por el PDF
+        const pdfSelectedProducts = selectedProducts.map(sp => ({
+            product: sp.product,
+            variation: sp.variation || createMockVariation(sp.product.productID, sp.availableModels, sp.unitPrice),
+            quantity: sp.quantity
+        }))
+
         const blob = await pdf(
             <QuoteDocument
-                selectedProducts={selectedProducts}
+                selectedProducts={pdfSelectedProducts}
                 productsImages={productsImage}
-                discounts={discounts}
+                processedDiscounts={processedDiscounts}
                 vencimientoCantidad={vencimientoCantidad}
                 vencimientoPeriodo={vencimientoPeriodo}
                 montoNeto={montoNeto}
@@ -229,10 +363,8 @@ export function QuotesClient({ products }: QuotesClientProps) {
             {/* Selector de Productos */}
             <ProductSelector
                 filteredProducts={filteredProducts}
-                selectedProductID={selectedProductID}
-                availableVariationsForSelectedProduct={availableVariationsForSelectedProduct}
-                onProductSelect={setSelectedProductID}
-                onAddProduct={handleAddProduct}
+                onProductSelect={handleProductSelect}
+                onAddNewProduct={handleAddNewProduct}
             />
 
             {/* Tabla de Productos */}
@@ -240,6 +372,8 @@ export function QuotesClient({ products }: QuotesClientProps) {
                 <ProductTable
                     selectedProducts={selectedProducts}
                     onQuantityChange={handleQuantityChange}
+                    onModelsChange={handleModelsChange}
+                    onUnitPriceChange={handleUnitPriceChange}
                     onRemoveProduct={handleRemoveProduct}
                 />
             )}
