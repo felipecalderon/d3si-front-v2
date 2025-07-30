@@ -6,6 +6,7 @@ import { ListFilters } from "@/components/ListTable/ListFilters"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
 import { inventoryStore } from "@/stores/inventory.store"
 import { useProductFilter } from "@/stores/productsFilters"
+import { useAuth } from "@/stores/user.store"
 
 interface InventoryHeaderProps {
     totalStockCentral: number
@@ -29,6 +30,8 @@ export default function InventoryHeader({
         selectedGenre,
     } = useProductFilter()
 
+    const { user } = useAuth()
+
     return (
         <div className="flex flex-col gap-4 mb-6">
             <div className="flex lg:flex-row flex-col items-center gap-4">
@@ -39,9 +42,12 @@ export default function InventoryHeader({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <div className="h-11">
-                    <InventoryActions products={rawProducts} />
-                </div>
+                {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager */}
+                {user?.role !== "store_manager" && (
+                    <div className="h-11">
+                        <InventoryActions products={rawProducts} />
+                    </div>
+                )}
             </div>
             <ListFilters
                 products={rawProducts}
