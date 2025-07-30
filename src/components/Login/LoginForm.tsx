@@ -41,6 +41,9 @@ export default function LoginForm() {
             if (data.cleanUsr.role === Role.Consignado) {
                 return router.push("/home/purchaseOrder")
             }
+            if (data.cleanUsr.role === Role.Tercero) {
+                return router.push("/home/inventory")
+            }
             router.push("/home")
         } catch (err) {
             console.error(err)

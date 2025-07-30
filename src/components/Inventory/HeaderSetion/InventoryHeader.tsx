@@ -42,8 +42,8 @@ export default function InventoryHeader({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager */}
-                {user?.role !== "store_manager" && (
+                {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager ni tercero */}
+                {user?.role !== "store_manager" && user?.role !== "tercero" && (
                     <div className="h-11">
                         <InventoryActions products={rawProducts} />
                     </div>

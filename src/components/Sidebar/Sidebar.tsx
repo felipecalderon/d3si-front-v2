@@ -111,6 +111,8 @@ export default function Sidebar() {
                     item.label !== "Control de Mando" &&
                     item.label !== "Estado de Resultados"
             )
+        } else if (user.role === Role.Tercero) {
+            return navItems.filter((item) => item.label === "Inventario" || item.label === "Facturación")
         }
         return navItems
     }, [user])
