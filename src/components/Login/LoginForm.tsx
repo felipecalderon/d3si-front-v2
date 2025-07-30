@@ -16,7 +16,7 @@ export default function LoginForm() {
     const [password, setPassword] = useState("")
     const router = useRouter()
     const { setUser, setUsers } = useAuth()
-    const { setStores } = useTienda()
+    const { setStores, setStoreSelected, setStoresUser } = useTienda()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -37,6 +37,9 @@ export default function LoginForm() {
             setUsers(usuarios)
             setStores(tiendas)
 
+            const storesFromUser = tiendas.filter((t) => t.Users.some((u) => u.userID === data.cleanUsr.userID))
+            setStoresUser(storesFromUser)
+            setStoreSelected(storesFromUser[0])
             toast.success("Inicio de sesión exitoso")
             if (data.cleanUsr.role === Role.Consignado) {
                 return router.push("/home/purchaseOrder")
