@@ -29,12 +29,8 @@ export function PurchaseOrderSummary({
     router,
 }: Props) {
     return (
-        <div className="mt-2 space-y-2">
-            <div className="flex justify-center lg:justify-end text-sm font-semibold">
-                <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
-            </div>
-
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-2">
+            <div className="flex flex-col md:flex-row md:justify-end items-center gap-4">
                 {/* Cuadro resumen con fondo verde */}
                 <div className="p-1 rounded-md text-sm min-w-[300px] bg-green-600 text-white shadow-sm w-full md:w-[320px]">
                     <div className="flex justify-between mb-1">
@@ -54,39 +50,45 @@ export function PurchaseOrderSummary({
                         <span className="font-bold text-yellow-200">${(subtotal * 1.19).toLocaleString("es-CL")}</span>
                     </div>
                 </div>
+                <div className="flex flex-col gap-2 items-end">
+                    <div className="text-sm font-semibold">
+                        <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
+                    </div>
+                    <Button
+                        size="sm"
+                        className="h-10 px-6"
+                        disabled={isLoading || totalProductsInOrder === 0 || !selectedStoreID}
+                        onClick={async () => {
+                            try {
+                                const products = Object.entries(pedido)
+                                    .filter(([, qty]) => qty > 0)
+                                    .map(([sku, quantityOrdered]) => {
+                                        const variation = rawProducts
+                                            .flatMap((p) => p.ProductVariations)
+                                            .find((v) => v.sku === sku)
+                                        return variation
+                                            ? { variationID: variation.variationID, quantityOrdered }
+                                            : null
+                                    })
+                                    .filter(Boolean) as { variationID: string; quantityOrdered: number }[]
 
-                <Button
-                    size="sm"
-                    className="h-10 px-6"
-                    disabled={isLoading || totalProductsInOrder === 0 || !selectedStoreID}
-                    onClick={async () => {
-                        try {
-                            const products = Object.entries(pedido)
-                                .filter(([, qty]) => qty > 0)
-                                .map(([sku, quantityOrdered]) => {
-                                    const variation = rawProducts
-                                        .flatMap((p) => p.ProductVariations)
-                                        .find((v) => v.sku === sku)
-                                    return variation ? { variationID: variation.variationID, quantityOrdered } : null
+                                await createOrder({
+                                    storeID: selectedStoreID,
+                                    userID: "2f13abf6-bbb6-402b-a5b2-e368a89c79e9",
+                                    products,
                                 })
-                                .filter(Boolean) as { variationID: string; quantityOrdered: number }[]
 
-                            await createOrder({
-                                storeID: selectedStoreID,
-                                userID: "2f13abf6-bbb6-402b-a5b2-e368a89c79e9",
-                                products,
-                            })
-
-                            router.refresh()
-                            setPedido({})
-                            toast.success("Orden creada con éxito")
-                        } catch {
-                            toast.error("Error al crear la orden")
-                        }
-                    }}
-                >
-                    <MotionItem delay={0}>Crear orden</MotionItem>
-                </Button>
+                                router.refresh()
+                                setPedido({})
+                                toast.success("Orden creada con éxito")
+                            } catch {
+                                toast.error("Error al crear la orden")
+                            }
+                        }}
+                    >
+                        <MotionItem delay={0}>Crear orden</MotionItem>
+                    </Button>
+                </div>
             </div>
         </div>
     )
