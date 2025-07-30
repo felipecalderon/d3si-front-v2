@@ -98,7 +98,10 @@ export default function Sidebar() {
     const filteredNavItems = React.useMemo(() => {
         if (!user) return []
         if (user.role === Role.Vendedor) {
-            return navItems.filter((item) => item.label !== "UTI" && item.label !== "Estado de Resultados")
+            return navItems.filter(
+                (item) =>
+                    item.label !== "UTI" && item.label !== "Estado de Resultados" && item.label !== "Control de Mando"
+            )
         } else if (user.role === Role.Consignado) {
             return navItems.filter(
                 (item) =>
