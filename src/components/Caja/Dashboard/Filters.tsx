@@ -1,22 +1,8 @@
 "use client"
-import { useEffect, useState } from "react"
-import { getAllStores } from "@/actions/stores/getAllStores"
+import { useTienda } from "@/stores/tienda.store"
 
 const Filters = () => {
-    const [stores, setStores] = useState<{ storeID: string; name: string }[]>([])
-
-    useEffect(() => {
-        const fetchStores = async () => {
-            try {
-                const data = await getAllStores()
-                setStores(data)
-            } catch (error) {
-                console.error("Error al cargar tiendas:", error)
-            }
-        }
-
-        fetchStores()
-    }, [])
+    const { stores } = useTienda()
 
     return (
         <div className="w-full">
