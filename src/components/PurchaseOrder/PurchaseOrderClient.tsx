@@ -321,33 +321,20 @@ export default function PurchaseOrderClient({
                 )}
             </main>
             {/*Barra de resumen del total estatica*/}
-            <div
-                style={{
-                    position: "fixed",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 50,
-                    background: "rgba(255,255,255,0.97)",
-                    boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
-                    borderTop: "1px solid #e5e7eb",
-                    padding: "0.25rem 2rem",
-                    marginLeft: isLargeScreen ? "260px" : 0,
-                    width: isLargeScreen ? `calc(100% - 260px)` : "100%",
-                    transition: "margin-left 0.3s, width 0.3s",
-                }}
-            >
-                <PurchaseOrderSummary
-                    totalProductsInOrder={totalProductsInOrder}
-                    subtotal={subtotal}
-                    isLoading={false}
-                    selectedStoreID={selectedStoreID}
-                    pedido={pedido}
-                    rawProducts={initialProducts}
-                    setPedido={setPedido}
-                    router={router}
-                />
-            </div>
+            <MotionItem>
+                <div className=" fixed left-0 right-0 bottom-0 z-50 dark:bg-slate-900 bg-slate-200 shadow-[4px_-4px_8px_rgba(0,0,0,0.1)] dark:shadow-slate-950 shadow-slate-400 border-t px-8 py-1 transition-all duration-300 w-full lg:ml-[260px] lg:w-[calc(100%-250px)]">
+                    <PurchaseOrderSummary
+                        totalProductsInOrder={totalProductsInOrder}
+                        subtotal={subtotal}
+                        isLoading={false}
+                        selectedStoreID={selectedStoreID}
+                        pedido={pedido}
+                        rawProducts={initialProducts}
+                        setPedido={setPedido}
+                        router={router}
+                    />
+                </div>
+            </MotionItem>
         </>
     )
 }
