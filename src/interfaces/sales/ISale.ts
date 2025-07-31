@@ -1,5 +1,5 @@
 // Para enviar una nueva venta desde el frontend
-export type PaymentType = "Efectivo" | "Débito" | "Crédito"
+export type PaymentType = "Efectivo" | "Debito" | "Credito"
 export type PaymentStatus = "Pagado" | "Pendiente" | "Anulado"
 
 export interface ISaleRequest {

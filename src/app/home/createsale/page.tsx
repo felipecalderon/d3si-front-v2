@@ -1,6 +1,5 @@
 import { SaleForm } from "@/components/CreateSale/SaleForm"
 import TitleSelectedStore from "@/components/CreateSale/TitleSelectedStore"
-
 const CreateSale = () => {
     return (
         <main className="min-h-screen p-4">
