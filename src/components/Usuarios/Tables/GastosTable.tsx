@@ -3,23 +3,16 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Plus, Trash2, Receipt } from "lucide-react"
 import GestionGastosForm from "../Edit/GestionGastosForm"
 
 interface Gasto {
-  id: string
-  nombre: string
-  fechaFactura: string
-  fechaPago: string
-  monto: number
+    id: string
+    nombre: string
+    fechaFactura: string
+    fechaPago: string
+    monto: number
 }
 
 export default function GastosTable() {
@@ -30,36 +23,36 @@ export default function GastosTable() {
             nombre: "Servicios Básicos - Electricidad",
             fechaFactura: "2025-01-15",
             fechaPago: "2025-02-15",
-            monto: 85000
+            monto: 85000,
         },
         {
-            id: "2", 
+            id: "2",
             nombre: "Arriendo Local Comercial",
             fechaFactura: "2025-01-01",
             fechaPago: "2025-02-01",
-            monto: 450000
+            monto: 450000,
         },
         {
             id: "3",
             nombre: "Internet y Telefonía",
             fechaFactura: "2025-01-10",
-            fechaPago: "2025-02-10", 
-            monto: 35000
+            fechaPago: "2025-02-10",
+            monto: 35000,
         },
         {
             id: "4",
             nombre: "Mantención Equipos",
             fechaFactura: "2025-01-20",
             fechaPago: "2025-02-20",
-            monto: 120000
+            monto: 120000,
         },
         {
             id: "5",
             nombre: "Suministros de Oficina",
             fechaFactura: "2025-01-25",
             fechaPago: "2025-02-25",
-            monto: 45000
-        }
+            monto: 45000,
+        },
     ]
 
     const [gastos, setGastos] = useState<Gasto[]>(gastosIniciales)
@@ -68,36 +61,34 @@ export default function GastosTable() {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Filtrar gastos por término de búsqueda
-    const gastosFiltrados = gastos.filter(gasto =>
-        gasto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const gastosFiltrados = gastos.filter((gasto) => gasto.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const handleAgregarGasto = (nuevoGasto: Omit<Gasto, "id">) => {
         const gastoConId: Gasto = {
             ...nuevoGasto,
-            id: Date.now().toString()
+            id: Date.now().toString(),
         }
-        setGastos(prev => [...prev, gastoConId])
+        setGastos((prev) => [...prev, gastoConId])
         setIsModalOpen(false)
     }
 
     const handleEliminarGasto = (gastoId: string) => {
-        setGastos(prev => prev.filter(gasto => gasto.id !== gastoId))
+        setGastos((prev) => prev.filter((gasto) => gasto.id !== gastoId))
         setConfirmingId(null)
     }
 
     const formatearMonto = (monto: number) => {
-        return new Intl.NumberFormat('es-CL', {
-            style: 'currency',
-            currency: 'CLP'
+        return new Intl.NumberFormat("es-CL", {
+            style: "currency",
+            currency: "CLP",
         }).format(monto)
     }
 
     const formatearFecha = (fecha: string) => {
-        return new Date(fecha).toLocaleDateString('es-CL', {
-            day: '2-digit',
-            month: '2-digit', 
-            year: 'numeric'
+        return new Date(fecha).toLocaleDateString("es-CL", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
         })
     }
 
@@ -127,11 +118,8 @@ export default function GastosTable() {
 
                 <div className="text-center text-gray-500 py-12">
                     <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <p>No se encontraron gastos con el término "{searchTerm}"</p>
-                    <Button
-                        onClick={() => setSearchTerm("")}
-                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
+                    <p>No se encontraron gastos con el término: {searchTerm}</p>
+                    <Button onClick={() => setSearchTerm("")} className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
                         Mostrar todos los gastos
                     </Button>
                 </div>
@@ -204,8 +192,12 @@ export default function GastosTable() {
                     <TableHeader>
                         <TableRow className="bg-gray-50 dark:bg-slate-700">
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Nombre</TableHead>
-                            <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Fecha Factura</TableHead>
-                            <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Fecha Pago</TableHead>
+                            <TableHead className="uppercase text-gray-500 font-medium tracking-wider">
+                                Fecha Factura
+                            </TableHead>
+                            <TableHead className="uppercase text-gray-500 font-medium tracking-wider">
+                                Fecha Pago
+                            </TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Monto</TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Acción</TableHead>
                         </TableRow>
