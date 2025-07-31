@@ -12,8 +12,6 @@ export default function IncomeStatementView() {
         <div className="p-6 space-y-6">
             <SummaryCards />
             <TotalsCards />
-
-            {/* Gráfica de barras */}
             <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
                     <BenefitBarChart />

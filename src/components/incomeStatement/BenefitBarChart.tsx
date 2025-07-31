@@ -5,11 +5,12 @@ import { Card } from "@/components/ui/card"
 
 const data = [
     { mes: "Ene", beneficio: 50000 },
-    { mes: "Feb", beneficio: 75000 },
-    { mes: "Mar", beneficio: 60000 },
-    { mes: "Abr", beneficio: 82000 },
-    { mes: "May", beneficio: 92000 },
-    { mes: "Jun", beneficio: 87000 },
+    { mes: "Feb", beneficio: 45000 },
+    { mes: "Mar", beneficio: 55000 },
+    { mes: "Abr", beneficio: 53000 },
+    { mes: "May", beneficio: 58000 },
+    { mes: "Jun", beneficio: 60000 },
+    { mes: "Jul", beneficio: 63000 },
 ]
 
 export default function BenefitBarChart() {
