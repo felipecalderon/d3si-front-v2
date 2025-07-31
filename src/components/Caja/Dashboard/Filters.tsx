@@ -1,52 +1,73 @@
 "use client"
 import { useTienda } from "@/stores/tienda.store"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 const Filters = () => {
     const { stores } = useTienda()
 
     return (
         <div className="w-full">
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <select
-                    title="meses"
-                    className="px-3 py-2 dark:bg-gray-800 bg-white rounded-lg shadow border text-sm w-full sm:w-auto sm:min-w-[140px]"
-                >
-                    <option>Filtrar por mes</option>
-                    <option>Enero</option>
-                    <option>Febrero</option>
-                    <option>Marzo</option>
-                    <option>Abril</option>
-                    <option>Mayo</option>
-                    <option>Junio</option>
-                    <option>Julio</option>
-                    <option>Agosto</option>
-                    <option>Septiembre</option>
-                    <option>Octubre</option>
-                    <option>Noviembre</option>
-                    <option>Diciembre</option>
-                </select>
-
-                <select
-                    title="años"
-                    className="px-3 py-2 dark:bg-gray-800 bg-white rounded-lg shadow border text-sm w-full sm:w-auto sm:min-w-[140px]"
-                >
-                    <option>Filtrar por año</option>
-                    <option>2025</option>
-                    <option>2024</option>
-                    <option>2023</option>
-                </select>
-
-                <select
-                    title="tienda"
-                    className="px-3 py-2 dark:bg-gray-800 bg-white rounded-lg shadow border text-sm w-full sm:w-auto sm:min-w-[160px]"
-                >
-                    <option>Filtrar por tienda</option>
-                    {stores.map((store) => (
-                        <option key={store.storeID} value={store.storeID}>
-                            {store.name}
-                        </option>
-                    ))}
-                </select>
+            <div className="flex lg:flex-row flex-col gap-2 w-full">
+                {/* Vender */}
+                <Link href="/home/createsale" className="sm:w-auto flex-shrink-0">
+                    <Button className="sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-10 py-3 rounded-lg font-semibold shadow-md transition-colors whitespace-nowrap">
+                        Vender 🛍️
+                    </Button>
+                </Link>
+                {/* Tiendas */}
+                <Select>
+                    <SelectTrigger className="dark:bg-slate-900 lg:w-38 w-full bg-white shadow-lg">
+                        <SelectValue placeholder="Filtrar tienda" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {stores.map((store) => (
+                            <SelectItem key={store.storeID} value={store.storeID}>
+                                {store.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {/* Meses */}
+                <Select>
+                    <SelectTrigger className="dark:bg-slate-900 lg:w-38 w-full bg-white shadow-lg">
+                        <SelectValue placeholder="Filtrar mes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {[
+                            "Enero",
+                            "Febrero",
+                            "Marzo",
+                            "Abril",
+                            "Mayo",
+                            "Junio",
+                            "Julio",
+                            "Agosto",
+                            "Septiembre",
+                            "Octubre",
+                            "Noviembre",
+                            "Diciembre",
+                        ].map((mes) => (
+                            <SelectItem key={mes} value={mes}>
+                                {mes}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {/* Años */}
+                <Select>
+                    <SelectTrigger className="dark:bg-slate-900 lg:w-38 w-full bg-white shadow-lg">
+                        <SelectValue placeholder="Filtrar por año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {["2025", "2024", "2023"].map((año) => (
+                            <SelectItem key={año} value={año}>
+                                {año}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
         </div>
     )

@@ -29,19 +29,19 @@ export function PurchaseOrderSummary({
     router,
 }: Props) {
     return (
-        <div className="mt-2">
-            <div className="flex flex-col md:flex-row md:justify-end items-center gap-4">
+        <div className="w-full">
+            <div className="flex md:justify-around items-center gap-4">
                 {/* Cuadro resumen con fondo verde */}
-                <div className="p-1 rounded-md text-sm min-w-[300px] bg-green-600 text-white shadow-sm w-full md:w-[320px]">
-                    <div className="flex justify-between mb-1">
+                <div className="p-1 rounded-md justify-around align-baseline flex text-sm bg-green-600 text-white shadow-sm w-full ">
+                    <div className="flex flex-col-reverse text-center">
                         <span>Total productos:</span>
                         <span className="font-bold">{totalProductsInOrder}</span>
                     </div>
-                    <div className="flex justify-between mb-1">
+                    <div className="flex flex-col-reverse text-center">
                         <span>Neto:</span>
                         <span className="font-bold">${subtotal.toLocaleString("es-CL")}</span>
                     </div>
-                    <div className="flex justify-between mb-1">
+                    <div className="flex flex-col-reverse text-center">
                         <span>IVA (19%):</span>
                         <span className="font-bold">${(subtotal * 0.19).toLocaleString("es-CL")}</span>
                     </div>
@@ -50,7 +50,7 @@ export function PurchaseOrderSummary({
                         <span className="font-bold text-yellow-200">${(subtotal * 1.19).toLocaleString("es-CL")}</span>
                     </div>
                 </div>
-                <div className="flex flex-col gap-2 items-end">
+                <div className="flex gap-2 items-end">
                     <div className="text-sm font-semibold">
                         <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
                     </div>
