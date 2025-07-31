@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Plus, Trash2, Receipt } from "lucide-react"
 import GestionGastosForm from "../Edit/GestionGastosForm"
 
+import { useRouter } from "next/navigation"
+
 interface Gasto {
     id: string
     nombre: string
@@ -59,6 +61,8 @@ export default function GastosTable() {
     const [searchTerm, setSearchTerm] = useState("")
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const router = useRouter()
 
     // Filtrar gastos por término de búsqueda
     const gastosFiltrados = gastos.filter((gasto) => gasto.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -166,6 +170,15 @@ export default function GastosTable() {
     return (
         <>
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden">
+                {/* Botón para generar estado de resultados */}
+                <div className="flex justify-end p-4">
+                    <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2"
+                        onClick={() => router.push("/home/incomeStatement")}
+                    >
+                        <span>Generar estado de resultados</span>
+                    </Button>
+                </div>
                 {/* Header con búsqueda y botón agregar */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="relative flex-1 max-w-md">

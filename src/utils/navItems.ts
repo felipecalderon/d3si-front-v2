@@ -41,6 +41,7 @@ export const navItems = [
     },
     {
         label: "Estado de Resultados",
+        route: "/home/incomeStatement",
         icon: FaChartBar,
     },
 ]
