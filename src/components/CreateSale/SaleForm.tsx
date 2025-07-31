@@ -10,6 +10,7 @@ import { useTienda } from "@/stores/tienda.store"
 import { PaymentType } from "@/interfaces/sales/ISale"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { handleAddProductByFlattened } from "@/components/CreateSale/handleAddProductByFlattened"
 
 export const SaleForm = () => {
     const [productos, setProductos] = useState<IProductoEnVenta[]>([])
@@ -129,7 +130,16 @@ export const SaleForm = () => {
 
     return (
         <>
-            <ScanInput codigo={codigo} setCodigo={setCodigo} handleAddProduct={handleAddProduct} isAdding={isAdding} />
+            <ScanInput
+                codigo={codigo}
+                setCodigo={setCodigo}
+                handleAddProduct={handleAddProduct}
+                isAdding={isAdding}
+                handleAddProductByFlattened={(producto) =>
+                    handleAddProductByFlattened(producto, storeSelected, setProductos, toast)
+                }
+            />
+
             <CartTable productos={productos} onDelete={handleDelete} onCantidadChange={handleCantidadChange} />
             <div className="flex flex-col gap-6 mt-4">
                 {ventaFinalizada ? (
