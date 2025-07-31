@@ -27,7 +27,7 @@ export default function UsuariosPage() {
             </div>
 
             {/* Lista de Usuarios */}
-            <div className="mb-8">
+            <div className="mb-8 relative lg:-top-28">
                 <ListTable />
             </div>
         </div>

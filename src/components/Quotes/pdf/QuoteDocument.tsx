@@ -54,7 +54,7 @@ const calculateExpirationDate = (cantidad: string, periodo: "dias" | "semanas" |
     const emissionDate = new Date()
     const cantidadNum = parseInt(cantidad)
 
-    let expirationDate = new Date(emissionDate)
+    const expirationDate = new Date(emissionDate)
 
     switch (periodo) {
         case "dias":
