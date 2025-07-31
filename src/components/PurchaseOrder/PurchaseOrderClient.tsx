@@ -33,6 +33,7 @@ export default function PurchaseOrderClient({
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
+    const [isLargeScreen, setIsLargeScreen] = useState(false)
 
     // Hook para filtros personalizados
     const {
@@ -157,6 +158,11 @@ export default function PurchaseOrderClient({
         return pages
     }
 
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setIsLargeScreen(window.innerWidth >= 1024)
+        }
+    }, [])
     return (
         <>
             <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
@@ -326,8 +332,8 @@ export default function PurchaseOrderClient({
                     boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
                     borderTop: "1px solid #e5e7eb",
                     padding: "0.25rem 2rem",
-                    marginLeft: typeof window !== undefined && window.innerWidth >= 1024 ? "260px" : 0,
-                    width: typeof window !== undefined && window.innerWidth >= 1024 ? `calc(100% - 260px)` : "100%",
+                    marginLeft: isLargeScreen ? "260px" : 0,
+                    width: isLargeScreen ? `calc(100% - 260px)` : "100%",
                     transition: "margin-left 0.3s, width 0.3s",
                 }}
             >
