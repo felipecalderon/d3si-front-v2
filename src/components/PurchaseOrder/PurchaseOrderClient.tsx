@@ -326,8 +326,8 @@ export default function PurchaseOrderClient({
                     boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
                     borderTop: "1px solid #e5e7eb",
                     padding: "0.25rem 2rem",
-                    marginLeft: window.innerWidth >= 1024 ? "260px" : 0,
-                    width: window.innerWidth >= 1024 ? `calc(100% - 260px)` : "100%",
+                    marginLeft: typeof window !== undefined && window.innerWidth >= 1024 ? "260px" : 0,
+                    width: typeof window !== undefined && window.innerWidth >= 1024 ? `calc(100% - 260px)` : "100%",
                     transition: "margin-left 0.3s, width 0.3s",
                 }}
             >
