@@ -187,8 +187,8 @@ export const SaleForm = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Efectivo">Efectivo</SelectItem>
-                                    <SelectItem value="Débito">Débito</SelectItem>
-                                    <SelectItem value="Crédito">Crédito</SelectItem>
+                                    <SelectItem value="Debito">Débito</SelectItem>
+                                    <SelectItem value="Credito">Crédito</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
