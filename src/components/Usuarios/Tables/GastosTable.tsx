@@ -170,13 +170,13 @@ export default function GastosTable() {
     return (
         <>
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden">
-                {/* Botón para generar estado de resultados */}
+                {/* Botón para ir a estado de resultados */}
                 <div className="flex justify-end p-4">
                     <Button
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2"
                         onClick={() => router.push("/home/incomeStatement")}
                     >
-                        <span>Generar estado de resultados</span>
+                        <span>Ir al estado de resultados</span>
                     </Button>
                 </div>
                 {/* Header con búsqueda y botón agregar */}
