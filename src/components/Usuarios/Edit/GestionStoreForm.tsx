@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Button } from "../../ui/button"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { IStore } from "@/interfaces/stores/IStore"
 import { IUser } from "@/interfaces/users/IUser"
@@ -11,7 +11,7 @@ import { getAllStores } from "@/actions/stores/getAllStores"
 import { updateStore } from "@/actions/stores/updateStore"
 import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
-import ModalUserTienda from "./ModalUserTienda"
+import ModalUserTienda from "./ModalGestion"
 import {
     Store,
     User,
@@ -28,9 +28,9 @@ import {
     UserRoundCheck,
     AtSign,
 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Input } from "../../ui/input"
+import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { getAllUsers } from "@/actions/users/getAllUsers"
 import { Role } from "@/lib/userRoles"
