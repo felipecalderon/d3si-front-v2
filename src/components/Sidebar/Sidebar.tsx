@@ -44,8 +44,7 @@ export default function Sidebar() {
     useEffect(() => {
         const storeID = searchParams.get("storeID")
         if (!storeID) {
-            if (!storeSelected) toast.error("Este usuario no tiene tiendas asignadas!")
-            else router.push(`${pathname}?${createQueryParam("storeID", storeSelected.storeID)}`)
+            if (storeSelected) router.push(`${pathname}?${createQueryParam("storeID", storeSelected.storeID)}`)
         }
     }, [pathname, storeSelected])
 
