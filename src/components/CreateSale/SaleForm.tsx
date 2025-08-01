@@ -135,9 +135,9 @@ export const SaleForm = () => {
                 setCodigo={setCodigo}
                 handleAddProduct={handleAddProduct}
                 isAdding={isAdding}
-                handleAddProductByFlattened={(producto) =>
-                    handleAddProductByFlattened(producto, storeSelected, setProductos, toast)
-                }
+                // handleAddProductByFlattened={(producto) =>
+                //     handleAddProductByFlattened(producto, storeSelected, setProductos, toast)
+                // }
             />
 
             <CartTable productos={productos} onDelete={handleDelete} onCantidadChange={handleCantidadChange} />
