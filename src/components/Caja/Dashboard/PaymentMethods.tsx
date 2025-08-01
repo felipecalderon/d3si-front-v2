@@ -2,7 +2,7 @@ import { getResume } from "@/actions/totals/getResume"
 import { ArrowRightLeft, CreditCard, HandCoins, Wallet } from "lucide-react"
 
 const Payment = async () => {
-    let resume = await getResume()
+    const resume = await getResume()
     return (
         <>
             <div className="flex lg:flex-row flex-col lg:justify-around lg:gap-0 gap-4 lg:mt-0 mt-4 lg:ml-4">
