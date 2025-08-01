@@ -1,3 +1,4 @@
+import { IUser } from "../users/IUser"
 import { IStoreProduct } from "./IStoreProduct"
 
 export interface IStore {
@@ -16,4 +17,5 @@ export interface IStore {
     createdAt: string
     updatedAt: string
     StoreProduct: IStoreProduct
+    Users: IUser[]
 }

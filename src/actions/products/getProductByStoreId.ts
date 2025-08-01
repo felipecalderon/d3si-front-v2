@@ -1,6 +1,5 @@
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
-import { IProductoEnVenta } from "@/interfaces/products/IProductoEnVenta"
 import { IProduct } from "@/interfaces/products/IProduct"
 
 /**
