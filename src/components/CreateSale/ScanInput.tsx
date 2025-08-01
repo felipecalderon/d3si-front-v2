@@ -1,38 +1,22 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { SearchByNameInput } from "@/components/CreateSale/SearchByNameInput"
-import { FlattenedProduct } from "@/interfaces/products/IFlatternProduct"
-
 interface ScanInputProps {
     codigo: string
     setCodigo: (value: string) => void
     handleAddProduct: (e: React.FormEvent) => void
     isAdding: boolean | undefined
-    handleAddProductByFlattened: (producto: FlattenedProduct) => void
 }
 
-export const ScanInput = ({
-    codigo,
-    setCodigo,
-    handleAddProduct,
-    isAdding,
-    handleAddProductByFlattened,
-}: ScanInputProps) => (
+export const ScanInput = ({ codigo, setCodigo, handleAddProduct, isAdding }: ScanInputProps) => (
     <form onSubmit={handleAddProduct} className="flex items-center gap-2 mb-6">
-        {/**<Input
+        <Input
             type="text"
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
-            placeholder="Ingrese el código del producto"
+            placeholder="Código de producto"
             className="flex-1 bg-transparent"
             autoFocus
-        />*/}
-
-        <SearchByNameInput
-            onProductoSeleccionado={(producto) => {
-                handleAddProductByFlattened(producto)
-            }}
         />
 
         <Button
