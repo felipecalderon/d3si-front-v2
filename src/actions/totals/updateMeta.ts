@@ -18,13 +18,13 @@ import { API_URL } from "@/lib/enviroments"
 }
  */
 
-export async function updateMeta(fecha: string, monto: Number) {
-    const store = await fetcher(`${API_URL}/home`,{
+export async function updateMeta(fecha: string, monto: number) {
+    const store = await fetcher(`${API_URL}/home`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fecha: fecha, monto: monto}),
+        body: JSON.stringify({ fecha: fecha, monto: monto }),
     })
     return store
 }
