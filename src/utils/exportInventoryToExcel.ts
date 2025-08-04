@@ -13,10 +13,14 @@ export function exportInventoryToExcel(products: IProduct[]) {
         product.ProductVariations.forEach((variation) => {
             data.push({
                 Producto: product.name,
-                "CÓDIGO EAN": variation.sku,
+                Género: product.genre,
+                Marca: product.brand,
+                Categoría: product.Category?.name || "",
                 TALLA: variation.sizeNumber,
                 "PRECIO COSTO": variation.priceCost,
                 "PRECIO PLAZA": variation.priceList,
+                "CÓDIGO EAN": variation.sku,
+                OFERTAS: variation.offers ? variation.offers.join(", ") : null,
                 "STOCK CENTRAL": variation.stockQuantity,
                 "STOCK AGREGADO": variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0,
             })
