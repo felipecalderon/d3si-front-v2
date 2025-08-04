@@ -69,16 +69,41 @@ export default function CreateProductForm() {
             .replace(/\p{Diacritic}/gu, "")
             .trim() || ""
 
-    // Buscar categoryID por nombre (case-insensitive)
+    // Buscar categoryID por nombre (mejorado: busca en todas las subcategorías, tolerante a vacíos)
     const findCategoryIdByName = (catName: string) => {
-        const norm = normalize(catName)
+        const norm = normalize(catName || "")
+        if (!norm) return ""
+
+        // 1. Coincidencia exacta en categoría padre
         const found = categories.find((cat) => normalize(cat.name) === norm)
         if (found) return found.categoryID
-        // Buscar en subcategorías
+
+        // 2. Coincidencia exacta en cualquier subcategoría (nombre del hijo)
         for (const cat of categories) {
-            const sub = cat.subcategories?.find((subcat) => normalize(subcat.name || "") === norm)
-            if (sub) return sub.categoryID || ""
+            if (cat.subcategories && Array.isArray(cat.subcategories)) {
+                for (const subcat of cat.subcategories) {
+                    if (normalize(subcat?.name || "") === norm) {
+                        return subcat.categoryID || ""
+                    }
+                }
+            }
         }
+
+        // 3. Coincidencia parcial (incluye) en cualquier subcategoría
+        for (const cat of categories) {
+            if (cat.subcategories && Array.isArray(cat.subcategories)) {
+                for (const subcat of cat.subcategories) {
+                    if (normalize(subcat?.name || "").includes(norm)) {
+                        return subcat.categoryID || ""
+                    }
+                }
+            }
+        }
+
+        // 4. Coincidencia parcial (incluye) en categoría padre
+        const foundPartial = categories.find((cat) => normalize(cat.name).includes(norm))
+        if (foundPartial) return foundPartial.categoryID
+
         return ""
     }
 
@@ -124,23 +149,33 @@ export default function CreateProductForm() {
                     return
                 }
 
-                // Mapear los datos del Excel al formato de CreateProductFormData
-                const importedProducts: CreateProductFormData[] = json.map((row) => ({
-                    name: row["Producto"],
-                    image: "", // No se exporta/importa imagen
-                    categoryID: findCategoryIdByName(row["Categoría"]),
-                    genre: row["Género"],
-                    brand: row["Marca"],
-                    sizes: [
-                        {
-                            sizeNumber: row["TALLA"],
-                            priceList: Number(row["PRECIO PLAZA"]),
-                            priceCost: Number(row["PRECIO COSTO"]),
-                            sku: row["CÓDIGO EAN"],
-                            stockQuantity: Number(row["STOCK CENTRAL"]),
-                        },
-                    ],
-                }))
+                // Mapear los datos del Excel al formato de CreateProductFormData y sincronizar el input de búsqueda
+                const importedProducts: CreateProductFormData[] = []
+                const importedCategorySearches: string[] = []
+                for (const row of json) {
+                    const catId = findCategoryIdByName(row["Categoría"])
+                    let catLabel = row["Categoría"] || ""
+                    // Buscar el label completo (padre > hijo) si existe en categoryOptions
+                    const option = categoryOptions.find((opt) => opt.id === catId)
+                    if (option) catLabel = option.label
+                    importedProducts.push({
+                        name: row["Producto"],
+                        image: "",
+                        categoryID: catId,
+                        genre: row["Género"],
+                        brand: row["Marca"],
+                        sizes: [
+                            {
+                                sizeNumber: row["TALLA"],
+                                priceList: Number(row["PRECIO PLAZA"]),
+                                priceCost: Number(row["PRECIO COSTO"]),
+                                sku: row["CÓDIGO EAN"],
+                                stockQuantity: Number(row["STOCK CENTRAL"]),
+                            },
+                        ],
+                    })
+                    importedCategorySearches.push(catLabel)
+                }
 
                 // Validar que todas las categorías existen
                 const notFound = json.filter((row) => !findCategoryIdByName(row["Categoría"]))
@@ -154,6 +189,7 @@ export default function CreateProductForm() {
                 }
 
                 setProducts((prev) => [...prev, ...importedProducts])
+                setCategorySearches((prev) => [...prev, ...importedCategorySearches])
                 toast.success("Productos importados desde Excel.")
             } catch (err) {
                 toast.error("Error al procesar el archivo Excel.")
