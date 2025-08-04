@@ -20,7 +20,6 @@ export function exportInventoryToExcel(products: IProduct[]) {
                 "PRECIO COSTO": variation.priceCost,
                 "PRECIO PLAZA": variation.priceList,
                 "CÓDIGO EAN": variation.sku,
-                OFERTAS: variation.offers ? variation.offers.join(", ") : null,
                 "STOCK CENTRAL": variation.stockQuantity,
                 "STOCK AGREGADO": variation.StoreProducts?.reduce((acc, sp) => acc + sp.quantity, 0) ?? 0,
             })

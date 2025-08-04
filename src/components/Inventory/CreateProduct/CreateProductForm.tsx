@@ -1,9 +1,7 @@
-/* eslint-disable jsx-a11y/alt-text */
 "use client"
 
-import type React from "react"
-
-import { useState, useTransition, useEffect, useRef } from "react"
+import * as XLSX from "xlsx"
+import React, { useState, useRef, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
@@ -40,6 +38,159 @@ interface CategoryOption {
 }
 
 export default function CreateProductForm() {
+    // Estados principales deben ir arriba para evitar uso antes de declaración
+    const [categories, setCategories] = useState<ICategory[]>([])
+    const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
+    const [categorySearches, setCategorySearches] = useState<string[]>([])
+    const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
+    const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
+    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
+    const dropRef = useRef<HTMLDivElement>(null)
+
+    // Columnas requeridas (deben coincidir con el Excel exportado)
+    const REQUIRED_COLUMNS = [
+        "Producto",
+        "Género",
+        "Marca",
+        "Categoría",
+        "TALLA",
+        "PRECIO COSTO",
+        "PRECIO PLAZA",
+        "CÓDIGO EAN",
+        "STOCK CENTRAL",
+        "STOCK AGREGADO",
+    ]
+
+    // Normaliza texto para comparar categorías
+    const normalize = (str: string) =>
+        str
+            ?.toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .trim() || ""
+
+    // Buscar categoryID por nombre (case-insensitive)
+    const findCategoryIdByName = (catName: string) => {
+        const norm = normalize(catName)
+        const found = categories.find((cat) => normalize(cat.name) === norm)
+        if (found) return found.categoryID
+        // Buscar en subcategorías
+        for (const cat of categories) {
+            const sub = cat.subcategories?.find((subcat) => normalize(subcat.name || "") === norm)
+            if (sub) return sub.categoryID || ""
+        }
+        return ""
+    }
+
+    // Validar formato y datos del Excel
+    function validateExcelRows(rows: any[]): string | null {
+        if (!rows.length) return "El archivo está vacío."
+        const cols = Object.keys(rows[0])
+        for (const col of REQUIRED_COLUMNS) {
+            if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i]
+            for (const col of REQUIRED_COLUMNS) {
+                if (row[col] === undefined || row[col] === null || row[col] === "") {
+                    return `Fila ${i + 2}: Falta valor en columna "${col}".`
+                }
+            }
+            // Validaciones extra (puedes agregar más)
+            if (isNaN(Number(row["PRECIO COSTO"])) || isNaN(Number(row["PRECIO PLAZA"]))) {
+                return `Fila ${i + 2}: Precio inválido.`
+            }
+            if (isNaN(Number(row["STOCK CENTRAL"]))) {
+                return `Fila ${i + 2}: Stock central inválido.`
+            }
+        }
+        return null
+    }
+
+    // Importar productos desde Excel (useCallback para dependencia estable)
+    const handleExcelImport = React.useCallback(
+        async (file: File) => {
+            try {
+                const data = await file.arrayBuffer()
+                const workbook = XLSX.read(data)
+                const sheetName = workbook.SheetNames[0]
+                const worksheet = workbook.Sheets[sheetName]
+                const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" })
+
+                // Validar formato y datos
+                const error = validateExcelRows(json)
+                if (error) {
+                    toast.error(error)
+                    return
+                }
+
+                // Mapear los datos del Excel al formato de CreateProductFormData
+                const importedProducts: CreateProductFormData[] = json.map((row) => ({
+                    name: row["Producto"],
+                    image: "", // No se exporta/importa imagen
+                    categoryID: findCategoryIdByName(row["Categoría"]),
+                    genre: row["Género"],
+                    brand: row["Marca"],
+                    sizes: [
+                        {
+                            sizeNumber: row["TALLA"],
+                            priceList: Number(row["PRECIO PLAZA"]),
+                            priceCost: Number(row["PRECIO COSTO"]),
+                            sku: row["CÓDIGO EAN"],
+                            stockQuantity: Number(row["STOCK CENTRAL"]),
+                        },
+                    ],
+                }))
+
+                // Validar que todas las categorías existen
+                const notFound = json.filter((row) => !findCategoryIdByName(row["Categoría"]))
+                if (notFound.length > 0) {
+                    toast.error(
+                        `Categoría no encontrada: "${notFound[0]["Categoría"]}" en fila ${
+                            json.indexOf(notFound[0]) + 2
+                        }`
+                    )
+                    return
+                }
+
+                setProducts((prev) => [...prev, ...importedProducts])
+                toast.success("Productos importados desde Excel.")
+            } catch (err) {
+                toast.error("Error al procesar el archivo Excel.")
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [categories, findCategoryIdByName, validateExcelRows]
+    )
+
+    // Handler para input file
+    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) handleExcelImport(file)
+    }
+
+    // Drag and drop
+    useEffect(() => {
+        const drop = dropRef.current
+        if (!drop) return
+        const handleDrop = (e: DragEvent) => {
+            e.preventDefault()
+            if (e.dataTransfer?.files?.length) {
+                const file = e.dataTransfer.files[0]
+                if (file.name.endsWith(".xlsx")) handleExcelImport(file)
+                else toast.error("Solo se permiten archivos .xlsx")
+            }
+        }
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault()
+        }
+        drop.addEventListener("drop", handleDrop)
+        drop.addEventListener("dragover", handleDragOver)
+        return () => {
+            drop.removeEventListener("drop", handleDrop)
+            drop.removeEventListener("dragover", handleDragOver)
+        }
+    }, [categories, handleExcelImport])
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [showModal, setShowModal] = useState(false)
@@ -70,13 +221,7 @@ export default function CreateProductForm() {
         },
     ])
 
-    // Estados para autocompletado de categorías
-    const [categories, setCategories] = useState<ICategory[]>([])
-    const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
-    const [categorySearches, setCategorySearches] = useState<string[]>([])
-    const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
-    const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
-    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
+    // ...eliminadas declaraciones duplicadas de estado y refs...
 
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
@@ -210,9 +355,10 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
+                /*SE COMENTA PORQUE EL INVENTARIO TIENE MUCHOS SKU ANTIGUOS QUE NO INICIAN CON 1
                 if (size.sku && !/^1\d{11}$/.test(size.sku)) {
                     sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
-                }
+                }*/
                 if (size.stockQuantity === null || size.stockQuantity === undefined || isNaN(size.stockQuantity)) {
                     sizeErrors.stockQuantity = "Falta llenar este campo"
                 }
@@ -433,6 +579,29 @@ export default function CreateProductForm() {
                     </div>
                 </div>
 
+                {/* Importar desde Excel (input y drag-and-drop) */}
+                <div
+                    ref={dropRef}
+                    className="mb-6 flex flex-col lg:flex-row items-start gap-4 border-2 border-dashed border-blue-400 rounded-xl p-4 bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
+                    style={{ minHeight: 80 }}
+                >
+                    <div className="flex-1 flex flex-col gap-2">
+                        <Label className="font-semibold text-gray-700 dark:text-gray-300">
+                            Importar productos desde Excel (.xlsx):
+                        </Label>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                            Arrastra y suelta el archivo aquí o haz clic para seleccionarlo.
+                        </span>
+                    </div>
+                    <Input
+                        type="file"
+                        accept=".xlsx"
+                        onChange={handleFileInput}
+                        className="max-w-xs"
+                        style={{ display: "block" }}
+                    />
+                </div>
+
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {products.map((product, pIndex) => (
@@ -540,6 +709,19 @@ export default function CreateProductForm() {
                                                 {errors[pIndex].genre}
                                             </div>
                                         )}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            <Package className="w-4 h-4" />
+                                            Marca
+                                        </Label>
+                                        <Input
+                                            value={product.brand}
+                                            onChange={(e) => handleProductChange(pIndex, "brand", e.target.value)}
+                                            placeholder="Ej: Nike, Adidas, D3SI..."
+                                            className="h-12 text-base border-2 transition-all duration-200 border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                                        />
                                     </div>
                                 </div>
 

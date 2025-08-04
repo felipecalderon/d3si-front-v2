@@ -312,7 +312,11 @@ export function InventoryTable({
                                                     </div>
                                                 ) : (
                                                     <span className="font-semibold text-sm">
-                                                        ${Number(variation.priceCost).toLocaleString("es-CL")}
+                                                        $
+                                                        {Number(variation.priceCost).toLocaleString("es-CL", {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 2,
+                                                        })}
                                                     </span>
                                                 )}
                                             </TableCell>
@@ -345,7 +349,11 @@ export function InventoryTable({
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1">
                                                     <span className="font-semibold text-sm">
-                                                        ${Number(variation.priceList).toLocaleString("es-CL")}
+                                                        $
+                                                        {Number(variation.priceList).toLocaleString("es-CL", {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 2,
+                                                        })}
                                                     </span>
                                                     <span
                                                         className={`text-xs ${

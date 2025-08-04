@@ -11,7 +11,6 @@ export interface IStoreProduct {
 }
 
 export interface IProductVariation {
-    offers: string[] | null
     variationID: string
     productID: string
     sizeNumber: string
