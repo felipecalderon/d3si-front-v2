@@ -257,8 +257,6 @@ export default function CreateProductForm() {
         },
     ])
 
-    // ...eliminadas declaraciones duplicadas de estado y refs...
-
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
             setCategories(cats)
@@ -755,7 +753,7 @@ export default function CreateProductForm() {
                                         <Input
                                             value={product.brand}
                                             onChange={(e) => handleProductChange(pIndex, "brand", e.target.value)}
-                                            placeholder="Ej: Nike, Adidas, D3SI..."
+                                            placeholder="Ej: D3SI, Otro..."
                                             className="h-12 text-base border-2 transition-all duration-200 border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
                                         />
                                     </div>
