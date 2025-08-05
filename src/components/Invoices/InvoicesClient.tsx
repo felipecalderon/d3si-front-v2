@@ -14,6 +14,7 @@ import { Role } from "@/lib/userRoles"
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
     const { user } = useAuth()
     const isStoreManager = user?.role === Role.Vendedor
+    const isAdmin = user?.role === Role.Admin
     const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -128,17 +129,16 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                             >
                                                 Imprimir
                                             </Button>
-                                            {!isStoreManager ||
-                                                (user.role == Role.Consignado && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleDelete(order.orderID)}
-                                                        className="hover:bg-red-700"
-                                                    >
-                                                        Anular
-                                                    </Button>
-                                                ))}
+                                            {(!isStoreManager || user.role === Role.Consignado || isAdmin) && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={() => handleDelete(order.orderID)}
+                                                    className="hover:bg-red-700"
+                                                >
+                                                    Anular
+                                                </Button>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>
