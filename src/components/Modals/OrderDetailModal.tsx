@@ -190,34 +190,6 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                             </div>
                         </div>
 
-                        {/* Información Financiera */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
-                                <CreditCard className="w-5 h-5" />
-                                Desglose de Totales
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="text-center">
-                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
-                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                        ${neto.toFixed(2)}
-                                    </p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
-                                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                        ${iva.toFixed(2)}
-                                    </p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
-                                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                        ${totalConIva.toFixed(2)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Información de la Tienda */}
                         <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
@@ -361,6 +333,34 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                     <p className="text-gray-500 dark:text-gray-400">No hay productos en esta orden.</p>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Información Financiera */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
+                                <CreditCard className="w-5 h-5" />
+                                Desglose de Totales
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
+                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                                        ${neto.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
+                                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                                        ${iva.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
+                                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                                        ${totalConIva.toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         {/* Botones de acción */}
                         <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
