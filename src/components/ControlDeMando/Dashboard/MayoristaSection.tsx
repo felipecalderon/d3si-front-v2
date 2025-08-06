@@ -70,7 +70,7 @@ export default function MayoristaSection() {
                                 {tiendasActuales.map((tienda, index) => (
                                     <div
                                         key={index}
-                                        className={`py-2 px-4 md:px-16 rounded bg-[${colores[index]}] text-white text-center text-xs md:text-sm font-medium`}
+                                        className={`py-2 px-4 md:px-16 rounded bg-[${colores[index]}] dark:text-white text-center text-xs md:text-sm font-medium`}
                                     >
                                         {tienda.nombre} → {tienda.ventas.toLocaleString()}
                                     </div>

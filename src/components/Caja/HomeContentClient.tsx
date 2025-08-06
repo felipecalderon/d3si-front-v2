@@ -21,44 +21,39 @@ interface Props {
 
 export default function HomeContentClient({ sales, resume }: Props) {
     return (
-        <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+        <div className="space-y-6 sm:space-y-8">
             {/* Sección de estadísticas */}
-            <div>
-                {/* Mobile: Stack vertically */}
-                <div className="block lg:hidden space-y-6">
-                    {/* Gráfico primero en mobile */}
-                    <div className="flex justify-center">
-                        <div className="w-full max-w-[280px] mx-auto">
+            <div className="w-full">
+                {/* Mobile y Tablet: Stack vertically */}
+                <div className="block xl:hidden space-y-6">
+                    {/* Gráfico primero en mobile/tablet */}
+                    <div className="flex justify-center px-4">
+                        <div className="w-full max-w-[280px] sm:max-w-[320px] mx-auto">
                             <GaugeChart />
                         </div>
                     </div>
 
-                    {/* Facturación */}
-                    <div>
-                        <Facturacion resume={resume} />
-                    </div>
-
-                    {/* Ventas */}
-                    <div>
-                        <Ventas resume={resume} />
+                    {/* Facturación y Ventas en grid 2 columnas en tablet */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 md:px-0">
+                        <div className="w-full">
+                            <Facturacion resume={resume} />
+                        </div>
+                        <div className="w-full">
+                            <Ventas resume={resume} />
+                        </div>
                     </div>
                 </div>
 
-                {/* Desktop: Grid layout con altura igual */}
-                <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 xl:gap-8 lg:items-start">
-                    {/* Facturación */}
+                {/* Desktop (XL+): Grid layout original */}
+                <div className="hidden xl:grid xl:grid-cols-3 xl:gap-8 xl:items-start">
                     <div className="h-full flex flex-col justify-between gap-4">
                         <Facturacion resume={resume} />
                     </div>
-
-                    {/* Gráfico - Centrado verticalmente */}
                     <div className="h-full flex justify-center items-center">
-                        <div className="w-full max-w-[300px] xl:max-w-[320px] mx-auto">
+                        <div className="w-full max-w-[320px] mx-auto">
                             <GaugeChart />
                         </div>
                     </div>
-
-                    {/* Ventas */}
                     <div className="h-full flex flex-col justify-between gap-4">
                         <Ventas resume={resume} />
                     </div>
@@ -66,24 +61,33 @@ export default function HomeContentClient({ sales, resume }: Props) {
             </div>
 
             {/* Métodos de pago */}
-            <Payment />
+            <div className="w-full">
+                <Payment />
+            </div>
 
             {/* Filtros + botón */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
-                <div className="w-full sm:w-auto">
-                    <Filters />
-                </div>
+            <div className="w-full px-4 md:px-0">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 lg:gap-6">
+                    <div className="w-full lg:flex-1 lg:max-w-none">
+                        <Filters />
+                    </div>
 
-                <Link href="/home/createsale" className="w-full sm:w-auto flex-shrink-0">
-                    <button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                        Vender 🛍️
-                    </button>
-                </Link>
+                    {/* Botón separado en mobile, inline en desktop */}
+                    <div className="w-full lg:w-auto lg:flex-shrink-0 lg:hidden">
+                        <Link href="/home/createsale" className="block w-full">
+                            <button className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                Vender 🛍️
+                            </button>
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             {/* Tabla de ventas */}
-            <div className="overflow-hidden rounded-lg shadow">
-                <SalesTable sales={sales} />
+            <div className="w-full px-4 md:px-0">
+                <div className="overflow-hidden rounded-lg shadow">
+                    <SalesTable sales={sales} />
+                </div>
             </div>
         </div>
     )
