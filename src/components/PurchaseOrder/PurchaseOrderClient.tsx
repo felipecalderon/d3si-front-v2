@@ -17,6 +17,7 @@ import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
 import { useProductFilter } from "@/stores/productsFilters"
+import { inventoryStore } from "@/stores/inventory.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -46,6 +47,8 @@ export default function PurchaseOrderClient({
         setSelectedGenre,
         clearFilters,
     } = useProductFilter()
+
+    const { setRawProducts } = inventoryStore()
 
     // Filtrar productos según búsqueda
     const searchedProducts = useMemo(() => {
@@ -79,15 +82,6 @@ export default function PurchaseOrderClient({
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
     const currentItems = flattenedProducts.slice(startIndex, endIndex)
-
-    // Resetear página cuando cambian filtros o búsqueda
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
-
-    const totalProductsInOrder = useMemo(() => {
-        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
-    }, [pedido])
 
     // Funciones para agregar o quitar productos a pedido
     const handleAgregarCalzados = () => {
@@ -136,6 +130,10 @@ export default function PurchaseOrderClient({
         }, 0)
     }, [pedido, initialProducts])
 
+    const totalProductsInOrder = useMemo(() => {
+        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
+    }, [pedido])
+
     // Función para obtener páginas visibles en paginación
     const getVisiblePages = () => {
         const pages = []
@@ -157,6 +155,15 @@ export default function PurchaseOrderClient({
 
         return pages
     }
+    // Resetear página cuando cambian filtros o búsqueda
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [search, selectedFilter, sortDirection, selectedGenre])
+
+    useEffect(() => {
+        setRawProducts(initialProducts)
+        setSelectedFilter("genre")
+    }, [])
 
     useEffect(() => {
         if (typeof window !== "undefined") {
