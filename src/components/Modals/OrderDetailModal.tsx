@@ -1,18 +1,8 @@
 "use client"
+import React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
-import { 
-    Calendar, 
-    CreditCard, 
-    MapPin, 
-    Phone, 
-    Receipt, 
-    ShoppingBag, 
-    Store, 
-    Tag,
-    Percent,
-    Package
-} from "lucide-react"
+import { Calendar, CreditCard, MapPin, Phone, Receipt, ShoppingBag, Store, Tag, Percent, Package } from "lucide-react"
 
 interface Props {
     open: boolean
@@ -20,17 +10,45 @@ interface Props {
     order: IOrderWithStore | null
 }
 
-const getStatusColor = (status: string) => {
-    const statusColors: { [key: string]: string } = {
-        'Pendiente': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-        'Completado': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-        'Cancelado': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-        'En proceso': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    }
-    return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-}
-
 export default function OrderDetailModal({ open, onClose, order }: Props) {
+    // Calcular totales de productos
+    const neto = order?.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered * item.priceCost, 0) || 0
+    const iva = neto * 0.19
+    const totalConIva = neto + iva
+    // Estado de pago
+    const paymentStates = ["Pendiente", "Enviado", "Anulado"]
+    const [paymentStatus, setPaymentStatus] = React.useState(order?.status || "Pendiente")
+    React.useEffect(() => {
+        if (open && order?.status) {
+            setPaymentStatus(order.status)
+        }
+    }, [open, order?.status])
+    // DTE
+    const generateRandomDTE = () => Math.floor(10000000 + Math.random() * 90000000).toString()
+    const [dteNumber, setDteNumber] = React.useState("")
+    React.useEffect(() => {
+        if (open) {
+            setDteNumber(generateRandomDTE())
+        }
+    }, [open])
+    // Llegada de mercadería
+    const [arrivalDate, setArrivalDate] = React.useState("")
+    // Cuotas
+    const [currentQuota, setCurrentQuota] = React.useState(0)
+    const [totalQuotas, setTotalQuotas] = React.useState(1)
+
+    React.useEffect(() => {
+        if (order && order.status && paymentStatus === "Pendiente") {
+            setPaymentStatus(order.status)
+        }
+    }, [order, paymentStatus])
+
+    React.useEffect(() => {
+        if (currentQuota === totalQuotas && paymentStatus !== "Pagado") {
+            setPaymentStatus("Pagado")
+        }
+    }, [currentQuota, totalQuotas, paymentStatus])
+
     if (!order) return null
 
     const fecha = new Date(order.createdAt).toLocaleDateString("es-MX", {
@@ -46,68 +64,129 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                     <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
                         <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                             <Receipt className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            Detalles de la Orden
+                            Detalles de la Orden de Compra
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-6 pt-6">
                         {/* Información Principal */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Número de productos solicitados */}
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Tag className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Folio</span>
+                                    <ShoppingBag className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        N° Productos solicitados
+                                    </span>
                                 </div>
-                                <p className="text-lg font-semibold">{order.orderID}</p>
+                                <p className="text-lg font-semibold">{order.ProductVariations?.length || 0}</p>
                             </div>
 
+                            {/* Fecha de emisión */}
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Fecha</span>
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        Fecha de emisión
+                                    </span>
                                 </div>
                                 <p className="text-lg font-semibold">{fecha}</p>
                             </div>
 
+                            {/* Vencimiento del Pago */}
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <ShoppingBag className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Estado</span>
+                                    <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        Vencimiento del Pago
+                                    </span>
                                 </div>
-                                <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                                    {order.status}
-                                </span>
+                                <input
+                                    type="date"
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={arrivalDate}
+                                    onChange={(e) => setArrivalDate(e.target.value)}
+                                />
                             </div>
                         </div>
 
-                        {/* Información Financiera */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
-                                <CreditCard className="w-5 h-5" />
-                                Resumen Financiero
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="text-center">
-                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
-                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                        ${parseFloat(order.total).toFixed(2)}
-                                    </p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Tipo</p>
-                                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                        {order.type}
-                                    </p>
-                                </div>
-                                <div className="text-center">
-                                    <div className="flex items-center justify-center gap-1 mb-1">
-                                        <Percent className="w-4 h-4 text-blue-600 dark:text-blue-300" />
-                                        <p className="text-sm text-blue-600 dark:text-blue-300">Descuento</p>
-                                    </div>
-                                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                        ${parseFloat(order.discount || "0").toFixed(2)}
-                                    </p>
-                                </div>
+                        {/* Inputs y selects adicionales */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            {/* Input DTE */}
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                    N° de DTE
+                                </label>
+                                <input
+                                    type="text"
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={dteNumber}
+                                    onChange={(e) => setDteNumber(e.target.value)}
+                                    placeholder="Ingrese folio DTE"
+                                />
+                            </div>
+
+                            {/* Estado del pago */}
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                    Estado del pago
+                                </label>
+                                <select
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={paymentStatus}
+                                    onChange={(e) => setPaymentStatus(e.target.value)}
+                                    disabled={paymentStatus === "Pagado"}
+                                >
+                                    {paymentStates.map((state) => (
+                                        <option key={state} value={state}>
+                                            {state}
+                                        </option>
+                                    ))}
+                                    <option value="Pagado" disabled>
+                                        Pagado
+                                    </option>
+                                </select>
+                            </div>
+
+                            {/* Llegada de mercadería */}
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                    Llegada de mercadería
+                                </label>
+                                <input
+                                    type="date"
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={arrivalDate}
+                                    onChange={(e) => setArrivalDate(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Inputs de cuotas */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                    Cuota actual
+                                </label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={currentQuota}
+                                    onChange={(e) => setCurrentQuota(Number(e.target.value))}
+                                />
+                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                    Total de cuotas
+                                </label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                                    value={totalQuotas}
+                                    onChange={(e) => setTotalQuotas(Number(e.target.value))}
+                                />
                             </div>
                         </div>
 
@@ -161,19 +240,29 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                         <table className="w-full text-sm">
                                             <thead>
                                                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                                                    <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">SKU</th>
-                                                    <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">Talla</th>
-                                                    <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">Cantidad</th>
-                                                    <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">Precio Unit.</th>
-                                                    <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">Subtotal</th>
+                                                    <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                        SKU
+                                                    </th>
+                                                    <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                        Talla
+                                                    </th>
+                                                    <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                        Cantidad
+                                                    </th>
+                                                    <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                        Precio Costo.
+                                                    </th>
+                                                    <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                        TOTAL.
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {order.ProductVariations.map((item, index) => (
-                                                    <tr 
-                                                        key={item.variationID} 
+                                                    <tr
+                                                        key={item.variationID}
                                                         className={`border-b border-gray-100 dark:border-gray-700 ${
-                                                            index % 2 === 0 ? 'bg-gray-50 dark:bg-slate-700/50' : ''
+                                                            index % 2 === 0 ? "bg-gray-50 dark:bg-slate-700/50" : ""
                                                         }`}
                                                     >
                                                         <td className="py-3 px-2">
@@ -187,13 +276,15 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                                             </span>
                                                         </td>
                                                         <td className="py-3 px-2 text-center">
-                                                            <span className="font-semibold">{item.quantityOrdered}</span>
+                                                            <span className="font-semibold">
+                                                                {item.quantityOrdered}
+                                                            </span>
                                                         </td>
                                                         <td className="py-3 px-2 text-right font-medium">
-                                                            ${parseFloat(item.priceList).toFixed(2)}
+                                                            ${item.priceCost.toFixed(2)}
                                                         </td>
                                                         <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                                            ${item.subtotal.toFixed(2)}
+                                                            ${(item.quantityOrdered * item.priceCost).toFixed(2)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -204,8 +295,8 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                     {/* Mobile Cards */}
                                     <div className="md:hidden space-y-3">
                                         {order.ProductVariations.map((item) => (
-                                            <div 
-                                                key={item.variationID} 
+                                            <div
+                                                key={item.variationID}
                                                 className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
                                             >
                                                 <div className="flex justify-between items-start mb-2">
@@ -223,12 +314,12 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-600 dark:text-gray-400">Precio Unit.</p>
-                                                        <p className="font-medium">${parseFloat(item.priceList).toFixed(2)}</p>
+                                                        <p className="font-medium">${item.priceCost.toFixed(2)}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                                         <p className="font-bold text-green-600 dark:text-green-400">
-                                                            ${item.subtotal.toFixed(2)}
+                                                            ${(item.quantityOrdered * item.priceCost).toFixed(2)}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -242,6 +333,55 @@ export default function OrderDetailModal({ open, onClose, order }: Props) {
                                     <p className="text-gray-500 dark:text-gray-400">No hay productos en esta orden.</p>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Información Financiera */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
+                                <CreditCard className="w-5 h-5" />
+                                Desglose de Totales
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
+                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                                        ${neto.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
+                                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                                        ${iva.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
+                                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                                        ${totalConIva.toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Botones de acción */}
+                        <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
+                            <button
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                onClick={() => window.print()}
+                            >
+                                Imprimir
+                            </button>
+                            <button
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                // TODO: Implementar lógica de actualización
+                            >
+                                Actualizar Orden
+                            </button>
+                            <button
+                                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                // TODO: Implementar lógica de eliminación
+                            >
+                                Eliminar OC
+                            </button>
                         </div>
                     </div>
                 </div>
