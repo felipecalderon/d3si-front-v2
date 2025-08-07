@@ -9,7 +9,7 @@ export interface IProductVariation {
     createdAt: string
     updatedAt: string
     quantityOrdered: number
-    total: number
+    subtotal: number
 }
 
 export interface IOrder {
