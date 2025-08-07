@@ -69,6 +69,9 @@ export function ProductTable({
                                             type="number"
                                             min="1"
                                             value={sp.quantity}
+                                            onWheel={(e) => {
+                                                e.currentTarget.blur()
+                                            }}
                                             onChange={(e) =>
                                                 onQuantityChange(sp.product.productID, Number(e.target.value))
                                             }
@@ -83,6 +86,9 @@ export function ProductTable({
                                                 min="0"
                                                 step="0.01"
                                                 value={sp.unitPrice}
+                                                onWheel={(e) => {
+                                                    e.currentTarget.blur()
+                                                }}
                                                 onChange={(e) =>
                                                     onUnitPriceChange(sp.product.productID, Number(e.target.value))
                                                 }

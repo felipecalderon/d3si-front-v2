@@ -173,6 +173,9 @@ export default function GaugeChart() {
                 <Input
                     type="number"
                     value={metaInput}
+                    onWheel={(e) => {
+                        e.currentTarget.blur()
+                    }}
                     onChange={(e) => setMetaInput(e.target.value)}
                     onBlur={handleMetaSave}
                     onKeyDown={(e) => {

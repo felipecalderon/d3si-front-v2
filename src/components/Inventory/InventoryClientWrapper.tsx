@@ -158,6 +158,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                     setRawProducts(
                         rawProducts.map((p) => (p.productID === product.productID ? { ...p, [field]: editValue } : p))
                     )
+                    setSelectedFilter("genre")
                     setEditingField(null)
                     return "Campo actualizado"
                 },
@@ -207,6 +208,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                             : p
                     )
                 )
+                setSelectedFilter("genre")
                 setEditingField(null)
                 return "Campo actualizado"
             },

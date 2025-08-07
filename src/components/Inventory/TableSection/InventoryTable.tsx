@@ -74,11 +74,6 @@ export function InventoryTable({
     } = inventoryStore()
     const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
 
-    // Función para prevenir el scroll en inputs numéricos
-    const handleWheelPrevent = (e: React.WheelEvent<HTMLInputElement>) => {
-        e.currentTarget.blur()
-    }
-
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -217,7 +212,7 @@ export function InventoryTable({
                                                                 Stock Total: {totalStock}
                                                             </span>
                                                         </div>
-                                                        
+
                                                         {/* SKU con mejor espaciado y alineación */}
                                                         <div className="pl-1">
                                                             <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
@@ -310,10 +305,6 @@ export function InventoryTable({
                                                     >
                                                         <span className="font-medium">{variation.sizeNumber}</span>
                                                     </MotionItem>
-                                                    {/* SKU ahora se muestra en todas las variaciones */}
-                                                    <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                                        {variation.sku}
-                                                    </span>
                                                 </div>
                                             )}
                                         </TableCell>
@@ -338,11 +329,13 @@ export function InventoryTable({
                                                         <Input
                                                             type="number"
                                                             value={editValue}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) => setEditValue(e.target.value)}
                                                             onBlur={() =>
                                                                 handleSaveEdit(product, variation.variationID)
                                                             }
-                                                            onWheel={handleWheelPrevent}
                                                             className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                             autoFocus
                                                         />
@@ -376,7 +369,9 @@ export function InventoryTable({
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
-                                                        onWheel={handleWheelPrevent}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />
@@ -433,7 +428,9 @@ export function InventoryTable({
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
-                                                        onWheel={handleWheelPrevent}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />

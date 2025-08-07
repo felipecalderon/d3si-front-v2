@@ -894,6 +894,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceCost}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -924,6 +927,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceList}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -981,6 +987,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0"
                                                             value={size.stockQuantity}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
