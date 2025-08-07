@@ -21,6 +21,7 @@ export function CategoryProgressHeader({ viewMode, onModeChange, onManageCategor
               <Button
                   variant={viewMode === "categoria" ? "default" : "outline"}
                   size="sm"
+                  className={viewMode === "categoria" ? "bg-transparent text-white bg-blue-500 " : ""}
                   onClick={() => onModeChange("categoria")}
               >
                   Categoría
@@ -28,12 +29,13 @@ export function CategoryProgressHeader({ viewMode, onModeChange, onManageCategor
               <Button
                   variant={viewMode === "tipo" ? "default" : "outline"}
                   size="sm"
+                  className={viewMode === "tipo" ? "bg-transparent text-white bg-blue-500 " : ""}
                   onClick={() => onModeChange("tipo")}
               >
                   Tipo
               </Button>
               {viewMode === "categoria" && (
-                  <Button size="sm" onClick={onManageCategories} className="ml-2">
+                  <Button size="sm" onClick={onManageCategories} className="bg-transparent text-white bg-green-500 ">
                       Administrar Categorías
                   </Button>
               )}
