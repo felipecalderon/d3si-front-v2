@@ -28,20 +28,22 @@ function useOrder(orderId: string) {
 
 export default function OrderDetail({ orderId }: Props) {
     const { order, loading, error } = useOrder(orderId)
+
+    // DTE, cuotas, y estados
     const [arrivalDate, setArrivalDate] = useState("")
     const [dteNumber, setDteNumber] = useState("")
     const [paymentStatus, setPaymentStatus] = useState("Pendiente")
-    const [currentQuota, setCurrentQuota] = useState(0)
-    const [totalQuotas, setTotalQuotas] = useState(1)
+    const [currentQuota, setCurrentQuota] = useState<number | undefined>(undefined)
+    const [totalQuotas, setTotalQuotas] = useState<number | undefined>(undefined)
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
 
     useEffect(() => {
         if (order) {
             setPaymentStatus(order.status || "Pendiente")
-            setArrivalDate("")
-            setDteNumber("")
-            setCurrentQuota(0)
-            setTotalQuotas(1)
+            setArrivalDate(order.expiration ? order.expiration.slice(0, 10) : "")
+            setDteNumber(order.dte || "")
+            setCurrentQuota(order.startQuote != null && order.startQuote !== "" ? Number(order.startQuote) : undefined)
+            setTotalQuotas(order.endQuote != null && order.endQuote !== "" ? Number(order.endQuote) : undefined)
         }
     }, [order])
 
@@ -49,7 +51,18 @@ export default function OrderDetail({ orderId }: Props) {
     if (error) return <div className="p-8 text-center text-red-600">{error}</div>
     if (!order) return <div className="p-8 text-center">No se encontró la orden.</div>
 
-    const neto = order.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered * item.priceCost, 0) || 0
+    // Sumar neto usando subtotal de OrderProduct
+    const neto =
+        order.ProductVariations?.reduce(
+            (acc, item) =>
+                acc +
+                (item.OrderProduct
+                    ? typeof item.OrderProduct.subtotal === "number"
+                        ? item.OrderProduct.subtotal
+                        : Number(item.OrderProduct.subtotal)
+                    : 0),
+            0
+        ) || 0
     const iva = neto * 0.19
     const totalConIva = neto + iva
     const fecha = new Date(order.createdAt).toLocaleDateString("es-MX", {
@@ -132,9 +145,10 @@ export default function OrderDetail({ orderId }: Props) {
                             <input
                                 type="text"
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={dteNumber}
+                                value={dteNumber || ""}
                                 onChange={(e) => setDteNumber(e.target.value)}
-                                placeholder="Ingrese folio DTE"
+                                placeholder="Sin DTE"
+                                disabled
                             />
                         </div>
 
@@ -170,6 +184,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={arrivalDate}
                                 onChange={(e) => setArrivalDate(e.target.value)}
+                                disabled
                             />
                         </div>
                     </div>
@@ -184,8 +199,9 @@ export default function OrderDetail({ orderId }: Props) {
                                 type="number"
                                 min={0}
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={currentQuota}
-                                onChange={(e) => setCurrentQuota(Number(e.target.value))}
+                                value={currentQuota ?? ""}
+                                placeholder="Sin cuota"
+                                disabled
                             />
                         </div>
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -196,8 +212,9 @@ export default function OrderDetail({ orderId }: Props) {
                                 type="number"
                                 min={1}
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={totalQuotas}
-                                onChange={(e) => setTotalQuotas(Number(e.target.value))}
+                                value={totalQuotas ?? ""}
+                                placeholder="Sin cuota"
+                                disabled
                             />
                         </div>
                     </div>
@@ -208,7 +225,7 @@ export default function OrderDetail({ orderId }: Props) {
                             <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                             Información de la Tienda
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
                                     <Store className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -236,6 +253,24 @@ export default function OrderDetail({ orderId }: Props) {
                                     <p className="font-medium">{order.Store?.phone || "N/A"}</p>
                                 </div>
                             </div>
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+                                    <span className="w-4 h-4 text-orange-600 dark:text-orange-400 font-bold">@</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                                    <p className="font-medium">{order.Store?.email || "N/A"}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+                                    <span className="w-4 h-4 text-orange-600 dark:text-orange-400 font-bold">🏙️</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Ciudad</p>
+                                    <p className="font-medium">{order.Store?.city || "N/A"}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -256,16 +291,16 @@ export default function OrderDetail({ orderId }: Props) {
                                                     SKU
                                                 </th>
                                                 <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                    Nombre
+                                                </th>
+                                                <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
                                                     Talla
                                                 </th>
                                                 <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
                                                     Cantidad
                                                 </th>
                                                 <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Precio Costo.
-                                                </th>
-                                                <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    TOTAL.
+                                                    Subtotal
                                                 </th>
                                             </tr>
                                         </thead>
@@ -283,18 +318,36 @@ export default function OrderDetail({ orderId }: Props) {
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-2">
+                                                        <span className="px-2 py-1 rounded text-xs font-medium">
+                                                            {item.Product?.name || "-"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-2">
                                                         <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
                                                             {item.sizeNumber}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-2 text-center">
-                                                        <span className="font-semibold">{item.quantityOrdered}</span>
-                                                    </td>
-                                                    <td className="py-3 px-2 text-right font-medium">
-                                                        ${Number(item.priceCost).toFixed(2)}
+                                                        <span className="font-semibold">
+                                                            {item.OrderProduct?.quantityOrdered ?? "-"}
+                                                        </span>
                                                     </td>
                                                     <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                                        ${(item.quantityOrdered * Number(item.priceCost)).toFixed(2)}
+                                                        {item.OrderProduct &&
+                                                            (typeof item.OrderProduct.subtotal === "number"
+                                                                ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                                      style: "currency",
+                                                                      currency: "CLP",
+                                                                      minimumFractionDigits: 2,
+                                                                  })
+                                                                : Number(item.OrderProduct.subtotal).toLocaleString(
+                                                                      "es-CL",
+                                                                      {
+                                                                          style: "currency",
+                                                                          currency: "CLP",
+                                                                          minimumFractionDigits: 2,
+                                                                      }
+                                                                  ))}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -317,19 +370,35 @@ export default function OrderDetail({ orderId }: Props) {
                                                     Talla {item.sizeNumber}
                                                 </span>
                                             </div>
-                                            <div className="grid grid-cols-3 gap-2 text-sm">
+                                            <div className="grid grid-cols-1 gap-2 text-sm">
                                                 <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Cantidad</p>
-                                                    <p className="font-semibold">{item.quantityOrdered}</p>
+                                                    <p className="text-gray-600 dark:text-gray-400">Nombre</p>
+                                                    <p className="font-medium">{item.Product?.name || "-"}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Precio Unit.</p>
-                                                    <p className="font-medium">${Number(item.priceCost).toFixed(2)}</p>
+                                                    <p className="text-gray-600 dark:text-gray-400">Cantidad</p>
+                                                    <p className="font-semibold">
+                                                        {item.OrderProduct?.quantityOrdered ?? "-"}
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                                     <p className="font-bold text-green-600 dark:text-green-400">
-                                                        ${(item.quantityOrdered * Number(item.priceCost)).toFixed(2)}
+                                                        {item.OrderProduct &&
+                                                            (typeof item.OrderProduct.subtotal === "number"
+                                                                ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                                      style: "currency",
+                                                                      currency: "CLP",
+                                                                      minimumFractionDigits: 2,
+                                                                  })
+                                                                : Number(item.OrderProduct.subtotal).toLocaleString(
+                                                                      "es-CL",
+                                                                      {
+                                                                          style: "currency",
+                                                                          currency: "CLP",
+                                                                          minimumFractionDigits: 2,
+                                                                      }
+                                                                  ))}
                                                     </p>
                                                 </div>
                                             </div>
@@ -355,23 +424,36 @@ export default function OrderDetail({ orderId }: Props) {
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
                                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                    ${neto.toFixed(2)}
+                                    {neto.toLocaleString("es-CL", {
+                                        style: "currency",
+                                        currency: "CLP",
+                                        minimumFractionDigits: 2,
+                                    })}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
                                 <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                    ${iva.toFixed(2)}
+                                    {iva.toLocaleString("es-CL", {
+                                        style: "currency",
+                                        currency: "CLP",
+                                        minimumFractionDigits: 2,
+                                    })}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
                                 <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                    ${totalConIva.toFixed(2)}
+                                    {totalConIva.toLocaleString("es-CL", {
+                                        style: "currency",
+                                        currency: "CLP",
+                                        minimumFractionDigits: 2,
+                                    })}
                                 </p>
                             </div>
                         </div>
                     </div>
+
                     {/* Botones de acción */}
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <button

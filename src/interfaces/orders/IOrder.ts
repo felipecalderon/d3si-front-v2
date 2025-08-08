@@ -1,4 +1,6 @@
 export interface IProductVariation {
+    OrderProduct: any
+    Product: any
     variationID: string
     productID: string
     sizeNumber: string
