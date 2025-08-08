@@ -167,6 +167,9 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                                                 [variation.sku]: val,
                                                             }))
                                                         }}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         min="0"
                                                     />
                                                 </div>

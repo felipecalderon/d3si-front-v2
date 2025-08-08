@@ -12,47 +12,47 @@ import { useRouter } from "next/navigation"
 interface Gasto {
     id: string
     nombre: string
+    categoria: string
     fechaFactura: string
-    fechaPago: string
     monto: number
 }
 
 export default function GastosTable() {
-    // Gastos estáticos iniciales
+    // Gastos estáticos iniciales con categorías corregidas
     const gastosIniciales: Gasto[] = [
         {
             id: "1",
             nombre: "Servicios Básicos - Electricidad",
+            categoria: "Gastos de operación",
             fechaFactura: "2025-01-15",
-            fechaPago: "2025-02-15",
             monto: 85000,
         },
         {
             id: "2",
             nombre: "Arriendo Local Comercial",
+            categoria: "Gastos de ventas",
             fechaFactura: "2025-01-01",
-            fechaPago: "2025-02-01",
             monto: 450000,
         },
         {
             id: "3",
             nombre: "Internet y Telefonía",
+            categoria: "Gastos de operación",
             fechaFactura: "2025-01-10",
-            fechaPago: "2025-02-10",
             monto: 35000,
         },
         {
             id: "4",
             nombre: "Mantención Equipos",
+            categoria: "Gastos de administración",
             fechaFactura: "2025-01-20",
-            fechaPago: "2025-02-20",
             monto: 120000,
         },
         {
             id: "5",
             nombre: "Suministros de Oficina",
+            categoria: "Gastos de administración",
             fechaFactura: "2025-01-25",
-            fechaPago: "2025-02-25",
             monto: 45000,
         },
     ]
@@ -64,8 +64,12 @@ export default function GastosTable() {
 
     const router = useRouter()
 
-    // Filtrar gastos por término de búsqueda
-    const gastosFiltrados = gastos.filter((gasto) => gasto.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
+    // Filtrar gastos por término de búsqueda (incluye nombre y categoría)
+    const gastosFiltrados = gastos.filter(
+        (gasto) =>
+            gasto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            gasto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
     const handleAgregarGasto = (nuevoGasto: Omit<Gasto, "id">) => {
         const gastoConId: Gasto = {
@@ -94,6 +98,20 @@ export default function GastosTable() {
             month: "2-digit",
             year: "numeric",
         })
+    }
+
+    // Función para obtener color de badge según categoría
+    const getCategoriaColor = (categoria: string) => {
+        switch (categoria) {
+            case "Gastos de operación":
+                return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            case "Gastos de ventas":
+                return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+            case "Gastos de administración":
+                return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+            default:
+                return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+        }
     }
 
     if (gastosFiltrados.length === 0 && searchTerm) {
@@ -206,10 +224,10 @@ export default function GastosTable() {
                         <TableRow className="bg-gray-50 dark:bg-slate-700">
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Nombre</TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">
-                                Fecha Factura
+                                Categoría
                             </TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">
-                                Fecha Pago
+                                Fecha Factura
                             </TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Monto</TableHead>
                             <TableHead className="uppercase text-gray-500 font-medium tracking-wider">Acción</TableHead>
@@ -221,11 +239,17 @@ export default function GastosTable() {
                                 <TableCell className="font-medium text-gray-900 dark:text-white">
                                     {gasto.nombre}
                                 </TableCell>
-                                <TableCell className="text-gray-600 dark:text-white">
-                                    {formatearFecha(gasto.fechaFactura)}
+                                <TableCell>
+                                    <span
+                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoriaColor(
+                                            gasto.categoria
+                                        )}`}
+                                    >
+                                        {gasto.categoria}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="text-gray-600 dark:text-white">
-                                    {formatearFecha(gasto.fechaPago)}
+                                    {formatearFecha(gasto.fechaFactura)}
                                 </TableCell>
                                 <TableCell className="text-green-600 font-semibold">
                                     {formatearMonto(gasto.monto)}

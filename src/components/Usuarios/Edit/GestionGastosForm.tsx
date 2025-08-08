@@ -4,31 +4,39 @@ import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import ModalGestion from "./ModalGestion"
-import { Receipt, Calendar, DollarSign, Save, X } from "lucide-react"
+import { Receipt, Calendar, DollarSign, Save, X, Tag } from "lucide-react"
 
 interface Gasto {
-  nombre: string
-  fechaFactura: string
-  fechaPago: string
-  monto: number
+    nombre: string
+    categoria: string
+    fechaFactura: string
+    monto: number
 }
 
 interface GestionGastosFormProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (gasto: Gasto) => void
+    isOpen: boolean
+    onClose: () => void
+    onSave: (gasto: Gasto) => void
 }
+
+const CATEGORIAS = [
+    { value: "Gastos de operación", label: "Gastos de operación" },
+    { value: "Gastos de ventas", label: "Gastos de ventas" },
+    { value: "Gastos de administración", label: "Gastos de administración" }
+]
 
 export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGastosFormProps) {
     const [nombre, setNombre] = useState("")
-    const [fechaPago, setFechaPago] = useState("")
+    const [categoria, setCategoria] = useState("")
     const [monto, setMonto] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
     // Fecha actual para fecha de factura (fija)
-    const fechaFactura = new Date().toISOString().split('T')[0]
+    const [fechaFactura, setFechaFactura] = useState(new Date().toISOString().split("T")[0])
+    const [isEditingFecha, setIsEditingFecha] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -41,8 +49,8 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
                 return
             }
 
-            if (!fechaPago) {
-                toast.error("La fecha de pago es obligatoria")
+            if (!categoria) {
+                toast.error("Debes seleccionar una categoría")
                 return
             }
 
@@ -51,17 +59,11 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
                 return
             }
 
-            // Validar que la fecha de pago no sea anterior a la fecha de factura
-            if (new Date(fechaPago) < new Date(fechaFactura)) {
-                toast.error("La fecha de pago no puede ser anterior a la fecha de factura")
-                return
-            }
-
             const nuevoGasto: Gasto = {
                 nombre: nombre.trim(),
+                categoria,
                 fechaFactura,
-                fechaPago,
-                monto: parseFloat(monto)
+                monto: parseFloat(monto),
             }
 
             onSave(nuevoGasto)
@@ -69,7 +71,7 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
 
             // Limpiar formulario
             setNombre("")
-            setFechaPago("")
+            setCategoria("")
             setMonto("")
         } catch (error) {
             toast.error("Error al agregar gasto")
@@ -82,20 +84,20 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
     const handleClose = () => {
         // Limpiar formulario al cerrar
         setNombre("")
-        setFechaPago("")
+        setCategoria("")
         setMonto("")
         onClose()
     }
 
     const validateForm = () => {
-        return nombre.trim() !== "" && fechaPago !== "" && monto !== "" && parseFloat(monto) > 0
+        return nombre.trim() !== "" && categoria !== "" && monto !== "" && parseFloat(monto) > 0
     }
 
     const formatearFecha = (fecha: string) => {
-        return new Date(fecha).toLocaleDateString('es-CL', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
+        return new Date(fecha).toLocaleDateString("es-CL", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
         })
     }
 
@@ -127,40 +129,57 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
                             />
                         </div>
 
-                        {/* Fecha de factura (fija) */}
+                        {/* Categoría del gasto */}
+                        <div>
+                            <Label className="text-sm font-medium mb-2 flex items-center gap-1">
+                                <Tag className="w-4 h-4" />
+                                Categoría *
+                            </Label>
+                            <Select value={categoria} onValueChange={setCategoria}>
+                                <SelectTrigger className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800">
+                                    <SelectValue placeholder="Selecciona una categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {CATEGORIAS.map((cat) => (
+                                        <SelectItem key={cat.value} value={cat.value}>
+                                            {cat.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Clasifica el gasto según su función en la empresa
+                            </p>
+                        </div>
+
+                        {/* Fecha de factura (editable al hacer clic) */}
                         <div>
                             <Label className="text-sm font-medium mb-2 flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
                                 Fecha de Factura (Automática)
                             </Label>
-                            <Input
-                                type="text"
-                                value={formatearFecha(fechaFactura)}
-                                disabled
-                                className="bg-gray-100 dark:bg-slate-700 text-gray-500"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Esta fecha se establece automáticamente al crear el gasto
-                            </p>
-                        </div>
 
-                        {/* Fecha de pago */}
-                        <div>
-                            <Label className="text-sm font-medium mb-2 flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                Fecha de Pago *
-                            </Label>
-                            <Input
-                                id="fechaPago"
-                                type="date"
-                                value={fechaPago}
-                                onChange={(e) => setFechaPago(e.target.value)}
-                                min={fechaFactura}
-                                required
-                                className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
-                            />
+                            {isEditingFecha ? (
+                                <Input
+                                    type="date"
+                                    value={fechaFactura}
+                                    onChange={(e) => setFechaFactura(e.target.value)}
+                                    onBlur={() => setIsEditingFecha(false)}
+                                    className="bg-slate-100 dark:bg-slate-800"
+                                    autoFocus
+                                />
+                            ) : (
+                                <div
+                                    onClick={() => setIsEditingFecha(true)}
+                                    className="bg-gray-100 dark:bg-slate-700 text-gray-500 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-600"
+                                >
+                                    {formatearFecha(fechaFactura)}
+                                </div>
+                            )}
+
                             <p className="text-xs text-gray-500 mt-1">
-                                Fecha límite para realizar el pago
+                                Esta fecha se establece automáticamente al crear el gasto, pero puedes modificarla si lo
+                                necesitas.
                             </p>
                         </div>
 
@@ -181,27 +200,34 @@ export default function GestionGastosForm({ isOpen, onClose, onSave }: GestionGa
                                 required
                                 className="bg-slate-100 dark:border-sky-50 dark:bg-slate-800"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Ingresa el monto en pesos chilenos (CLP)
-                            </p>
+                            <p className="text-xs text-gray-500 mt-1">Ingresa el monto en pesos chilenos (CLP)</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Vista previa del gasto */}
-                {nombre && fechaPago && monto && (
+                {nombre && categoria && monto && (
                     <div className="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg border border-blue-200 dark:border-slate-600">
                         <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
                             Vista Previa del Gasto:
                         </h4>
                         <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                            <p><span className="font-medium">Nombre:</span> {nombre}</p>
-                            <p><span className="font-medium">Fecha Factura:</span> {formatearFecha(fechaFactura)}</p>
-                            <p><span className="font-medium">Fecha Pago:</span> {formatearFecha(fechaPago)}</p>
-                            <p><span className="font-medium">Monto:</span> {new Intl.NumberFormat('es-CL', {
-                                style: 'currency',
-                                currency: 'CLP'
-                            }).format(parseFloat(monto))}</p>
+                            <p>
+                                <span className="font-medium">Nombre:</span> {nombre}
+                            </p>
+                            <p>
+                                <span className="font-medium">Categoría:</span> {categoria}
+                            </p>
+                            <p>
+                                <span className="font-medium">Fecha Factura:</span> {formatearFecha(fechaFactura)}
+                            </p>
+                            <p>
+                                <span className="font-medium">Monto:</span>{" "}
+                                {new Intl.NumberFormat("es-CL", {
+                                    style: "currency",
+                                    currency: "CLP",
+                                }).format(parseFloat(monto))}
+                            </p>
                         </div>
                     </div>
                 )}

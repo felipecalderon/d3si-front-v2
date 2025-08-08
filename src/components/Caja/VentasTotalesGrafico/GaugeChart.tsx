@@ -1,5 +1,8 @@
 "use client"
-
+import { updateMeta } from "@/actions/totals/updateMeta"
+import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 import { getResume } from "@/actions/totals/getResume"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useEffect, useState } from "react"
@@ -9,6 +12,39 @@ export default function GaugeChart() {
     const [totales, setTotales] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+
+    const [editingMeta, setEditingMeta] = useState(false)
+    const [metaInput, setMetaInput] = useState("")
+
+    const handleMetaSave = async () => {
+        const metaNumber = Number(metaInput)
+        if (!metaInput || isNaN(metaNumber) || metaNumber <= 0) {
+            toast.error("Ingresá una meta válida")
+            setEditingMeta(false)
+            return
+        }
+
+        try {
+            const today = new Date()
+            const fecha = formatDateToYYYYMMDD(today)
+
+            const result = await updateMeta(fecha, metaNumber)
+            if (result) {
+                toast.success(`Meta actualizada a $${metaNumber.toLocaleString("es-AR")}`)
+                setTotales((prev: any) => ({
+                    ...prev,
+                    metaMensual: { ...prev.metaMensual, meta: metaNumber },
+                }))
+            } else {
+                toast.error("No se pudo guardar la meta")
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error("Ocurrió un error al guardar la meta")
+        } finally {
+            setEditingMeta(false)
+        }
+    }
 
     useEffect(() => {
         const fetchTotales = async () => {
@@ -133,7 +169,35 @@ export default function GaugeChart() {
             </div>
 
             <p className="text-xl -mt-6 dark:text-white font-bold">${getSalesAmount().toLocaleString("es-AR")}</p>
-            <p className="text-sm text-gray-500">Meta: ${getMetaAmount().toLocaleString("es-AR")}</p>
+            {editingMeta ? (
+                <Input
+                    type="number"
+                    value={metaInput}
+                    onWheel={(e) => {
+                        e.currentTarget.blur()
+                    }}
+                    onChange={(e) => setMetaInput(e.target.value)}
+                    onBlur={handleMetaSave}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleMetaSave()
+                        }
+                    }}
+                    autoFocus
+                    className="w-32 mx-auto text-sm text-center"
+                />
+            ) : (
+                <p
+                    className="text-sm text-gray-500 cursor-pointer hover:underline"
+                    onClick={() => {
+                        setMetaInput(getMetaAmount().toString())
+                        setEditingMeta(true)
+                    }}
+                >
+                    Meta: ${getMetaAmount().toLocaleString("es-AR")}
+                </p>
+            )}
+
             <p className="text-sm font-medium mt-1" style={{ color: getChartData()[0].fill }}>
                 {getProgressPercentage().toFixed(1)}% completado
             </p>

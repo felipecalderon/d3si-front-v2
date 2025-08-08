@@ -46,6 +46,14 @@ const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory
     return parent ? `${parent.name} / ${cat.name}` : cat.name
 }
 
+// Función para formatear números sin decimales
+const formatCurrency = (value: number): string => {
+    return Number(value).toLocaleString("es-CL", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+}
+
 export function InventoryTable({
     currentItems,
     handleSaveEdit,
@@ -190,20 +198,25 @@ export function InventoryTable({
                                                             className="w-12 h-12 object-cover rounded border"
                                                         />
                                                     ) : (
-                                                        "--"
+                                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
+                                                            <span className="text-xs text-gray-400">--</span>
+                                                        </div>
                                                     )}
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="font-medium text-sm block truncate">
-                                                            {product.name}
-                                                        </span>
-                                                        {/* SKU debajo de la imagen */}
-                                                        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">
-                                                            {variation.sku}
-                                                        </span>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
-                                                                Stock: {totalStock}
+                                                    <div className="flex-1 min-w-0 space-y-2">
+                                                        <div>
+                                                            <span className="font-medium text-sm block truncate">
+                                                                {product.name}
+                                                            </span>
+                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium inline-block mt-1">
+                                                                Stock Total: {totalStock}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* SKU con mejor espaciado y alineación */}
+                                                        <div className="pl-1">
+                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                                {variation.sku}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -211,7 +224,18 @@ export function InventoryTable({
                                             </TableCell>
                                         )}
                                         {!isFirst && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
+                                            <TableCell className="py-2 text-left">
+                                                {/* SKU alineado para filas no-first con el mismo padding/margin que el de arriba */}
+                                                <div className="flex">
+                                                    {/* Espacio equivalente al botón + imagen para alinear */}
+                                                    <div className="w-16 flex-shrink-0"></div>
+                                                    <div>
+                                                        <span className="text-xs font-mono -ml-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                            {variation.sku}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
                                         )}
                                         {/* Columna MARCA */}
                                         <TableCell
@@ -274,12 +298,14 @@ export function InventoryTable({
                                                     />
                                                 </div>
                                             ) : (
-                                                <MotionItem
-                                                    key={`${product.productID}-${variation.variationID}`}
-                                                    delay={index + 3}
-                                                >
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <MotionItem
+                                                        key={`${product.productID}-${variation.variationID}`}
+                                                        delay={index + 3}
+                                                    >
+                                                        <span className="font-medium">{variation.sizeNumber}</span>
+                                                    </MotionItem>
+                                                </div>
                                             )}
                                         </TableCell>
 
@@ -301,7 +327,11 @@ export function InventoryTable({
                                                 editingField?.field === "priceCost" ? (
                                                     <div className="flex justify-center">
                                                         <Input
+                                                            type="number"
                                                             value={editValue}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) => setEditValue(e.target.value)}
                                                             onBlur={() =>
                                                                 handleSaveEdit(product, variation.variationID)
@@ -312,11 +342,7 @@ export function InventoryTable({
                                                     </div>
                                                 ) : (
                                                     <span className="font-semibold text-sm">
-                                                        $
-                                                        {Number(variation.priceCost).toLocaleString("es-CL", {
-                                                            minimumFractionDigits: 0,
-                                                            maximumFractionDigits: 2,
-                                                        })}
+                                                        ${formatCurrency(variation.priceCost)}
                                                     </span>
                                                 )}
                                             </TableCell>
@@ -339,9 +365,13 @@ export function InventoryTable({
                                             editingField?.field === "priceList" ? (
                                                 <div className="flex justify-center">
                                                     <Input
+                                                        type="number"
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />
@@ -349,11 +379,7 @@ export function InventoryTable({
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1">
                                                     <span className="font-semibold text-sm">
-                                                        $
-                                                        {Number(variation.priceList).toLocaleString("es-CL", {
-                                                            minimumFractionDigits: 0,
-                                                            maximumFractionDigits: 2,
-                                                        })}
+                                                        ${formatCurrency(variation.priceList)}
                                                     </span>
                                                     <span
                                                         className={`text-xs ${
@@ -375,7 +401,7 @@ export function InventoryTable({
                                             {/* Aquí puedes mostrar el precio de oferta, porcentaje, o un botón, según tu lógica */}
                                             {variation.offerPrice ? (
                                                 <span className="font-semibold text-green-600">
-                                                    ${Number(variation.offerPrice).toLocaleString("es-CL")}
+                                                    ${formatCurrency(variation.offerPrice)}
                                                 </span>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
@@ -398,9 +424,13 @@ export function InventoryTable({
                                             editingField?.field === "stockQuantity" ? (
                                                 <div className="flex justify-center">
                                                     <Input
+                                                        type="number"
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />

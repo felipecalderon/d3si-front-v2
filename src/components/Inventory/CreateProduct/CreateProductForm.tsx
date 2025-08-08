@@ -769,7 +769,7 @@ export default function CreateProductForm() {
                                         <Button
                                             type="button"
                                             onClick={() => setShowModal(true)}
-                                            className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center"
+                                            className="text-blue-600 hover:text-blue-800 bg-slate-200 dark:bg-slate-950 text-sm font-semibold flex items-center"
                                         >
                                             <Plus className="w-4 h-4 mr-1" />
                                         </Button>
@@ -894,6 +894,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceCost}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -924,6 +927,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceList}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -981,6 +987,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0"
                                                             value={size.stockQuantity}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
