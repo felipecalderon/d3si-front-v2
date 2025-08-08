@@ -7,6 +7,8 @@ interface Props {
     orderId: string
 }
 
+import { getOrderById } from "@/actions/orders/getOrderById"
+
 function useOrder(orderId: string) {
     const [order, setOrder] = useState<IOrderWithStore | null>(null)
     const [loading, setLoading] = useState(true)
@@ -15,11 +17,7 @@ function useOrder(orderId: string) {
     useEffect(() => {
         setLoading(true)
         setError(null)
-        fetch(`/api/orders/${orderId}`)
-            .then((res) => {
-                if (!res.ok) throw new Error("No se encontró la orden")
-                return res.json()
-            })
+        getOrderById(orderId)
             .then((data) => setOrder(data))
             .catch((err) => setError(err.message))
             .finally(() => setLoading(false))
@@ -63,7 +61,23 @@ export default function OrderDetail({ orderId }: Props) {
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
             <div className="max-w-5xl mx-auto">
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <button
+                        className="flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
+                        onClick={() => (window.location.href = "/home/invoices")}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        Regresar a las órdenes de compra
+                    </button>
                     <h1 className="flex items-center gap-2 text-2xl font-bold">
                         <Receipt className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         Detalles de la Orden de Compra
@@ -277,10 +291,10 @@ export default function OrderDetail({ orderId }: Props) {
                                                         <span className="font-semibold">{item.quantityOrdered}</span>
                                                     </td>
                                                     <td className="py-3 px-2 text-right font-medium">
-                                                        ${item.priceCost.toFixed(2)}
+                                                        ${Number(item.priceCost).toFixed(2)}
                                                     </td>
                                                     <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                                        ${(item.quantityOrdered * item.priceCost).toFixed(2)}
+                                                        ${(item.quantityOrdered * Number(item.priceCost)).toFixed(2)}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -310,12 +324,12 @@ export default function OrderDetail({ orderId }: Props) {
                                                 </div>
                                                 <div>
                                                     <p className="text-gray-600 dark:text-gray-400">Precio Unit.</p>
-                                                    <p className="font-medium">${item.priceCost.toFixed(2)}</p>
+                                                    <p className="font-medium">${Number(item.priceCost).toFixed(2)}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                                     <p className="font-bold text-green-600 dark:text-green-400">
-                                                        ${(item.quantityOrdered * item.priceCost).toFixed(2)}
+                                                        ${(item.quantityOrdered * Number(item.priceCost)).toFixed(2)}
                                                     </p>
                                                 </div>
                                             </div>
