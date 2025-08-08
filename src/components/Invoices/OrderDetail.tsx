@@ -183,13 +183,6 @@ export default function OrderDetail({ orderId }: Props) {
         }
     }
 
-    // Handler para imprimir la orden (abre el diálogo de impresión)
-    const handlePrint = () => {
-        setTimeout(() => {
-            window.print()
-        }, 100)
-    }
-
     // Handler para eliminar la orden (anular OC)
     const handleDelete = async () => {
         if (!order) return
@@ -286,10 +279,7 @@ export default function OrderDetail({ orderId }: Props) {
                     </div>
                     <FinancialSummary neto={neto} iva={iva} totalConIva={totalConIva} />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
-                        <button
-                            className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={handlePrint}
-                        >
+                        <button className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
                             Imprimir
                         </button>
                         {isAdmin && (
