@@ -13,6 +13,7 @@ interface Props {
 
 import { getOrderById } from "@/actions/orders/getOrderById"
 import { updateOrder } from "@/actions/orders/updateOrder"
+import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 
@@ -178,12 +179,35 @@ export default function OrderDetail({ orderId }: Props) {
         }
     }
 
+    // Handler para imprimir la orden (abre el diálogo de impresión)
+    const handlePrint = () => {
+        setTimeout(() => {
+            window.print()
+        }, 100)
+    }
+
+    // Handler para eliminar la orden (anular OC)
+    const handleDelete = async () => {
+        if (!order) return
+        if (confirm("¿Estás seguro de que quieres anular esta orden?")) {
+            try {
+                await deleteOrder(order.orderID)
+                toast.success("Orden anulada correctamente")
+                setTimeout(() => {
+                    window.location.href = "/home/invoices"
+                }, 1000)
+            } catch (e: any) {
+                toast.error(e?.message || "Error al anular la orden")
+            }
+        }
+    }
+
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
                     <button
-                        className="flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
+                        className="no-print flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
                         onClick={() => (window.location.href = "/home/invoices")}
                     >
                         <svg
@@ -307,7 +331,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 {isAdmin && (
                                     <button
                                         type="button"
-                                        className="text-xs text-blue-600 hover:underline ml-2"
+                                        className="no-print text-xs text-blue-600 hover:underline ml-2"
                                         onClick={() => setEditQuotas((v) => !v)}
                                     >
                                         {editQuotas ? "Cancelar" : "Editar"}
@@ -412,7 +436,7 @@ export default function OrderDetail({ orderId }: Props) {
                             </h3>
                             {isAdmin && (
                                 <button
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                    className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
                                     onClick={() => setShowAddProductsModal(true)}
                                 >
                                     Agregar más productos
@@ -501,7 +525,7 @@ export default function OrderDetail({ orderId }: Props) {
                                                     {isAdmin && (
                                                         <td className="py-3 px-2 text-center">
                                                             <button
-                                                                className="text-red-600 hover:underline text-xs"
+                                                                className="no-print text-red-600 hover:underline text-xs"
                                                                 onClick={() => {
                                                                     if (!order) return
                                                                     order.ProductVariations =
@@ -624,20 +648,23 @@ export default function OrderDetail({ orderId }: Props) {
                     {/* Botones de acción */}
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <button
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={() => window.print()}
+                            className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            onClick={handlePrint}
                         >
                             Imprimir
                         </button>
                         {isAdmin && (
                             <button
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                className="no-print bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleActualizarOrden}
                             >
                                 Actualizar Orden
                             </button>
                         )}
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow">
+                        <button
+                            className="no-print bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            onClick={handleDelete}
+                        >
                             Eliminar OC
                         </button>
                     </div>

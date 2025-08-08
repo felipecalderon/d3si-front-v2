@@ -148,8 +148,6 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                 </div>
             )}
 
-            {/* <OrderDetailModal open={isModalOpen} onClose={handleCloseModal} order={selectedOrder} /> */}
-
             {printOrder && (
                 <div id="print-area">
                     <PrintOrderView order={printOrder} />
