@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import dynamic from "next/dynamic"
 // Importa el modal dinámicamente para evitar SSR issues
 const AddProductsToOrderModal = dynamic(() => import("@/components/Modals/AddProductsToOrderModal"), { ssr: false })
@@ -18,18 +19,18 @@ function useOrder(orderId: string) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const fetchOrder = () => {
+    const fetchOrder = React.useCallback(() => {
         setLoading(true)
         setError(null)
         getOrderById(orderId)
             .then((data) => setOrder(data))
             .catch((err) => setError(err.message))
             .finally(() => setLoading(false))
-    }
+    }, [orderId])
 
     useEffect(() => {
         fetchOrder()
-    }, [orderId])
+    }, [orderId, fetchOrder])
 
     return { order, loading, error, fetchOrder }
 }
@@ -56,8 +57,16 @@ export default function OrderDetail({ orderId }: Props) {
             setPaymentStatus(order.status || "Pendiente")
             setArrivalDate(order.expiration ? order.expiration.slice(0, 10) : "")
             setDteNumber(order.dte || "")
-            setCurrentQuota(order.startQuote != null && order.startQuote !== "" ? Number(order.startQuote) : undefined)
-            setTotalQuotas(order.endQuote != null && order.endQuote !== "" ? Number(order.endQuote) : undefined)
+            setCurrentQuota(
+                order.startQuote != null && order.startQuote !== "" && !isNaN(Number(order.startQuote))
+                    ? Number(order.startQuote)
+                    : undefined
+            )
+            setTotalQuotas(
+                order.endQuote != null && order.endQuote !== "" && !isNaN(Number(order.endQuote))
+                    ? Number(order.endQuote)
+                    : undefined
+            )
         }
     }, [order])
 
@@ -126,10 +135,40 @@ export default function OrderDetail({ orderId }: Props) {
     const handleActualizarOrden = async () => {
         if (!order) return
         try {
-            await updateOrder({ orderID: order.orderID, ProductVariations: order.ProductVariations })
-            fetchOrder()
-        } catch (e) {
-            alert("Error al actualizar la orden")
+            // Convertir cuotas a string o null
+            const startQuote = currentQuota !== undefined && currentQuota !== null ? String(currentQuota) : null
+            const endQuote = totalQuotas !== undefined && totalQuotas !== null ? String(totalQuotas) : null
+            const body = {
+                orderID: order.orderID,
+                status: paymentStatus,
+                type: order.type,
+                discount: order.discount,
+                dte: order.dte,
+                startQuote,
+                endQuote,
+                expiration: arrivalDate ? new Date(arrivalDate).toISOString() : order.expiration,
+                newProducts:
+                    order.ProductVariations?.map((v) => ({
+                        variationID: v.variationID,
+                        productID: v.productID,
+                        sizeNumber: v.sizeNumber,
+                        priceList: v.priceList,
+                        priceCost: v.priceCost,
+                        sku: v.sku,
+                        stockQuantity: v.stockQuantity,
+                        createdAt: v.createdAt,
+                        updatedAt: v.updatedAt,
+                        quantityOrdered: v.OrderProduct?.quantityOrdered ?? v.quantityOrdered,
+                        subtotal: v.OrderProduct?.subtotal ?? v.subtotal,
+                    })) || [],
+            }
+            await updateOrder(body)
+            toast.success("Orden actualizada correctamente")
+            setTimeout(() => {
+                fetchOrder()
+            }, 1200)
+        } catch (e: any) {
+            toast.error(e?.message || "Error al actualizar la orden")
         }
     }
 
