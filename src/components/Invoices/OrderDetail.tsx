@@ -5,7 +5,11 @@ import dynamic from "next/dynamic"
 // Importa el modal dinámicamente para evitar SSR issues
 const AddProductsToOrderModal = dynamic(() => import("@/components/Modals/AddProductsToOrderModal"), { ssr: false })
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
-import { Calendar, CreditCard, MapPin, Phone, Receipt, ShoppingBag, Store, Package } from "lucide-react"
+import { Calendar, Receipt, ShoppingBag } from "lucide-react"
+import OrderMainInfo from "./OrderMainInfo"
+import StoreInfo from "./StoreInfo"
+import ProductsTable from "./ProductsTable"
+import FinancialSummary from "./FinancialSummary"
 
 interface Props {
     orderId: string
@@ -228,210 +232,29 @@ export default function OrderDetail({ orderId }: Props) {
                     </h1>
                 </div>
                 <div className="space-y-6 pt-6">
-                    {/* Información Principal */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* Número de productos solicitados */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-2">
-                                <ShoppingBag className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    N° Productos solicitados
-                                </span>
-                            </div>
-                            <p className="text-lg font-semibold">{cantidadTotalProductos}</p>
-                        </div>
-                        {/* Fecha de emisión */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Fecha de emisión
-                                </span>
-                            </div>
-                            <p className="text-lg font-semibold">{fecha}</p>
-                        </div>
-                        {/* Vencimiento del Pago */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Vencimiento del Pago
-                                </span>
-                            </div>
-                            <input
-                                type="date"
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={arrivalDate}
-                                onChange={(e) => setArrivalDate(e.target.value)}
-                                disabled={!isAdmin}
-                            />
-                        </div>
-                    </div>
-                    {/* Inputs y selects adicionales */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                        {/* Input DTE */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                N° de DTE
-                            </label>
-                            <input
-                                type="text"
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={dteNumber || ""}
-                                onChange={(e) => setDteNumber(e.target.value)}
-                                placeholder="Sin DTE"
-                                disabled={!!order?.dte || !isAdmin}
-                            />
-                        </div>
-
-                        {/* Estado del pago */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Estado del pago
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={paymentStatus}
-                                onChange={(e) => setPaymentStatus(e.target.value)}
-                                disabled={paymentStatus === "Pagado" || !isAdmin}
-                            >
-                                {paymentStates.map((state) => (
-                                    <option key={state} value={state}>
-                                        {state}
-                                    </option>
-                                ))}
-                                <option value="Pagado" disabled>
-                                    Pagado
-                                </option>
-                            </select>
-                        </div>
-
-                        {/* Llegada de mercadería */}
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Llegada de mercadería
-                            </label>
-                            <input
-                                type="date"
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={arrivalDate}
-                                onChange={(e) => setArrivalDate(e.target.value)}
-                                disabled
-                            />
-                        </div>
-                    </div>
-
-                    {/* Inputs de cuotas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Cuota actual
-                                </label>
-                                {isAdmin && (
-                                    <button
-                                        type="button"
-                                        className="no-print text-xs text-blue-600 hover:underline ml-2"
-                                        onClick={() => setEditQuotas((v) => !v)}
-                                    >
-                                        {editQuotas ? "Cancelar" : "Editar"}
-                                    </button>
-                                )}
-                            </div>
-                            <input
-                                type="number"
-                                min={0}
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={currentQuota ?? ""}
-                                placeholder="Sin cuota"
-                                disabled={!editQuotas || !isAdmin}
-                                onChange={(e) => {
-                                    const val = Number(e.target.value)
-                                    if (val < 0) return
-                                    setCurrentQuota(Number.isNaN(val) ? undefined : val)
-                                }}
-                            />
-                        </div>
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Total de cuotas
-                            </label>
-                            <input
-                                type="number"
-                                min={1}
-                                className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                                value={totalQuotas ?? ""}
-                                placeholder="Sin cuota"
-                                disabled={!editQuotas || !isAdmin}
-                                onChange={(e) => {
-                                    const val = Number(e.target.value)
-                                    if (val < 1) return
-                                    setTotalQuotas(Number.isNaN(val) ? undefined : val)
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Información de la Tienda */}
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                        <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                            <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                            Información de la Tienda
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                                    <Store className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Nombre</p>
-                                    <p className="font-medium">{order.Store?.name || "N/A"}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                                    <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Dirección</p>
-                                    <p className="font-medium">{order.Store?.address || "N/A"}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                                    <Phone className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Teléfono</p>
-                                    <p className="font-medium">{order.Store?.phone || "N/A"}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                                    <span className="w-4 h-4 text-orange-600 dark:text-orange-400 font-bold">@</span>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                                    <p className="font-medium">{order.Store?.email || "N/A"}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                                    <span className="w-4 h-4 text-orange-600 dark:text-orange-400 font-bold">🏙️</span>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Ciudad</p>
-                                    <p className="font-medium">{order.Store?.city || "N/A"}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Productos */}
+                    <OrderMainInfo
+                        cantidadTotalProductos={cantidadTotalProductos}
+                        fecha={fecha}
+                        arrivalDate={arrivalDate}
+                        setArrivalDate={setArrivalDate}
+                        isAdmin={isAdmin}
+                        dteNumber={dteNumber}
+                        setDteNumber={setDteNumber}
+                        paymentStatus={paymentStatus}
+                        setPaymentStatus={setPaymentStatus}
+                        paymentStates={paymentStates}
+                        currentQuota={currentQuota}
+                        setCurrentQuota={setCurrentQuota}
+                        totalQuotas={totalQuotas}
+                        setTotalQuotas={setTotalQuotas}
+                        editQuotas={editQuotas}
+                        setEditQuotas={setEditQuotas}
+                    />
+                    <StoreInfo store={order.Store} />
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                <Package className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                <ShoppingBag className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 Productos ({order.ProductVariations?.length || 0})
                             </h3>
                             {isAdmin && (
@@ -443,209 +266,25 @@ export default function OrderDetail({ orderId }: Props) {
                                 </button>
                             )}
                         </div>
-                        {/* Modal para agregar productos */}
                         <AddProductsToOrderModal
                             open={showAddProductsModal}
                             onClose={() => setShowAddProductsModal(false)}
                             onConfirm={handleAgregarProductosAOrden}
                             initialSelected={productosSeleccionados}
                         />
-                        {order.ProductVariations && order.ProductVariations.length > 0 ? (
-                            <div className="space-y-4">
-                                {/* Desktop Table */}
-                                <div className="hidden md:block overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-200 dark:border-gray-700">
-                                                <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    SKU
-                                                </th>
-                                                <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Nombre
-                                                </th>
-                                                <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Talla
-                                                </th>
-                                                <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Cantidad
-                                                </th>
-                                                <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Subtotal
-                                                </th>
-                                                <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    Quitar
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {order.ProductVariations.map((item, index) => (
-                                                <tr
-                                                    key={item.variationID}
-                                                    className={`border-b border-gray-100 dark:border-gray-700 ${
-                                                        index % 2 === 0 ? "bg-gray-50 dark:bg-slate-700/50" : ""
-                                                    }`}
-                                                >
-                                                    <td className="py-3 px-2">
-                                                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
-                                                            {item.sku}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 px-2">
-                                                        <span className="px-2 py-1 rounded text-xs font-medium">
-                                                            {item.Product?.name || "-"}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 px-2">
-                                                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
-                                                            {item.sizeNumber}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 px-2 text-center">
-                                                        <span className="font-semibold">
-                                                            {item.OrderProduct?.quantityOrdered ?? "-"}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                                        {item.OrderProduct &&
-                                                            (typeof item.OrderProduct.subtotal === "number"
-                                                                ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                                      style: "currency",
-                                                                      currency: "CLP",
-                                                                      minimumFractionDigits: 2,
-                                                                  })
-                                                                : Number(item.OrderProduct.subtotal).toLocaleString(
-                                                                      "es-CL",
-                                                                      {
-                                                                          style: "currency",
-                                                                          currency: "CLP",
-                                                                          minimumFractionDigits: 2,
-                                                                      }
-                                                                  ))}
-                                                    </td>
-                                                    {isAdmin && (
-                                                        <td className="py-3 px-2 text-center">
-                                                            <button
-                                                                className="no-print text-red-600 hover:underline text-xs"
-                                                                onClick={() => {
-                                                                    if (!order) return
-                                                                    order.ProductVariations =
-                                                                        order.ProductVariations.filter(
-                                                                            (v) => v.variationID !== item.variationID
-                                                                        )
-                                                                    // Forzar re-render
-                                                                    setProductosSeleccionados((sel) => ({ ...sel }))
-                                                                }}
-                                                            >
-                                                                Quitar
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Mobile Cards */}
-                                <div className="md:hidden space-y-3">
-                                    {order.ProductVariations.map((item) => (
-                                        <div
-                                            key={item.variationID}
-                                            className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-mono">
-                                                    {item.sku}
-                                                </span>
-                                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
-                                                    Talla {item.sizeNumber}
-                                                </span>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-2 text-sm">
-                                                <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Nombre</p>
-                                                    <p className="font-medium">{item.Product?.name || "-"}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Cantidad</p>
-                                                    <p className="font-semibold">
-                                                        {item.OrderProduct?.quantityOrdered ?? "-"}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
-                                                    <p className="font-bold text-green-600 dark:text-green-400">
-                                                        {item.OrderProduct &&
-                                                            (typeof item.OrderProduct.subtotal === "number"
-                                                                ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                                      style: "currency",
-                                                                      currency: "CLP",
-                                                                      minimumFractionDigits: 2,
-                                                                  })
-                                                                : Number(item.OrderProduct.subtotal).toLocaleString(
-                                                                      "es-CL",
-                                                                      {
-                                                                          style: "currency",
-                                                                          currency: "CLP",
-                                                                          minimumFractionDigits: 2,
-                                                                      }
-                                                                  ))}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8">
-                                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                <p className="text-gray-500 dark:text-gray-400">No hay productos en esta orden.</p>
-                            </div>
-                        )}
+                        <ProductsTable
+                            products={order.ProductVariations || []}
+                            isAdmin={isAdmin}
+                            onRemove={(variationID) => {
+                                if (!order) return
+                                order.ProductVariations = order.ProductVariations.filter(
+                                    (v) => v.variationID !== variationID
+                                )
+                                setProductosSeleccionados((sel) => ({ ...sel }))
+                            }}
+                        />
                     </div>
-
-                    {/* Información Financiera */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
-                            <CreditCard className="w-5 h-5" />
-                            Desglose de Totales
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="text-center">
-                                <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
-                                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                    {neto.toLocaleString("es-CL", {
-                                        style: "currency",
-                                        currency: "CLP",
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
-                                <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                    {iva.toLocaleString("es-CL", {
-                                        style: "currency",
-                                        currency: "CLP",
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
-                                <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                    {totalConIva.toLocaleString("es-CL", {
-                                        style: "currency",
-                                        currency: "CLP",
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Botones de acción */}
+                    <FinancialSummary neto={neto} iva={iva} totalConIva={totalConIva} />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <button
                             className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
