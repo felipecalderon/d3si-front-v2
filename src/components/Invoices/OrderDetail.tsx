@@ -13,6 +13,8 @@ interface Props {
 
 import { getOrderById } from "@/actions/orders/getOrderById"
 import { updateOrder } from "@/actions/orders/updateOrder"
+import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 
 function useOrder(orderId: string) {
     const [order, setOrder] = useState<IOrderWithStore | null>(null)
@@ -46,6 +48,9 @@ export default function OrderDetail({ orderId }: Props) {
     const [totalQuotas, setTotalQuotas] = useState<number | undefined>(undefined)
     const [editQuotas, setEditQuotas] = useState(false)
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
+    const { user } = useAuth()
+    const userRole = user?.role
+    const isAdmin = userRole === Role.Admin
 
     // Estado para modal de agregar productos
     const [showAddProductsModal, setShowAddProductsModal] = useState(false)
@@ -234,6 +239,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={arrivalDate}
                                 onChange={(e) => setArrivalDate(e.target.value)}
+                                disabled={!isAdmin}
                             />
                         </div>
                     </div>
@@ -250,7 +256,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 value={dteNumber || ""}
                                 onChange={(e) => setDteNumber(e.target.value)}
                                 placeholder="Sin DTE"
-                                disabled={!!order?.dte}
+                                disabled={!!order?.dte || !isAdmin}
                             />
                         </div>
 
@@ -263,7 +269,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={paymentStatus}
                                 onChange={(e) => setPaymentStatus(e.target.value)}
-                                disabled={paymentStatus === "Pagado"}
+                                disabled={paymentStatus === "Pagado" || !isAdmin}
                             >
                                 {paymentStates.map((state) => (
                                     <option key={state} value={state}>
@@ -298,13 +304,15 @@ export default function OrderDetail({ orderId }: Props) {
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
                                     Cuota actual
                                 </label>
-                                <button
-                                    type="button"
-                                    className="text-xs text-blue-600 hover:underline ml-2"
-                                    onClick={() => setEditQuotas((v) => !v)}
-                                >
-                                    {editQuotas ? "Cancelar" : "Editar"}
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        type="button"
+                                        className="text-xs text-blue-600 hover:underline ml-2"
+                                        onClick={() => setEditQuotas((v) => !v)}
+                                    >
+                                        {editQuotas ? "Cancelar" : "Editar"}
+                                    </button>
+                                )}
                             </div>
                             <input
                                 type="number"
@@ -312,7 +320,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={currentQuota ?? ""}
                                 placeholder="Sin cuota"
-                                disabled={!editQuotas}
+                                disabled={!editQuotas || !isAdmin}
                                 onChange={(e) => {
                                     const val = Number(e.target.value)
                                     if (val < 0) return
@@ -330,7 +338,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={totalQuotas ?? ""}
                                 placeholder="Sin cuota"
-                                disabled={!editQuotas}
+                                disabled={!editQuotas || !isAdmin}
                                 onChange={(e) => {
                                     const val = Number(e.target.value)
                                     if (val < 1) return
@@ -402,12 +410,14 @@ export default function OrderDetail({ orderId }: Props) {
                                 <Package className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 Productos ({order.ProductVariations?.length || 0})
                             </h3>
-                            <button
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
-                                onClick={() => setShowAddProductsModal(true)}
-                            >
-                                Agregar más productos
-                            </button>
+                            {isAdmin && (
+                                <button
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                    onClick={() => setShowAddProductsModal(true)}
+                                >
+                                    Agregar más productos
+                                </button>
+                            )}
                         </div>
                         {/* Modal para agregar productos */}
                         <AddProductsToOrderModal
@@ -488,22 +498,24 @@ export default function OrderDetail({ orderId }: Props) {
                                                                       }
                                                                   ))}
                                                     </td>
-                                                    <td className="py-3 px-2 text-center">
-                                                        <button
-                                                            className="text-red-600 hover:underline text-xs"
-                                                            onClick={() => {
-                                                                if (!order) return
-                                                                order.ProductVariations =
-                                                                    order.ProductVariations.filter(
-                                                                        (v) => v.variationID !== item.variationID
-                                                                    )
-                                                                // Forzar re-render
-                                                                setProductosSeleccionados((sel) => ({ ...sel }))
-                                                            }}
-                                                        >
-                                                            Quitar
-                                                        </button>
-                                                    </td>
+                                                    {isAdmin && (
+                                                        <td className="py-3 px-2 text-center">
+                                                            <button
+                                                                className="text-red-600 hover:underline text-xs"
+                                                                onClick={() => {
+                                                                    if (!order) return
+                                                                    order.ProductVariations =
+                                                                        order.ProductVariations.filter(
+                                                                            (v) => v.variationID !== item.variationID
+                                                                        )
+                                                                    // Forzar re-render
+                                                                    setProductosSeleccionados((sel) => ({ ...sel }))
+                                                                }}
+                                                            >
+                                                                Quitar
+                                                            </button>
+                                                        </td>
+                                                    )}
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -617,12 +629,14 @@ export default function OrderDetail({ orderId }: Props) {
                         >
                             Imprimir
                         </button>
-                        <button
-                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={handleActualizarOrden}
-                        >
-                            Actualizar Orden
-                        </button>
+                        {isAdmin && (
+                            <button
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                onClick={handleActualizarOrden}
+                            >
+                                Actualizar Orden
+                            </button>
+                        )}
                         <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow">
                             Eliminar OC
                         </button>
