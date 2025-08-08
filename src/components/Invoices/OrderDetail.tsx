@@ -1,5 +1,8 @@
 "use client"
 import React, { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+// Importa el modal dinámicamente para evitar SSR issues
+const AddProductsToOrderModal = dynamic(() => import("@/components/Modals/AddProductsToOrderModal"), { ssr: false })
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Calendar, CreditCard, MapPin, Phone, Receipt, ShoppingBag, Store, Package } from "lucide-react"
 
@@ -37,6 +40,12 @@ export default function OrderDetail({ orderId }: Props) {
     const [totalQuotas, setTotalQuotas] = useState<number | undefined>(undefined)
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
 
+    // Estado para modal de agregar productos
+    const [showAddProductsModal, setShowAddProductsModal] = useState(false)
+    const [productosSeleccionados, setProductosSeleccionados] = useState<
+        Record<string, { cantidad: number; producto: any; variation: any }>
+    >({})
+
     useEffect(() => {
         if (order) {
             setPaymentStatus(order.status || "Pendiente")
@@ -63,13 +72,30 @@ export default function OrderDetail({ orderId }: Props) {
                     : 0),
             0
         ) || 0
+
+    // Sumar cantidad total de productos solicitados
+    const cantidadTotalProductos =
+        order.ProductVariations?.reduce((acc, item) => acc + (item.OrderProduct?.quantityOrdered ?? 0), 0) || 0
     const iva = neto * 0.19
     const totalConIva = neto + iva
-    const fecha = new Date(order.createdAt).toLocaleDateString("es-MX", {
+    // Mostrar fecha de emisión en UTC (sin ajuste de zona horaria local)
+    const createdAtDate = new Date(order.createdAt)
+    const fecha = createdAtDate.toLocaleDateString("es-MX", {
         day: "2-digit",
         month: "short",
         year: "numeric",
+        timeZone: "UTC",
     })
+
+    // Handler para confirmar selección y cerrar modal
+    const handleAgregarProductosAOrden = (
+        seleccionados: Record<string, { cantidad: number; producto: any; variation: any }>
+    ) => {
+        // Aquí deberías integrar los productos seleccionados a la orden (ejemplo: updateOrder)
+        setShowAddProductsModal(false)
+        setProductosSeleccionados({})
+        // TODO: Lógica para actualizar la orden en backend y refrescar datos
+    }
 
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
@@ -107,7 +133,7 @@ export default function OrderDetail({ orderId }: Props) {
                                     N° Productos solicitados
                                 </span>
                             </div>
-                            <p className="text-lg font-semibold">{order.ProductVariations?.length || 0}</p>
+                            <p className="text-lg font-semibold">{cantidadTotalProductos}</p>
                         </div>
                         {/* Fecha de emisión */}
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -276,10 +302,25 @@ export default function OrderDetail({ orderId }: Props) {
 
                     {/* Productos */}
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                        <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                            <Package className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            Productos ({order.ProductVariations?.length || 0})
-                        </h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="flex items-center gap-2 text-lg font-semibold">
+                                <Package className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                Productos ({order.ProductVariations?.length || 0})
+                            </h3>
+                            <button
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                onClick={() => setShowAddProductsModal(true)}
+                            >
+                                Agregar más productos
+                            </button>
+                        </div>
+                        {/* Modal para agregar productos */}
+                        <AddProductsToOrderModal
+                            open={showAddProductsModal}
+                            onClose={() => setShowAddProductsModal(false)}
+                            onConfirm={handleAgregarProductosAOrden}
+                            initialSelected={productosSeleccionados}
+                        />
                         {order.ProductVariations && order.ProductVariations.length > 0 ? (
                             <div className="space-y-4">
                                 {/* Desktop Table */}
