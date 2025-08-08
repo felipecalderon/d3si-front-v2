@@ -1,0 +1,166 @@
+import React from "react"
+import { Package } from "lucide-react"
+
+interface Product {
+    variationID: string
+    sku: string
+    sizeNumber: string
+    Product?: { name?: string }
+    OrderProduct?: { quantityOrdered?: number; subtotal?: number | string }
+}
+
+interface Props {
+    products: Product[]
+    isAdmin: boolean
+    onRemove: (variationID: string) => void
+}
+
+const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
+    if (!products || products.length === 0) {
+        return (
+            <div className="text-center py-8">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No hay productos en esta orden.</p>
+            </div>
+        )
+    }
+    return (
+        <div className="space-y-4">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                            <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">SKU</th>
+                            <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                Nombre
+                            </th>
+                            <th className="text-left py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                Talla
+                            </th>
+                            <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                Cantidad
+                            </th>
+                            <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                Subtotal
+                            </th>
+                            <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                Quitar
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {products.map((item, index) => (
+                            <tr
+                                key={item.variationID}
+                                className={`border-b border-gray-100 dark:border-gray-700 ${
+                                    index % 2 === 0 ? "bg-gray-50 dark:bg-slate-700/50" : ""
+                                }`}
+                            >
+                                <td className="py-3 px-2">
+                                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
+                                        {item.sku}
+                                    </span>
+                                </td>
+                                <td className="py-3 px-2">
+                                    <span className="px-2 py-1 rounded text-xs font-medium">
+                                        {item.Product?.name || "-"}
+                                    </span>
+                                </td>
+                                <td className="py-3 px-2">
+                                    <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                                        {item.sizeNumber}
+                                    </span>
+                                </td>
+                                <td className="py-3 px-2 text-center">
+                                    <span className="font-semibold">{item.OrderProduct?.quantityOrdered ?? "-"}</span>
+                                </td>
+                                <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
+                                    {item.OrderProduct &&
+                                        (typeof item.OrderProduct.subtotal === "number"
+                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 2,
+                                              })
+                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 2,
+                                              }))}
+                                </td>
+                                {isAdmin && (
+                                    <td className="py-3 px-2 text-center">
+                                        <button
+                                            className="no-print text-red-600 hover:underline text-xs"
+                                            onClick={() => onRemove(item.variationID)}
+                                        >
+                                            Quitar
+                                        </button>
+                                    </td>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+                {products.map((item) => (
+                    <div
+                        key={item.variationID}
+                        className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
+                    >
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-mono">
+                                {item.sku}
+                            </span>
+                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                                Talla {item.sizeNumber}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400">Nombre</p>
+                                <p className="font-medium">{item.Product?.name || "-"}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400">Cantidad</p>
+                                <p className="font-semibold">{item.OrderProduct?.quantityOrdered ?? "-"}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
+                                <p className="font-bold text-green-600 dark:text-green-400">
+                                    {item.OrderProduct &&
+                                        (typeof item.OrderProduct.subtotal === "number"
+                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 2,
+                                              })
+                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 2,
+                                              }))}
+                                </p>
+                            </div>
+                        </div>
+                        {isAdmin && (
+                            <div className="mt-2 text-right">
+                                <button
+                                    className="no-print text-red-600 hover:underline text-xs"
+                                    onClick={() => onRemove(item.variationID)}
+                                >
+                                    Quitar
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export default ProductsTable
