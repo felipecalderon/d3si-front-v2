@@ -11,26 +11,31 @@ interface Props {
 }
 
 import { getOrderById } from "@/actions/orders/getOrderById"
+import { updateOrder } from "@/actions/orders/updateOrder"
 
 function useOrder(orderId: string) {
     const [order, setOrder] = useState<IOrderWithStore | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
+    const fetchOrder = () => {
         setLoading(true)
         setError(null)
         getOrderById(orderId)
             .then((data) => setOrder(data))
             .catch((err) => setError(err.message))
             .finally(() => setLoading(false))
+    }
+
+    useEffect(() => {
+        fetchOrder()
     }, [orderId])
 
-    return { order, loading, error }
+    return { order, loading, error, fetchOrder }
 }
 
 export default function OrderDetail({ orderId }: Props) {
-    const { order, loading, error } = useOrder(orderId)
+    const { order, loading, error, fetchOrder } = useOrder(orderId)
 
     // DTE, cuotas, y estados
     const [arrivalDate, setArrivalDate] = useState("")
@@ -87,14 +92,45 @@ export default function OrderDetail({ orderId }: Props) {
         timeZone: "UTC",
     })
 
-    // Handler para confirmar selección y cerrar modal
+    // Handler para confirmar selección y cerrar modal (solo actualiza el estado local)
     const handleAgregarProductosAOrden = (
         seleccionados: Record<string, { cantidad: number; producto: any; variation: any }>
     ) => {
-        // Aquí deberías integrar los productos seleccionados a la orden (ejemplo: updateOrder)
+        if (!order) return
+
+        // Filtra los productos seleccionados con cantidad > 0
+        const nuevosVariations = Object.values(seleccionados)
+            .filter((sel) => sel.cantidad > 0)
+            .map((sel) => ({
+                ...sel.variation,
+                Product: sel.producto,
+                OrderProduct: {
+                    quantityOrdered: sel.cantidad,
+                    subtotal: Number(sel.variation.priceList) * sel.cantidad,
+                },
+            }))
+
+        // Combina los productos actuales con los nuevos (sin duplicar variationID)
+        const existentes = order.ProductVariations || []
+        const existentesMap = Object.fromEntries(existentes.map((v) => [v.variationID, v]))
+        nuevosVariations.forEach((nv) => {
+            existentesMap[nv.variationID] = nv
+        })
+        // Solo actualiza el estado local de la orden (no llama updateOrder)
+        order.ProductVariations = Object.values(existentesMap)
         setShowAddProductsModal(false)
         setProductosSeleccionados({})
-        // TODO: Lógica para actualizar la orden en backend y refrescar datos
+    }
+
+    // Handler para guardar cambios en la orden (actualizar en backend)
+    const handleActualizarOrden = async () => {
+        if (!order) return
+        try {
+            await updateOrder({ orderID: order.orderID, ProductVariations: order.ProductVariations })
+            fetchOrder()
+        } catch (e) {
+            alert("Error al actualizar la orden")
+        }
     }
 
     return (
@@ -343,6 +379,9 @@ export default function OrderDetail({ orderId }: Props) {
                                                 <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
                                                     Subtotal
                                                 </th>
+                                                <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                    Quitar
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -389,6 +428,22 @@ export default function OrderDetail({ orderId }: Props) {
                                                                           minimumFractionDigits: 2,
                                                                       }
                                                                   ))}
+                                                    </td>
+                                                    <td className="py-3 px-2 text-center">
+                                                        <button
+                                                            className="text-red-600 hover:underline text-xs"
+                                                            onClick={() => {
+                                                                if (!order) return
+                                                                order.ProductVariations =
+                                                                    order.ProductVariations.filter(
+                                                                        (v) => v.variationID !== item.variationID
+                                                                    )
+                                                                // Forzar re-render
+                                                                setProductosSeleccionados((sel) => ({ ...sel }))
+                                                            }}
+                                                        >
+                                                            Quitar
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -503,7 +558,10 @@ export default function OrderDetail({ orderId }: Props) {
                         >
                             Imprimir
                         </button>
-                        <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow">
+                        <button
+                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            onClick={handleActualizarOrden}
+                        >
                             Actualizar Orden
                         </button>
                         <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow">
