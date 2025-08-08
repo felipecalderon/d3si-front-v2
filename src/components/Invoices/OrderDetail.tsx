@@ -44,6 +44,7 @@ export default function OrderDetail({ orderId }: Props) {
     const [paymentStatus, setPaymentStatus] = useState("Pendiente")
     const [currentQuota, setCurrentQuota] = useState<number | undefined>(undefined)
     const [totalQuotas, setTotalQuotas] = useState<number | undefined>(undefined)
+    const [editQuotas, setEditQuotas] = useState(false)
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
 
     // Estado para modal de agregar productos
@@ -249,7 +250,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 value={dteNumber || ""}
                                 onChange={(e) => setDteNumber(e.target.value)}
                                 placeholder="Sin DTE"
-                                disabled
+                                disabled={!!order?.dte}
                             />
                         </div>
 
@@ -293,16 +294,30 @@ export default function OrderDetail({ orderId }: Props) {
                     {/* Inputs de cuotas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Cuota actual
-                            </label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Cuota actual
+                                </label>
+                                <button
+                                    type="button"
+                                    className="text-xs text-blue-600 hover:underline ml-2"
+                                    onClick={() => setEditQuotas((v) => !v)}
+                                >
+                                    {editQuotas ? "Cancelar" : "Editar"}
+                                </button>
+                            </div>
                             <input
                                 type="number"
                                 min={0}
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={currentQuota ?? ""}
                                 placeholder="Sin cuota"
-                                disabled
+                                disabled={!editQuotas}
+                                onChange={(e) => {
+                                    const val = Number(e.target.value)
+                                    if (val < 0) return
+                                    setCurrentQuota(Number.isNaN(val) ? undefined : val)
+                                }}
                             />
                         </div>
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -315,7 +330,12 @@ export default function OrderDetail({ orderId }: Props) {
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                                 value={totalQuotas ?? ""}
                                 placeholder="Sin cuota"
-                                disabled
+                                disabled={!editQuotas}
+                                onChange={(e) => {
+                                    const val = Number(e.target.value)
+                                    if (val < 1) return
+                                    setTotalQuotas(Number.isNaN(val) ? undefined : val)
+                                }}
                             />
                         </div>
                     </div>
