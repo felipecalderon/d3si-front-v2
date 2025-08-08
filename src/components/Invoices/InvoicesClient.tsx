@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import OrderDetailModal from "@/components/Modals/OrderDetailModal"
+// import OrderDetailModal from "@/components/Modals/OrderDetailModal"
 import PrintOrderView from "@/components/Print/PrintOrderView"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
@@ -17,19 +17,10 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
     const isAdmin = user?.role === Role.Admin
     const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
-    const [isModalOpen, setIsModalOpen] = useState(false)
     const [printOrder, setPrintOrder] = useState<IOrderWithStore | null>(null)
 
     const handleView = (order: IOrderWithStore) => {
-        setSelectedOrder(order)
-        setIsModalOpen(true)
-    }
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false)
-        setTimeout(() => {
-            setSelectedOrder(null)
-        }, 150)
+        window.location.href = `/home/order/${order.orderID}`
     }
 
     const getStoreName = (storeID: string) => {
@@ -157,7 +148,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                 </div>
             )}
 
-            <OrderDetailModal open={isModalOpen} onClose={handleCloseModal} order={selectedOrder} />
+            {/* <OrderDetailModal open={isModalOpen} onClose={handleCloseModal} order={selectedOrder} /> */}
 
             {printOrder && (
                 <div id="print-area">
