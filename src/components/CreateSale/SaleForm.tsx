@@ -10,9 +10,9 @@ import { useTienda } from "@/stores/tienda.store"
 import { PaymentType } from "@/interfaces/sales/ISale"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { handleAddProductByFlattened } from "@/components/CreateSale/handleAddProductByFlattened"
+import { IProduct } from "@/interfaces/products/IProduct"
 
-export const SaleForm = () => {
+export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) => {
     const [productos, setProductos] = useState<IProductoEnVenta[]>([])
     const [codigo, setCodigo] = useState("")
     const [tipoPago, setTipoPago] = useState<PaymentType>("Efectivo")
@@ -30,7 +30,7 @@ export const SaleForm = () => {
         const storeID = storeSelected.storeID
 
         try {
-            const productoEncontrado = await getProductById(storeID, codigo)
+            const productoEncontrado = await getProductById(initialProducts, storeID, codigo)
             if (!productoEncontrado) {
                 toast("Producto no encontrado")
                 return
@@ -88,21 +88,19 @@ export const SaleForm = () => {
         }
 
         try {
-            const storeID = productos[0]?.storeID || ""
-
             const productosParaBackend = productos.map((prod) => ({
                 storeProductID: prod.storeProductID,
                 quantitySold: prod.cantidad,
             }))
-
+            if (!storeSelected) return toast.error("No se pudo cargar la tienda")
             const res = await postSale({
-                storeID,
+                storeID: storeSelected.storeID,
                 paymentType: tipoPago,
                 products: productosParaBackend,
             })
 
             if (res) {
-                toast("Venta registrada con éxito")
+                toast(res.message)
                 setResumen(productos)
                 setProductos([])
                 setVentaFinalizada(true)
@@ -130,15 +128,7 @@ export const SaleForm = () => {
 
     return (
         <>
-            <ScanInput
-                codigo={codigo}
-                setCodigo={setCodigo}
-                handleAddProduct={handleAddProduct}
-                isAdding={isAdding}
-                // handleAddProductByFlattened={(producto) =>
-                //     handleAddProductByFlattened(producto, storeSelected, setProductos, toast)
-                // }
-            />
+            <ScanInput codigo={codigo} setCodigo={setCodigo} handleAddProduct={handleAddProduct} isAdding={isAdding} />
 
             <CartTable productos={productos} onDelete={handleDelete} onCantidadChange={handleCantidadChange} />
             <div className="flex flex-col gap-6 mt-4">

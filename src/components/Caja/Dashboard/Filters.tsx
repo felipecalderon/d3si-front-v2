@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 const Filters = () => {
-    const { stores } = useTienda()
+    const { stores, storeSelected } = useTienda()
 
     return (
         <div className="w-full">
@@ -13,7 +13,7 @@ const Filters = () => {
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-1 w-full">
                 {/* Botón Vender - Solo visible en desktop dentro de filters */}
                 <div className="hidden lg:block lg:flex-shrink-0">
-                    <Link href="/home/createsale">
+                    <Link href={`/home/createsale?storeID=${storeSelected?.storeID}`}>
                         <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium shadow-md transition-colors whitespace-nowrap">
                             Vender 🛍️
                         </Button>

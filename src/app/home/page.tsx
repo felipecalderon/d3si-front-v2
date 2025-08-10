@@ -24,7 +24,7 @@ const HomePage = async ({ searchParams }: SerchParams) => {
             <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Seccion superior */}
                 <div className="w-full flex  lg:flex-row flex-col">
-                    {/* Filtros + botón */}
+                    {/* Filtros + botón vender */}
                     <div className="lg:w-3/6">
                         <div className="sm:w-auto">
                             <Filters />

@@ -1,6 +1,6 @@
 "use client"
-import React, { useCallback, useEffect, useState } from "react"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import React, { useEffect, useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
 import { useTienda } from "@/stores/tienda.store"
 import { Collapsible } from "@/components/Animations/Collapsible"
@@ -13,13 +13,15 @@ import { motion } from "framer-motion"
 import { MotionItem } from "../Animations/motionItem"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
+
 import useMobileScreen from "@/hooks/useMobileScreen"
 import useDarkMode from "@/hooks/useDarkMode"
+import useQueryParams from "@/hooks/useQueryParams"
 
 export default function Sidebar() {
     const router = useRouter()
     const pathname = usePathname()
-    const searchParams = useSearchParams()
+    const { searchParams, createQueryParam } = useQueryParams()
 
     const { user } = useAuth()
     const { storeSelected } = useTienda()
@@ -29,16 +31,6 @@ export default function Sidebar() {
 
     const [isCollapsed, setIsCollapsed] = useState(false)
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
-
-    const createQueryParam = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
-
-            return params.toString()
-        },
-        [searchParams]
-    )
 
     useEffect(() => {
         const storeID = searchParams.get("storeID")
@@ -55,7 +47,8 @@ export default function Sidebar() {
     }
 
     const handleNavClick = async (route: string) => {
-        router.push(route)
+        if (!storeSelected) return router.push(route)
+        router.push(`${route}?${createQueryParam("storeID", storeSelected.storeID)}`)
         // Close mobile menu after navigation
         if (isMobile) {
             setIsMobileOpen(false)

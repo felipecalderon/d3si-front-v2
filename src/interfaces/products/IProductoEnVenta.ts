@@ -3,7 +3,6 @@ export interface IProductoEnVenta {
     nombre: string
     precio: number
     cantidad: number
-    storeID: string
     image: string
     stockDisponible: number
 }

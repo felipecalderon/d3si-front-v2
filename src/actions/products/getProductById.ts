@@ -1,8 +1,6 @@
-import { getAllProducts } from "@/actions/products/getAllProducts" 
+import { IProduct } from "@/interfaces/products/IProduct"
 
-export const getProductById = async (storeId: string, skuInput: string) => {
-    const products = await getAllProducts()
-
+export const getProductById = async (products: IProduct[], storeId: string, skuInput: string) => {
     for (const product of products) {
         const variation = product.ProductVariations.find((v) => v.sku === skuInput)
         if (variation) {
@@ -10,7 +8,6 @@ export const getProductById = async (storeId: string, skuInput: string) => {
                 ? variation.StoreProducts.find((sp) => sp.storeID === storeId)
                 : null
 
-            
             return {
                 ...variation,
                 name: product.name,
