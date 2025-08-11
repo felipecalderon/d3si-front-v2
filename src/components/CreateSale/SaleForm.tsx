@@ -39,6 +39,7 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
             const stockDisponible = storeSelected.isAdminStore
                 ? productoEncontrado.stockQuantity
                 : productoEncontrado.quantity
+
             console.log({ storeSelected, stockDisponible })
             if (stockDisponible <= 0) {
                 toast("No hay stock disponible para este producto.")

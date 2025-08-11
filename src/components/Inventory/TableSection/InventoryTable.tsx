@@ -17,6 +17,8 @@ import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { inventoryStore } from "@/stores/inventory.store"
 import Image from "next/image"
+import useQueryParams from "@/hooks/useQueryParams"
+import { getProductById } from "@/actions/products/getProductById"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -72,6 +74,10 @@ export function InventoryTable({
         setAddSizeModalProductID,
         addSizeModalProductID,
     } = inventoryStore()
+    const { searchParams } = useQueryParams()
+    const storeID = searchParams.get("storeID")
+    const products = currentItems.map((p) => p.product)
+
     const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
 
     return (
@@ -106,16 +112,20 @@ export function InventoryTable({
                                     OFERTAS
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK CENTRAL
+                                    {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK AGREGADO
-                                </TableHead>
+                                {user?.role === Role.Admin && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        STOCK AGREGADO
+                                    </TableHead>
+                                )}
                             </TableRow>
                         </TableHeader>
 
                         <TableBody>
                             {currentItems.map(({ product, variation, isFirst, totalStock }, index) => {
+                                const productData = getProductById([product], storeID!, variation.sku)
+                                console.log(productData)
                                 // Stock agregado = suma de StoreProducts en sucursales (no admin)
                                 const stockAgregado =
                                     variation.StoreProducts?.filter(
@@ -440,21 +450,25 @@ export function InventoryTable({
                                                     variant={variation.stockQuantity < 20 ? "destructive" : "default"}
                                                     className="font-bold text-sm"
                                                 >
-                                                    {variation.stockQuantity}
+                                                    {user?.role === Role.Admin
+                                                        ? productData?.stockQuantity
+                                                        : productData?.quantity}
                                                 </Badge>
                                             )}
                                         </TableCell>
 
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem
-                                                key={`${product.productID}-${variation.variationID}`}
-                                                delay={index + 3}
-                                            >
-                                                <span className="font-medium text-blue-600 dark:text-blue-400">
-                                                    {stockAgregado}
-                                                </span>
-                                            </MotionItem>
-                                        </TableCell>
+                                        {user?.role === Role.Admin && (
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                                <MotionItem
+                                                    key={`${product.productID}-${variation.variationID}`}
+                                                    delay={index + 3}
+                                                >
+                                                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                                                        {stockAgregado}
+                                                    </span>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 )
                             })}
