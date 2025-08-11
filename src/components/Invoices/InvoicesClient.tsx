@@ -4,8 +4,6 @@ import React, { useState } from "react"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-// import OrderDetailModal from "@/components/Modals/OrderDetailModal"
-import PrintOrderView from "@/components/Print/PrintOrderView"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
 import { useAuth } from "@/stores/user.store"
@@ -17,7 +15,6 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
     const isAdmin = user?.role === Role.Admin
     const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
-    const [printOrder, setPrintOrder] = useState<IOrderWithStore | null>(null)
 
     const handleView = (order: IOrderWithStore) => {
         window.location.href = `/home/order/${order.orderID}`
@@ -32,14 +29,6 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
             await deleteOrder(orderID)
             setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
         }
-    }
-
-    const handlePrint = (order: IOrderWithStore) => {
-        setPrintOrder(order)
-        setTimeout(() => {
-            window.print()
-            setPrintOrder(null)
-        }, 100)
     }
 
     const getStatusBadge = (status: string) => {
@@ -113,13 +102,6 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                             >
                                                 Ver
                                             </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handlePrint(order)}
-                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                            >
-                                                Imprimir
-                                            </Button>
                                             {(!isStoreManager || user.role === Role.Consignado || isAdmin) && (
                                                 <Button
                                                     size="sm"
@@ -145,12 +127,6 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                         No hay órdenes generadas
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400">Las órdenes que generes aparecerán aquí</p>
-                </div>
-            )}
-
-            {printOrder && (
-                <div id="print-area">
-                    <PrintOrderView order={printOrder} />
                 </div>
             )}
         </div>
