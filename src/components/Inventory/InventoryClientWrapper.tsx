@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect, Suspense } from "react"
 import { toast } from "sonner"
 import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
@@ -268,13 +268,15 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
             {/* Table Section */}
             <div className="flex-1 flex flex-col">
                 <MotionItem delay={2} className="flex-1">
-                    <InventoryTable
-                        currentItems={currentItems}
-                        handleSaveEdit={handleSaveEdit}
-                        handleDeleteProduct={handleDeleteProduct}
-                        adminStoreIDs={adminStoreIDs}
-                        categories={[]}
-                    />
+                    <Suspense fallback={"cargando..."}>
+                        <InventoryTable
+                            currentItems={currentItems}
+                            handleSaveEdit={handleSaveEdit}
+                            handleDeleteProduct={handleDeleteProduct}
+                            adminStoreIDs={adminStoreIDs}
+                            categories={[]}
+                        />
+                    </Suspense>
                 </MotionItem>
                 {totalPages > 1 && (
                     <MotionItem delay={currentItems.length + 3}>
