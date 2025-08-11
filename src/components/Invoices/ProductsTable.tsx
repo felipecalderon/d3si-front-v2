@@ -92,7 +92,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                                 {isAdmin && (
                                     <td className="py-3 px-2 text-center">
                                         <button
-                                            className="no-print text-red-600 hover:underline text-xs"
+                                            className=" text-red-600 hover:underline text-xs"
                                             onClick={() => onRemove(item.variationID)}
                                         >
                                             Quitar
@@ -149,7 +149,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                         {isAdmin && (
                             <div className="mt-2 text-right">
                                 <button
-                                    className="no-print text-red-600 hover:underline text-xs"
+                                    className=" text-red-600 hover:underline text-xs"
                                     onClick={() => onRemove(item.variationID)}
                                 >
                                     Quitar
