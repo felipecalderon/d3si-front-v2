@@ -10,6 +10,8 @@ import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
+import useDarkMode from "@/hooks/useDarkMode"
+import { Switch } from "../ui/switch"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -18,6 +20,7 @@ export default function LoginForm() {
     const { setUser, setUsers } = useAuth()
     const { setStores, setStoreSelected, setStoresUser } = useTienda()
 
+    const { isDarkMode, setIsDarkMode } = useDarkMode()
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -85,6 +88,19 @@ export default function LoginForm() {
             </div>
 
             <Button type="submit">Iniciar sesión</Button>
+            <div className="pt-10 flex flex-row justify-center items-center gap-2">
+                {isDarkMode ? (
+                    <span className="text-xs italic">Modo Oscuro</span>
+                ) : (
+                    <span className="text-xs italic">Modo Claro</span>
+                )}
+                <Switch
+                    checked={!!isDarkMode}
+                    title="Clic para cambiar"
+                    onCheckedChange={() => setIsDarkMode(!isDarkMode)}
+                    className="bg-gray-300 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-slate-900 flex-shrink-0"
+                />
+            </div>
         </form>
     )
 }

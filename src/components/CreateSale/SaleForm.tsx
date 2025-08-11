@@ -32,12 +32,14 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
         try {
             const productoEncontrado = await getProductById(initialProducts, storeID, codigo)
             if (!productoEncontrado) {
-                toast("Producto no encontrado")
                 return
             }
 
-            const stockDisponible = productoEncontrado.quantity ?? 0
-
+            // Si es de la tienda central (admin) saca del stock global, sino, utiliza el stock propio.
+            const stockDisponible = storeSelected.isAdminStore
+                ? productoEncontrado.stockQuantity
+                : productoEncontrado.quantity
+            console.log({ storeSelected, stockDisponible })
             if (stockDisponible <= 0) {
                 toast("No hay stock disponible para este producto.")
                 return

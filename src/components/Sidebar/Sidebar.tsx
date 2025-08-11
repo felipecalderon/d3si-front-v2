@@ -302,11 +302,11 @@ export default function Sidebar() {
                                     <TooltipTrigger asChild>
                                         <div className="flex items-center">
                                             <span className="flex-shrink-0">
-                                                {isDarkMode ? <FaMoon size={16} /> : <FaSun size={16} />}
+                                                {!!isDarkMode ? <FaMoon size={16} /> : <FaSun size={16} />}
                                             </span>
                                             {!shouldShowCollapsed && (
                                                 <span className="ml-3 text-sm lg:text-base">
-                                                    {isDarkMode ? "Modo Oscuro" : "Modo Claro"}
+                                                    {!!isDarkMode ? "Modo Oscuro" : "Modo Claro"}
                                                 </span>
                                             )}
                                         </div>
@@ -319,7 +319,7 @@ export default function Sidebar() {
                                 </Tooltip>
                                 {!shouldShowCollapsed && (
                                     <Switch
-                                        checked={isDarkMode}
+                                        checked={!!isDarkMode}
                                         onCheckedChange={() => setIsDarkMode(!isDarkMode)}
                                         className="bg-gray-300 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-slate-900 flex-shrink-0"
                                     />
