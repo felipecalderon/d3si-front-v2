@@ -43,14 +43,15 @@ export default function LoginForm() {
             const storesFromUser = tiendas.filter((t) => t.Users.some((u) => u.userID === data.cleanUsr.userID))
             setStoresUser(storesFromUser)
             setStoreSelected(storesFromUser[0])
+            const storeID = storesFromUser[0].storeID
             toast.success("Inicio de sesión exitoso")
             if (data.cleanUsr.role === Role.Consignado) {
-                return router.push("/home/purchaseOrder")
+                return router.push(`/home/purchaseOrder?storeID=${storeID}`)
             }
             if (data.cleanUsr.role === Role.Tercero) {
-                return router.push("/home/inventory")
+                return router.push(`/home/inventory?storeID=${storeID}`)
             }
-            router.push("/home")
+            router.push(`/home?storeID=${storeID}`)
         } catch (err) {
             console.error(err)
             toast.error("Error inesperado al iniciar sesión")
