@@ -4,17 +4,17 @@ export const getProductById = async (products: IProduct[], storeId: string, skuI
     for (const product of products) {
         const variation = product.ProductVariations.find((v) => v.sku === skuInput)
         if (variation) {
-            const storeProduct = Array.isArray(variation.StoreProducts)
-                ? variation.StoreProducts.find((sp) => sp.storeID === storeId)
-                : null
+            const variationStoreProduct = variation.StoreProducts.find((sp) => sp.storeID === storeId)
+            if (!variationStoreProduct) return null
 
             return {
+                ...variationStoreProduct,
                 ...variation,
                 name: product.name,
                 image: product.image || "",
-                storeProductID: storeProduct?.storeProductID || "",
+                storeProductID: variationStoreProduct.storeProductID || "",
                 priceList: Number(variation.priceList),
-                stock: storeProduct?.quantity ?? 0,
+                stock: variationStoreProduct.quantity ?? 0,
             }
         }
     }

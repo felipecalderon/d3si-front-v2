@@ -36,7 +36,7 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
                 return
             }
 
-            const stockDisponible = productoEncontrado.stockQuantity ?? 0
+            const stockDisponible = productoEncontrado.quantity ?? 0
 
             if (stockDisponible <= 0) {
                 toast("No hay stock disponible para este producto.")
