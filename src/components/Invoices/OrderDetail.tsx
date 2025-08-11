@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { toast } from "react-hot-toast"
 import dynamic from "next/dynamic"
 // Importa el modal dinámicamente para evitar SSR issues
@@ -20,6 +20,7 @@ import { updateOrder } from "@/actions/orders/updateOrder"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
+import { useReactToPrint } from "react-to-print"
 
 function useOrder(orderId: string) {
     const [order, setOrder] = useState<IOrderWithStore | null>(null)
@@ -44,6 +45,10 @@ function useOrder(orderId: string) {
 
 export default function OrderDetail({ orderId }: Props) {
     const { order, loading, error, fetchOrder } = useOrder(orderId)
+    const printRef = useRef<HTMLDivElement>(null)
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+    })
 
     // DTE, cuotas, y estados
     const [arrivalDate, setArrivalDate] = useState("")
@@ -201,10 +206,10 @@ export default function OrderDetail({ orderId }: Props) {
 
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-5xl mx-auto print-container" ref={printRef}>
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
                     <button
-                        className="no-print flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
+                        className="flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
                         onClick={() => (window.location.href = "/home/invoices")}
                     >
                         <svg
@@ -252,7 +257,7 @@ export default function OrderDetail({ orderId }: Props) {
                             </h3>
                             {isAdmin && (
                                 <button
-                                    className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
                                     onClick={() => setShowAddProductsModal(true)}
                                 >
                                     Agregar más productos
@@ -279,19 +284,23 @@ export default function OrderDetail({ orderId }: Props) {
                     </div>
                     <FinancialSummary neto={neto} iva={iva} totalConIva={totalConIva} />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
-                        <button className="no-print bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
+                        <button
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            onClick={handlePrint}
+                        >
                             Imprimir
                         </button>
+
                         {isAdmin && (
                             <button
-                                className="no-print bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                className=" bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleActualizarOrden}
                             >
                                 Actualizar Orden
                             </button>
                         )}
                         <button
-                            className="no-print bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
+                            className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
                             onClick={handleDelete}
                         >
                             Eliminar OC

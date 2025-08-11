@@ -132,7 +132,7 @@ const OrderMainInfo: React.FC<Props> = ({
                         {isAdmin && (
                             <button
                                 type="button"
-                                className="no-print text-xs text-blue-600 hover:underline ml-2"
+                                className="text-xs text-blue-600 hover:underline ml-2"
                                 onClick={() => setEditQuotas(!editQuotas)}
                             >
                                 {editQuotas ? "Cancelar" : "Editar"}
