@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActions"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
