@@ -82,7 +82,7 @@ export function InventoryTable({
 
     return (
         <div className="flex-1 flex flex-col">
-            <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
+            <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded-t-none overflow-hidden">
                 <div className="overflow-x-auto h-full">
                     <Table>
                         <TableHeader className="sticky top-0 bg-gray-50 dark:bg-slate-800">
@@ -101,21 +101,21 @@ export function InventoryTable({
                                 </TableHead>
                                 {/* PRECIO COSTO solo si no es vendedor ni tercero */}
                                 {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                         PRECIO COSTO
                                     </TableHead>
                                 )}
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     OFERTAS
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
                                 </TableHead>
                                 {user?.role === Role.Admin && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                         STOCK AGREGADO
                                     </TableHead>
                                 )}
