@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, Suspense } from "react"
+import React, { useMemo, useEffect, Suspense } from "react"
 import { toast } from "sonner"
-import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
 import { InventoryTable } from "@/components/Inventory/TableSection/InventoryTable"
@@ -42,12 +41,10 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     } = inventoryStore()
 
     const {
-        clearFilters,
         filteredAndSortedProducts,
         selectedFilter,
         setSelectedFilter,
         setSelectedGenre,
-        setSortDirection,
         sortDirection,
         selectedGenre,
     } = useProductFilter()
@@ -110,7 +107,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
     useEffect(() => {
         setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
+    }, [search, selectedFilter, sortDirection, selectedGenre, setCurrentPage])
 
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
@@ -239,7 +236,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     useEffect(() => {
         setRawProducts(initialProducts)
         setSelectedGenre()
-    }, [])
+    }, [initialProducts, setRawProducts, setSelectedGenre])
 
     return (
         <main className="lg:p-6 flex-1 flex flex-col h-screen">
