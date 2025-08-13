@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import type React from "react"
@@ -23,7 +21,6 @@ import { getProductById } from "@/actions/products/getProductById"
 interface InventoryTableProps {
     currentItems: Array<{
         product: IProduct
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         variation: any
         isFirst: boolean
         totalStock: number

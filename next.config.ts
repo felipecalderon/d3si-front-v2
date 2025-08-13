@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
                 hostname: "www.bing.com",
             },
         ],
+        domains: [
+            "victorinoxstore.vtexassets.com",
+            // agrega aquí otros dominios si es necesario
+        ],
     },
 }
 

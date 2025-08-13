@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, Suspense } from "react"
+import React, { useMemo, useEffect, Suspense } from "react"
 import { toast } from "sonner"
-import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
 import { InventoryTable } from "@/components/Inventory/TableSection/InventoryTable"
@@ -19,6 +18,7 @@ import { Role } from "@/lib/userRoles"
 import { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
 import { inventoryStore } from "@/stores/inventory.store"
 import { useProductFilter } from "@/stores/productsFilters"
+import { useTienda } from "@/stores/tienda.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -30,6 +30,18 @@ interface Props {
 
 export default function InventoryClientWrapper({ initialProducts, categories, stores }: Props) {
     const { user } = useAuth()
+    const { storeSelected } = useTienda()
+    // Filtrar productos por tienda asignada al usuario (solo si no es Admin)
+    const userStoreID = storeSelected?.storeID
+    const filteredInitialProducts = useMemo(() => {
+        // Si el usuario es Admin, mostrar todos los productos
+        if (user?.role === Role.Admin || !userStoreID) return initialProducts
+        return initialProducts.filter((product) =>
+            product.ProductVariations.some((variation) =>
+                variation.StoreProducts.some((storeProduct) => storeProduct.storeID === userStoreID)
+            )
+        )
+    }, [initialProducts, user?.role, userStoreID])
     const {
         currentPage,
         editValue,
@@ -42,12 +54,10 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     } = inventoryStore()
 
     const {
-        clearFilters,
         filteredAndSortedProducts,
         selectedFilter,
         setSelectedFilter,
         setSelectedGenre,
-        setSortDirection,
         sortDirection,
         selectedGenre,
     } = useProductFilter()
@@ -110,7 +120,7 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
 
     useEffect(() => {
         setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
+    }, [search, selectedFilter, sortDirection, selectedGenre, setCurrentPage])
 
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
@@ -237,9 +247,9 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     }
 
     useEffect(() => {
-        setRawProducts(initialProducts)
+        setRawProducts(filteredInitialProducts)
         setSelectedGenre()
-    }, [])
+    }, [filteredInitialProducts, setRawProducts, setSelectedGenre])
 
     return (
         <main className="lg:p-6 flex-1 flex flex-col h-screen">
