@@ -9,12 +9,21 @@ interface MassiveCreateProductData {
 
 export const createMassiveProducts = async (data: MassiveCreateProductData) => {
     try {
+        // Convertir priceList y priceCost a string en cada size
+        const productsWithStringPrices = data.products.map((product) => ({
+            ...product,
+            sizes: product.sizes.map((size) => ({
+                ...size,
+                priceList: String(size.priceList),
+                priceCost: String(size.priceCost),
+            })),
+        }))
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/crear-masivo`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(data), // envías { products: [...] }
+            body: JSON.stringify({ products: productsWithStringPrices }),
         })
 
         if (res.status === 404) {

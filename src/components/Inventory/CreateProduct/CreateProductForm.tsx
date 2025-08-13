@@ -153,47 +153,52 @@ export default function CreateProductForm() {
                 }
 
                 // Mapear los datos del Excel al formato de CreateProductFormData y sincronizar el input de búsqueda
-                const importedProducts: CreateProductFormData[] = []
-                const importedCategorySearches: string[] = []
+                // Agrupar productos por nombre, imagen, categoría, género y marca
+                const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
                 for (const row of json) {
-                    // Valores por defecto
                     const genre = row["Género"]?.trim() || "Unisex"
                     const brand = row["Marca"]?.trim() || "otro"
-                    let categoryName = row["Categoría"]?.trim() || "otros"
+                    let categoryName = row["Categoría"]?.trim() || "Calzado"
                     let catId = findCategoryIdByName(categoryName)
-                    // Si no existe la categoría, forzar "otros"
                     if (!catId) {
                         categoryName = "otros"
                         catId = findCategoryIdByName("otros")
                     }
                     let catLabel = categoryName
-                    // Buscar el label completo (padre > hijo) si existe en categoryOptions
                     const option = categoryOptions.find((opt) => opt.id === catId)
                     if (option) catLabel = option.label
                     const sizeNumber = row["TALLA"]?.trim() || "NA"
                     const defaultImage =
                         "https://procircuit.cl/cdn/shop/files/Producto_sin_foto_e9abdc66-1532-404b-a9b1-b9685337c804.png?v=1713308305"
                     const image = row["Imagen"]?.trim() || defaultImage
-                    importedProducts.push({
-                        name: row["Producto"],
-                        image,
-                        categoryID: catId,
-                        genre,
-                        brand,
-                        sizes: [
-                            {
-                                sizeNumber,
-                                priceList: Number(row["PRECIO PLAZA"]),
-                                priceCost: Number(row["PRECIO COSTO"]),
-                                sku: row["CÓDIGO EAN"],
-                                stockQuantity: Number(row["STOCK CENTRAL"]),
-                            },
-                        ],
-                    })
-                    importedCategorySearches.push(catLabel)
+                    const key = `${row["Producto"]}|${image}|${catId}|${genre}|${brand}`
+                    const size = {
+                        sizeNumber,
+                        priceList: Number(row["PRECIO PLAZA"]),
+                        priceCost: Number(row["PRECIO COSTO"]),
+                        sku: row["CÓDIGO EAN"],
+                        stockQuantity: Number(row["STOCK CENTRAL"]),
+                    }
+                    if (productMap.has(key)) {
+                        productMap.get(key)!.sizes.push(size)
+                    } else {
+                        productMap.set(key, {
+                            name: row["Producto"],
+                            image,
+                            categoryID: catId,
+                            genre,
+                            brand,
+                            sizes: [size],
+                            _catLabel: catLabel,
+                        })
+                    }
                 }
+                const importedProducts: CreateProductFormData[] = Array.from(productMap.values()).map(
+                    ({ _catLabel, ...rest }) => rest
+                )
+                const importedCategorySearches: string[] = Array.from(productMap.values()).map((p) => p._catLabel)
 
-                // Validar que todas las categorías existen (usando la misma lógica de valor por defecto)
+                // Validar que todas las categorías existen
                 const notFound = json.filter((row) => {
                     let categoryName = row["Categoría"]?.trim() || "otros"
                     let catId = findCategoryIdByName(categoryName)
