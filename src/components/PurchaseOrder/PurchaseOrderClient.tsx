@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useEffect } from "react"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
