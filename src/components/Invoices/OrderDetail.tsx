@@ -159,7 +159,7 @@ export default function OrderDetail({ orderId }: Props) {
                 status: paymentStatus,
                 type: order.type,
                 discount: order.discount,
-                dte: order.dte,
+                dte: dteNumber,
                 startQuote,
                 endQuote,
                 expiration: arrivalDate ? new Date(arrivalDate).toISOString() : order.expiration,

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { createOrder } from "@/actions/orders/purchaseOrder"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { useAuth } from "@/stores/user.store"
 
 interface Props {
     totalProductsInOrder: number
@@ -28,6 +29,8 @@ export function PurchaseOrderSummary({
     setPedido,
     router,
 }: Props) {
+    const { user } = useAuth()
+    if (!user) return null
     return (
         <div className="w-full">
             <div className="flex md:justify-around items-center gap-4">
@@ -74,7 +77,7 @@ export function PurchaseOrderSummary({
 
                                 await createOrder({
                                     storeID: selectedStoreID,
-                                    userID: "2f13abf6-bbb6-402b-a5b2-e368a89c79e9",
+                                    userID: user.userID,
                                     products,
                                 })
 
