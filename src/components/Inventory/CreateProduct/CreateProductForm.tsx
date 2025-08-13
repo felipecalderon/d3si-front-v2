@@ -212,8 +212,17 @@ export default function CreateProductForm() {
                     return
                 }
 
-                setProducts((prev) => [...prev, ...importedProducts])
-                setCategorySearches((prev) => [...prev, ...importedCategorySearches])
+                setProducts((prev) => {
+                    // Si el primer producto está vacío, lo eliminamos
+                    const isFirstEmpty =
+                        prev.length === 1 && !prev[0].name && (!prev[0].sizes || !prev[0].sizes[0]?.sku)
+                    if (isFirstEmpty) {
+                        return [...importedProducts]
+                    }
+                    return [...prev, ...importedProducts]
+                })
+                // Sincronizar categorySearches exactamente con los productos importados
+                setCategorySearches(importedCategorySearches)
                 toast.success("Productos importados desde Excel.")
             } catch (err) {
                 toast.error("Error al procesar el archivo Excel.")
@@ -591,6 +600,19 @@ export default function CreateProductForm() {
 
     return (
         <div className="min-h-screen lg:p-8">
+            <div className="flex justify-end mb-4">
+                <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                        setProducts([])
+                        setErrors([])
+                    }}
+                    disabled={products.length === 0}
+                >
+                    Eliminar todos los productos
+                </Button>
+            </div>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
