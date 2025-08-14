@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import InventoryActions from "@/components/Inventory/HeaderSetion/InventoryActions"
 import InventoryStats from "@/components/Inventory/HeaderSetion/InventoryStats"
+import { inventoryStore } from "@/stores/inventory.store"
 import { useAuth } from "@/stores/user.store"
 
 interface InventoryHeaderProps {
@@ -15,20 +15,19 @@ export default function NewInventoryHeader({
     uniqueProductsInCurrentPage,
     searchedProductsLength,
 }: InventoryHeaderProps) {
+    const { rawProducts } = inventoryStore()
     const { user } = useAuth()
 
     return (
         <div className="flex flex-col gap-4 mb-6">
             {/* Title and Actions Row */}
             <div className="flex lg:flex-row flex-col items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Productos del Inventario
-                </h1>
-                
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Productos del Inventario</h1>
+
                 {/* CREAR PRODUCTO Y DESCARGAR EXCEL, no se muestra si es store manager ni tercero */}
                 {user?.role !== "store_manager" && user?.role !== "tercero" && (
                     <div className="flex-shrink-0">
-                        <InventoryActions products={[]} />
+                        <InventoryActions products={rawProducts} />
                     </div>
                 )}
             </div>

@@ -114,9 +114,12 @@ export default function CreateProductForm() {
         for (const col of REQUIRED_COLUMNS) {
             if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`
         }
+        // Columnas que pueden estar vacías porque tienen valor por defecto
+        const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "TALLA"]
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             for (const col of REQUIRED_COLUMNS) {
+                if (ALLOW_EMPTY.includes(col)) continue
                 if (row[col] === undefined || row[col] === null || row[col] === "") {
                     return `Fila ${i + 2}: Falta valor en columna "${col}".`
                 }
@@ -150,46 +153,81 @@ export default function CreateProductForm() {
                 }
 
                 // Mapear los datos del Excel al formato de CreateProductFormData y sincronizar el input de búsqueda
-                const importedProducts: CreateProductFormData[] = []
-                const importedCategorySearches: string[] = []
+                // Agrupar productos por nombre, imagen, categoría, género y marca
+                const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
                 for (const row of json) {
-                    const catId = findCategoryIdByName(row["Categoría"])
-                    let catLabel = row["Categoría"] || ""
-                    // Buscar el label completo (padre > hijo) si existe en categoryOptions
+                    const genre = row["Género"]?.trim() || "Unisex"
+                    const brand = row["Marca"]?.trim() || "otro"
+                    let categoryName = row["Categoría"]?.trim() || "Calzado"
+                    let catId = findCategoryIdByName(categoryName)
+                    if (!catId) {
+                        categoryName = "otros"
+                        catId = findCategoryIdByName("otros")
+                    }
+                    let catLabel = categoryName
                     const option = categoryOptions.find((opt) => opt.id === catId)
                     if (option) catLabel = option.label
-                    importedProducts.push({
-                        name: row["Producto"],
-                        image: "",
-                        categoryID: catId,
-                        genre: row["Género"],
-                        brand: row["Marca"],
-                        sizes: [
-                            {
-                                sizeNumber: row["TALLA"],
-                                priceList: Number(row["PRECIO PLAZA"]),
-                                priceCost: Number(row["PRECIO COSTO"]),
-                                sku: row["CÓDIGO EAN"],
-                                stockQuantity: Number(row["STOCK CENTRAL"]),
-                            },
-                        ],
-                    })
-                    importedCategorySearches.push(catLabel)
+                    const sizeNumber = row["TALLA"]?.trim() || "NA"
+                    const defaultImage =
+                        "https://procircuit.cl/cdn/shop/files/Producto_sin_foto_e9abdc66-1532-404b-a9b1-b9685337c804.png?v=1713308305"
+                    const image = row["Imagen"]?.trim() || defaultImage
+                    const key = `${row["Producto"]}|${image}|${catId}|${genre}|${brand}`
+                    const size = {
+                        sizeNumber,
+                        priceList: Number(row["PRECIO PLAZA"]),
+                        priceCost: Number(row["PRECIO COSTO"]),
+                        sku: row["CÓDIGO EAN"],
+                        stockQuantity: Number(row["STOCK CENTRAL"]),
+                    }
+                    if (productMap.has(key)) {
+                        productMap.get(key)!.sizes.push(size)
+                    } else {
+                        productMap.set(key, {
+                            name: row["Producto"],
+                            image,
+                            categoryID: catId,
+                            genre,
+                            brand,
+                            sizes: [size],
+                            _catLabel: catLabel,
+                        })
+                    }
                 }
+                const importedProducts: CreateProductFormData[] = Array.from(productMap.values()).map(
+                    ({ _catLabel, ...rest }) => rest
+                )
+                const importedCategorySearches: string[] = Array.from(productMap.values()).map((p) => p._catLabel)
 
                 // Validar que todas las categorías existen
-                const notFound = json.filter((row) => !findCategoryIdByName(row["Categoría"]))
+                const notFound = json.filter((row) => {
+                    let categoryName = row["Categoría"]?.trim() || "otros"
+                    let catId = findCategoryIdByName(categoryName)
+                    if (!catId) {
+                        categoryName = "otros"
+                        catId = findCategoryIdByName("otros")
+                    }
+                    return !catId
+                })
                 if (notFound.length > 0) {
                     toast.error(
-                        `Categoría no encontrada: "${notFound[0]["Categoría"]}" en fila ${
+                        `Categoría no encontrada: "${notFound[0]["Categoría"] || "otros"}" en fila ${
                             json.indexOf(notFound[0]) + 2
                         }`
                     )
                     return
                 }
 
-                setProducts((prev) => [...prev, ...importedProducts])
-                setCategorySearches((prev) => [...prev, ...importedCategorySearches])
+                setProducts((prev) => {
+                    // Si el primer producto está vacío, lo eliminamos
+                    const isFirstEmpty =
+                        prev.length === 1 && !prev[0].name && (!prev[0].sizes || !prev[0].sizes[0]?.sku)
+                    if (isFirstEmpty) {
+                        return [...importedProducts]
+                    }
+                    return [...prev, ...importedProducts]
+                })
+                // Sincronizar categorySearches exactamente con los productos importados
+                setCategorySearches(importedCategorySearches)
                 toast.success("Productos importados desde Excel.")
             } catch (err) {
                 toast.error("Error al procesar el archivo Excel.")
@@ -567,6 +605,19 @@ export default function CreateProductForm() {
 
     return (
         <div className="min-h-screen lg:p-8">
+            <div className="flex justify-end mb-4">
+                <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                        setProducts([])
+                        setErrors([])
+                    }}
+                    disabled={products.length === 0}
+                >
+                    Eliminar todos los productos
+                </Button>
+            </div>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

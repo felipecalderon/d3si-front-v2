@@ -16,6 +16,8 @@ import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
 import { useProductFilter } from "@/stores/productsFilters"
 import { inventoryStore } from "@/stores/inventory.store"
+import { useAuth } from "@/stores/user.store"
+import { useTienda } from "@/stores/tienda.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -25,10 +27,12 @@ export default function PurchaseOrderClient({
     initialStores,
 }: PurchaseOrderClientProps) {
     const router = useRouter()
-
+    const { user } = useAuth()
     // Estados
     const [search, setSearch] = useState("")
     const [stores] = useState<IStore[]>(initialStores)
+    const { storeSelected } = useTienda()
+    // Si es admin, puede elegir tienda; si es store_manager, usa la global
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
@@ -48,16 +52,40 @@ export default function PurchaseOrderClient({
 
     const { setRawProducts } = inventoryStore()
 
+    // Filtrar productos por tienda seleccionada (admin ve todos)
+    const filteredByStore = useMemo(() => {
+        // Si es admin y no ha seleccionado tienda, ve todos
+        if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
+        // Si es admin y seleccionó tienda, filtra por esa tienda
+        if (user?.role === "admin" && selectedStoreID) {
+            return filteredAndSortedProducts.filter((product) =>
+                product.ProductVariations.some((variation) =>
+                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === selectedStoreID)
+                )
+            )
+        }
+        // Si es store_manager, filtra por la tienda global
+        if (user?.role === "store_manager" && storeSelected?.storeID) {
+            return filteredAndSortedProducts.filter((product) =>
+                product.ProductVariations.some((variation) =>
+                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === storeSelected.storeID)
+                )
+            )
+        }
+        // Por defecto, retorna todos
+        return filteredAndSortedProducts
+    }, [filteredAndSortedProducts, selectedStoreID, user?.role, storeSelected?.storeID])
+
     // Filtrar productos según búsqueda
     const searchedProducts = useMemo(() => {
-        if (!search.trim()) return filteredAndSortedProducts
+        if (!search.trim()) return filteredByStore
         const lower = search.toLowerCase()
-        return filteredAndSortedProducts.filter(
+        return filteredByStore.filter(
             (product) =>
                 product.name.toLowerCase().includes(lower) ||
                 product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
         )
-    }, [search, filteredAndSortedProducts])
+    }, [search, filteredByStore])
 
     // Aplanar productos con variaciones para paginación
     const flattenedProducts = useMemo(() => {
@@ -200,18 +228,33 @@ export default function PurchaseOrderClient({
                                     <span className="text-sm font-semibold whitespace-nowrap">
                                         Orden de compra para:
                                     </span>
-                                    <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                                        <SelectTrigger className="w-[300px] h-11 border-2">
-                                            <SelectValue placeholder="Seleccionar tienda" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {stores.map((store) => (
-                                                <SelectItem key={store.storeID} value={store.storeID}>
-                                                    {store.name} - {store.city}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    {user?.role === "admin" ? (
+                                        <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Select value={storeSelected?.storeID || ""} disabled>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
