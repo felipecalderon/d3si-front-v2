@@ -69,7 +69,9 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     ).reduce((sum: number, sp: any) => sum + sp.quantity, 0) ?? 0
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
-                                const subtotalVariation = pedidoQuantity * (variation.priceList ?? 0)
+                                const subtotalVariation = isSpecialRole
+                                    ? pedidoQuantity * (variation.priceList ?? 0)
+                                    : pedidoQuantity * (variation.priceCost ?? 0)
 
                                 return (
                                     <TableRow
@@ -200,7 +202,11 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`subtotal-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-green-600 dark:text-green-400">
-                                                    ${subtotalVariation.toLocaleString("es-CL")}
+                                                    $
+                                                    {subtotalVariation.toLocaleString("es-CL", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>
