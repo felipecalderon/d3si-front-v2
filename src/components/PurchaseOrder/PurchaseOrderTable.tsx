@@ -1,6 +1,9 @@
 "use client"
 
 import React from "react"
+import Image from "next/image"
+import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +22,8 @@ interface PurchaseOrderTableProps {
 }
 
 export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPedido }: PurchaseOrderTableProps) {
+    const { user } = useAuth()
+    const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -36,11 +41,13 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     TALLA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    PRECIO COSTO
+                                    {isSpecialRole ? "PRECIO PLAZA" : "PRECIO COSTO"}
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK CENTRAL
-                                </TableHead>
+                                {!isSpecialRole && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        STOCK CENTRAL
+                                    </TableHead>
+                                )}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     STOCK TIENDA
                                 </TableHead>
@@ -62,7 +69,9 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     ).reduce((sum: number, sp: any) => sum + sp.quantity, 0) ?? 0
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
-                                const subtotalVariation = pedidoQuantity * (variation.priceList ?? 0)
+                                const subtotalVariation = isSpecialRole
+                                    ? pedidoQuantity * (variation.priceList ?? 0)
+                                    : pedidoQuantity * (variation.priceCost ?? 0)
 
                                 return (
                                     <TableRow
@@ -79,10 +88,13 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                                 <MotionItem key={`product-${product.productID}`} delay={index + 2}>
                                                     <div className="relative w-full flex items-center gap-3">
                                                         <div className="relative">
-                                                            <img
+                                                            <Image
                                                                 src={product.image || "/placeholder.svg"}
                                                                 alt={product.name}
+                                                                width={48}
+                                                                height={48}
                                                                 className="w-12 h-12 object-cover rounded border"
+                                                                style={{ objectFit: "cover" }}
                                                             />
                                                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
                                                                 {product.ProductVariations.length}
@@ -122,26 +134,36 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Columna PRECIO LISTA */}
+                                        {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
-                                                    ${Math.round(Number(variation.priceCost)).toLocaleString("es-CL")}
+                                                    {isSpecialRole
+                                                        ? `$${Math.round(Number(variation.priceList)).toLocaleString(
+                                                              "es-CL"
+                                                          )}`
+                                                        : `$${Math.round(Number(variation.priceCost)).toLocaleString(
+                                                              "es-CL"
+                                                          )}`}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Columna STOCK CENTRAL */}
-                                        <TableCell className="w-32 text-center py-3 transition-colors">
-                                            <MotionItem key={`central-${variation.variationID}`} delay={index + 2}>
-                                                <Badge
-                                                    variant={variation.stockQuantity < 20 ? "destructive" : "default"}
-                                                    className="font-bold text-sm"
-                                                >
-                                                    {variation.stockQuantity}
-                                                </Badge>
-                                            </MotionItem>
-                                        </TableCell>
+                                        {/* Columna STOCK CENTRAL (solo si no es consignado, tercero o vendedor) */}
+                                        {!isSpecialRole && (
+                                            <TableCell className="w-32 text-center py-3 transition-colors">
+                                                <MotionItem key={`central-${variation.variationID}`} delay={index + 2}>
+                                                    <Badge
+                                                        variant={
+                                                            variation.stockQuantity < 20 ? "destructive" : "default"
+                                                        }
+                                                        className="font-bold text-sm"
+                                                    >
+                                                        {variation.stockQuantity}
+                                                    </Badge>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
 
                                         {/* Columna STOCK TIENDA */}
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
@@ -180,7 +202,11 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`subtotal-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-green-600 dark:text-green-400">
-                                                    ${subtotalVariation.toLocaleString("es-CL")}
+                                                    $
+                                                    {subtotalVariation.toLocaleString("es-CL", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>
