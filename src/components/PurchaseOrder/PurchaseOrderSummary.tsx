@@ -109,9 +109,11 @@ export function PurchaseOrderSummary({
                                     products,
                                 })
 
-                                router.refresh()
                                 setPedido({})
                                 toast.success("Orden creada con éxito")
+                                if (router.push) {
+                                    router.push("/home/invoices")
+                                }
                             } catch {
                                 toast.error("Error al crear la orden")
                             }
