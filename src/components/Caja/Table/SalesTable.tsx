@@ -1,25 +1,30 @@
+"use client"
+
 import React from "react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import DateCell from "../../DateCell"
+import { useRouter } from "next/navigation"
 
 interface Props {
     sales: ISaleResponse[]
 }
 
 export const SalesTable: React.FC<Props> = ({ sales }) => {
+    const { push } = useRouter()
+
     return (
         <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
             <div className="overflow-x-auto w-full">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="min-w-[140px]">Sucursal</TableHead>
-                            <TableHead className="min-w-[140px]">Fecha de Venta</TableHead>
-                            <TableHead className="min-w-[140px]">Venta con IVA</TableHead>
-                            <TableHead className="min-w-[140px]">Productos</TableHead>
-                            <TableHead className="min-w-[140px]">Estado</TableHead>
-                            <TableHead className="min-w-[140px]">Tipo de pago</TableHead>
+                            <TableHead className="min-w-[150px]">Sucursal</TableHead>
+                            <TableHead className="min-w-[150px]">Fecha</TableHead>
+                            <TableHead className="min-w-[150px]">Monto</TableHead>
+                            <TableHead className="min-w-[150px]">Productos</TableHead>
+                            <TableHead className="min-w-[150px]">Estado</TableHead>
+                            <TableHead className="min-w-[150px]">Tipo de pago</TableHead>
                         </TableRow>
                     </TableHeader>
                 </Table>
@@ -46,12 +51,16 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                                   sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
                                               const quantity = sp.quantitySold ?? "-"
                                               const price = sp.unitPrice ?? "-"
-                                              return `${quantity} x ${productName} ($${price})`
+                                              return `${quantity} x ${productName}`
                                           }).join(", ")
                                         : "-"
 
                                     return (
-                                        <TableRow key={sale.saleID}>
+                                        <TableRow
+                                            key={sale.saleID}
+                                            className="cursor-pointer"
+                                            onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
+                                        >
                                             <TableCell className="min-w-[150px]">{storeName}</TableCell>
                                             <TableCell className="min-w-[150px]">
                                                 <DateCell date={sale.createdAt} />
