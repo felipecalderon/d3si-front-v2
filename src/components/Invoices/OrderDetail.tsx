@@ -355,12 +355,14 @@ export default function OrderDetail({ orderId }: Props) {
                                 Actualizar Orden
                             </button>
                         )}
-                        <button
-                            className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={handleDelete}
-                        >
-                            Eliminar OC
-                        </button>
+                        {isAdmin && (
+                            <button
+                                className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                onClick={handleDelete}
+                            >
+                                Eliminar OC
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
