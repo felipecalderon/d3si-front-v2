@@ -158,7 +158,7 @@ export default function CreateProductForm() {
                 const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
                 for (const row of json) {
                     const genre: Genre = row["Género"]?.trim() || "Unisex"
-                    let brand: Brand = row["Marca"]?.trim() || "Otro"
+                    const brand: Brand = row["Marca"]?.trim() || "Otro"
                     let categoryName: string = row["Categoría"]?.trim() || "Calzado"
                     let catId = findCategoryIdByName(categoryName)
                     if (!catId) {
