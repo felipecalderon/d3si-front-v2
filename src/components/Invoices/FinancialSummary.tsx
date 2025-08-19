@@ -1,5 +1,6 @@
 import React from "react"
 import { CreditCard } from "lucide-react"
+import { toPrice } from "@/utils/priceFormat"
 
 interface Props {
     neto: number
@@ -17,33 +18,15 @@ const FinancialSummary: React.FC<Props> = ({ neto, iva, totalConIva }) => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
-                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                        {neto.toLocaleString("es-CL", {
-                            style: "currency",
-                            currency: "CLP",
-                            minimumFractionDigits: 2,
-                        })}
-                    </p>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">${toPrice(neto)}</p>
                 </div>
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
-                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                        {iva.toLocaleString("es-CL", {
-                            style: "currency",
-                            currency: "CLP",
-                            minimumFractionDigits: 2,
-                        })}
-                    </p>
+                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">${toPrice(iva)}</p>
                 </div>
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                        {totalConIva.toLocaleString("es-CL", {
-                            style: "currency",
-                            currency: "CLP",
-                            minimumFractionDigits: 2,
-                        })}
-                    </p>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(totalConIva)}</p>
                 </div>
             </div>
         </div>

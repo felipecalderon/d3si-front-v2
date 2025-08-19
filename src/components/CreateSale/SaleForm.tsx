@@ -11,6 +11,7 @@ import { PaymentType } from "@/interfaces/sales/ISale"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { toPrice } from "@/utils/priceFormat"
 
 export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) => {
     const [productos, setProductos] = useState<IProductoEnVenta[]>([])
@@ -40,7 +41,6 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
                 ? productoEncontrado.stockQuantity
                 : productoEncontrado.quantity
 
-            console.log({ storeSelected, stockDisponible })
             if (stockDisponible <= 0) {
                 toast("No hay stock disponible para este producto.")
                 return
@@ -196,9 +196,7 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
                             </Select>
                         </div>
 
-                        <p className="text-xl font-semibold dark:text-white text-gray-800">
-                            Total: ${total.toLocaleString()}
-                        </p>
+                        <p className="text-xl font-semibold dark:text-white text-gray-800">Total: ${toPrice(total)}</p>
 
                         <button
                             onClick={handleSubmit}

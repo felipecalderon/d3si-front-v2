@@ -5,7 +5,6 @@ import { Search, X, ChevronUp, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 
-
 interface ColumnFiltersProps {
     filters: {
         producto: string
@@ -74,11 +73,7 @@ function NumericInputWithArrows({ value, onChange, placeholder, className }: Num
     )
 }
 
-export function ColumnFilters({
-    filters,
-    onFilterChange,
-    onClearFilters,
-}: ColumnFiltersProps) {
+export function ColumnFilters({ filters, onFilterChange, onClearFilters }: ColumnFiltersProps) {
     const hasActiveFilters = filters
         ? Object.values(filters).some((value) => (typeof value === "string" ? value.trim() !== "" : value === true))
         : false
@@ -139,7 +134,7 @@ export function ColumnFilters({
                     </div>
                 </div>
                 {/* OFERTAS */}
-                <div className="w-20 px-1 flex justify-center">
+                {/* <div className="w-20 px-1 flex justify-center">
                     <div className="flex flex-col py-4 px-2 rounded-md bg-white dark:hover:bg-slate-950 cursor-pointer dark:bg-slate-900 items-center space-x-1">
                         <Checkbox
                             id="ofertas-filter"
@@ -154,7 +149,7 @@ export function ColumnFilters({
                             Con oferta
                         </Label>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Clear Filters Button */}
                 {hasActiveFilters && (

@@ -43,7 +43,7 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     TALLA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    {isSpecialRole ? "PRECIO PLAZA" : "PRECIO COSTO"}
+                                    {isSpecialRole ? "PRECIO PLAZA" : "COSTO NETO"}
                                 </TableHead>
                                 {!isSpecialRole && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
