@@ -75,8 +75,8 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
                                 const subtotalVariation = isSpecialRole
-                                    ? pedidoQuantity * (variation.priceList ?? 0)
-                                    : pedidoQuantity * (variation.priceCost ?? 0)
+                                    ? pedidoQuantity * (variation.priceCost ?? 0)
+                                    : pedidoQuantity * (variation.priceList ?? 0)
 
                                 return (
                                     <TableRow
@@ -144,10 +144,10 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
                                                     {isSpecialRole
-                                                        ? `$${Math.round(Number(variation.priceList)).toLocaleString(
+                                                        ? `$${Math.round(Number(variation.priceCost)).toLocaleString(
                                                               "es-CL"
                                                           )}`
-                                                        : `$${Math.round(Number(variation.priceCost)).toLocaleString(
+                                                        : `$${Math.round(Number(variation.priceList)).toLocaleString(
                                                               "es-CL"
                                                           )}`}
                                                 </span>

@@ -39,7 +39,7 @@ export function PurchaseOrderSummary({
         const variation = rawProducts.flatMap((p) => p.ProductVariations).find((v) => v.sku === sku)
         if (!variation) return acc
         if (isSpecialRole) {
-            return acc + (Number(variation.priceList) || 0) * qty
+            return acc + (Number(variation.priceCost) || 0) * qty
         } else if (isAdmin) {
             return acc + (Number(variation.priceCost) || 0) * qty
         }
@@ -82,9 +82,6 @@ export function PurchaseOrderSummary({
                     </div>
                 </div>
                 <div className="flex gap-2 items-end">
-                    <div className="text-sm font-semibold">
-                        <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
-                    </div>
                     <Button
                         size="sm"
                         className="h-10 px-6"
