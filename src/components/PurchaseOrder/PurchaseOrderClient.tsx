@@ -367,7 +367,7 @@ export default function PurchaseOrderClient({
                         totalProductsInOrder={totalProductsInOrder}
                         subtotal={subtotal}
                         isLoading={false}
-                        selectedStoreID={selectedStoreID}
+                        selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
                         pedido={pedido}
                         rawProducts={initialProducts}
                         setPedido={setPedido}

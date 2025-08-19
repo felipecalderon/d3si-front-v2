@@ -3,6 +3,7 @@
 import React from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
+import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -23,6 +24,7 @@ interface PurchaseOrderTableProps {
 
 export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPedido }: PurchaseOrderTableProps) {
     const { user } = useAuth()
+    const { storeSelected } = useTienda()
     const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")
     return (
         <div className="flex-1 flex flex-col">
@@ -62,16 +64,19 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
 
                         <TableBody>
                             {currentItems.map(({ product, variation, isFirst }, index) => {
-                                // Stock agregado = suma de StoreProducts en sucursales (no admin)
-                                const stockAgregado =
-                                    variation.StoreProducts?.filter(
-                                        (sp: any) => !adminStoreIDs.includes(sp.storeID)
-                                    ).reduce((sum: number, sp: any) => sum + sp.quantity, 0) ?? 0
+                                // Stock de la tienda seleccionada
+                                let stockTienda = 0
+                                if (storeSelected) {
+                                    const storeProduct = variation.StoreProducts?.find(
+                                        (sp: any) => sp.storeID === storeSelected.storeID
+                                    )
+                                    stockTienda = storeProduct ? storeProduct.quantity : 0
+                                }
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
                                 const subtotalVariation = isSpecialRole
-                                    ? pedidoQuantity * (variation.priceList ?? 0)
-                                    : pedidoQuantity * (variation.priceCost ?? 0)
+                                    ? pedidoQuantity * (variation.priceCost ?? 0)
+                                    : pedidoQuantity * (variation.priceList ?? 0)
 
                                 return (
                                     <TableRow
@@ -139,10 +144,10 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
                                                     {isSpecialRole
-                                                        ? `$${Math.round(Number(variation.priceList)).toLocaleString(
+                                                        ? `$${Math.round(Number(variation.priceCost)).toLocaleString(
                                                               "es-CL"
                                                           )}`
-                                                        : `$${Math.round(Number(variation.priceCost)).toLocaleString(
+                                                        : `$${Math.round(Number(variation.priceList)).toLocaleString(
                                                               "es-CL"
                                                           )}`}
                                                 </span>
@@ -169,7 +174,7 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                         <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
                                             <MotionItem key={`store-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-medium text-blue-600 dark:text-blue-400">
-                                                    {stockAgregado}
+                                                    {stockTienda}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>

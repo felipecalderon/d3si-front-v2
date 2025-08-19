@@ -64,14 +64,30 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
 
     const adminStoreIDs = useMemo(() => stores.filter((s) => s.isAdminStore).map((s) => s.storeID), [stores])
 
-    const totalStockCentral = useMemo(
-        () =>
-            rawProducts.reduce(
+    // Stock mostrado según el rol
+    const totalStockShown = useMemo(() => {
+        if (user?.role === Role.Admin) {
+            // Stock central: suma de stockQuantity de todas las variaciones
+            return rawProducts.reduce(
                 (total, product) => total + product.ProductVariations.reduce((sum, v) => sum + v.stockQuantity, 0),
                 0
-            ),
-        [rawProducts]
-    )
+            )
+        } else if (user?.role === Role.Vendedor && userStoreID) {
+            // Stock de la tienda: suma de quantity de StoreProducts de la tienda seleccionada
+            return rawProducts.reduce((total, product) => {
+                return (
+                    total +
+                    product.ProductVariations.reduce((sum, v) => {
+                        const storeProduct = v.StoreProducts.find((sp) => sp.storeID === userStoreID)
+                        return sum + (storeProduct ? storeProduct.quantity : 0)
+                    }, 0)
+                )
+            }, 0)
+        } else {
+            // Otros roles: 0 o lógica adicional si aplica
+            return 0
+        }
+    }, [rawProducts, user?.role, userStoreID])
 
     // --- 🔹 Apply column filters
     const filteredProducts = useMemo(() => {
@@ -271,7 +287,7 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
             {/* Header Section */}
             <MotionItem delay={0}>
                 <InventoryHeader
-                    totalStockCentral={totalStockCentral}
+                    totalStockCentral={totalStockShown}
                     uniqueProductsInCurrentPage={uniqueProductsInCurrentPage}
                     searchedProductsLength={filteredProducts.length}
                 />
