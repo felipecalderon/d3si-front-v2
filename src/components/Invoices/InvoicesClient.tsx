@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useTienda } from "@/stores/tienda.store"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -11,9 +12,16 @@ import { Role } from "@/lib/userRoles"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
     const { user } = useAuth()
+    const { storeSelected } = useTienda()
     const isStoreManager = user?.role === Role.Vendedor
     const isAdmin = user?.role === Role.Admin
-    const [orders, setOrders] = useState<IOrderWithStore[]>(initialOrders)
+    // Filtrar órdenes según el rol
+    const filteredOrders = isAdmin
+        ? initialOrders
+        : isStoreManager && storeSelected?.storeID
+        ? initialOrders.filter((order) => order.storeID === storeSelected.storeID)
+        : []
+    const [orders, setOrders] = useState<IOrderWithStore[]>(filteredOrders)
     const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
 
     const handleView = (order: IOrderWithStore) => {
@@ -54,7 +62,8 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                             <TableHead>Folio</TableHead>
                             <TableHead>Fecha</TableHead>
                             <TableHead>Tienda</TableHead>
-                            <TableHead>Total</TableHead>
+                            <TableHead>Total Neto</TableHead>
+                            <TableHead>Total + IVA</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead>Acciones</TableHead>
                         </TableRow>
@@ -67,6 +76,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                 year: "numeric",
                             })
                             const total = Math.round(parseFloat(order.total))
+                            const totalConIVA = Math.round(total * 1.19)
                             return (
                                 <TableRow
                                     key={order.orderID}
@@ -82,6 +92,9 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                     <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
                                     <TableCell className="font-semibold text-green-600 dark:text-green-400">
                                         ${total}
+                                    </TableCell>
+                                    <TableCell className="font-semibold text-blue-600 dark:text-blue-400">
+                                        ${totalConIVA}
                                     </TableCell>
                                     <TableCell>
                                         <span
