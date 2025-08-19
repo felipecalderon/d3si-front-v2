@@ -1,8 +1,9 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Search, Filter, X, ChevronUp, ChevronDown } from "lucide-react"
-import { Button } from "../ui/button"
+import { Search, X, ChevronUp, ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 interface ColumnFiltersProps {
     filters: {
@@ -72,13 +73,7 @@ function NumericInputWithArrows({ value, onChange, placeholder, className }: Num
     )
 }
 
-export function ColumnFilters({
-    filters,
-    onFilterChange,
-    onClearFilters,
-    showPrecioCosto,
-    showStockAgregado,
-}: ColumnFiltersProps) {
+export function ColumnFilters({ filters, onFilterChange, onClearFilters }: ColumnFiltersProps) {
     const hasActiveFilters = filters
         ? Object.values(filters).some((value) => (typeof value === "string" ? value.trim() !== "" : value === true))
         : false
@@ -88,8 +83,8 @@ export function ColumnFilters({
             {/* Filter Row */}
             <div className="flex items-center px-2 py-2 gap-1 overflow-x-auto min-w-max">
                 {/* PRODUCTO */}
-                <div className="flex-1 w-24 px-1">
-                    <label className="text-xs text-slate-500 ml-2">Buscar por producto, SKU, género...</label>
+                <div className="flex-1 w-64 px-1">
+                    <Label className="text-xs text-slate-500 ml-2">Buscar por producto, SKU, género...</Label>
                     <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 z-10" />
                         <Input
@@ -102,7 +97,7 @@ export function ColumnFilters({
 
                 {/* MARCA */}
                 <div className="w-24 px-1">
-                    <label className="text-xs text-slate-500 ml-2">Marca...</label>
+                    <Label className="text-xs text-slate-500 ml-2">Marca...</Label>
                     <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 z-10" />
                         <Input
@@ -115,7 +110,7 @@ export function ColumnFilters({
 
                 {/* CATEGORÍA */}
                 <div className="w-32 px-1">
-                    <label className="text-xs text-slate-500 ml-2">Categoría...</label>
+                    <Label className="text-xs text-slate-500 ml-2">Categoría...</Label>
                     <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 z-10" />
                         <Input
@@ -128,7 +123,7 @@ export function ColumnFilters({
 
                 {/* TALLA */}
                 <div className="w-20 px-1">
-                    <label className="text-xs text-slate-500 ml-2">Talla...</label>
+                    <Label className="text-xs text-slate-500 ml-2">Talla...</Label>
                     <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 z-10" />
                         <Input
@@ -138,29 +133,6 @@ export function ColumnFilters({
                         />
                     </div>
                 </div>
-
-                {/* PRECIO COSTO */}
-                {/* {showPrecioCosto && (
-          <div className="w-28 px-1">
-            <NumericInputWithArrows
-              value={filters.precioCosto}
-              onChange={(value) => onFilterChange('precioCosto', value)}
-              placeholder="Precio costo"
-              className="h-8 text-xs border-gray-200 focus:border-blue-500 bg-white dark:bg-slate-700"
-            />
-          </div>
-        )} */}
-
-                {/* PRECIO PLAZA */}
-                {/* <div className="w-28 px-1">
-          <NumericInputWithArrows
-            value={filters.precioPlaza}
-            onChange={(value) => onFilterChange('precioPlaza', value)}
-            placeholder="Precio plaza"
-            className="h-8 text-xs border-gray-200 focus:border-blue-500 bg-white dark:bg-slate-700"
-          />
-        </div> */}
-
                 {/* OFERTAS */}
                 {/* <div className="w-20 px-1 flex justify-center">
                     <div className="flex flex-col py-4 px-2 rounded-md bg-white dark:hover:bg-slate-950 cursor-pointer dark:bg-slate-900 items-center space-x-1">
@@ -170,36 +142,14 @@ export function ColumnFilters({
                             onCheckedChange={(checked) => onFilterChange("ofertas", checked as boolean)}
                             className="w-4 h-4 my-auto"
                         />
-                        <label
+                        <Label
                             htmlFor="ofertas-filter"
                             className="text-xs mt-2 whitespace-nowrap text-gray-600 dark:text-gray-300"
                         >
                             Con oferta
-                        </label>
+                        </Label>
                     </div>
                 </div> */}
-
-                {/* STOCK */}
-                {/* <div className="w-24 px-1">
-          <NumericInputWithArrows
-            value={filters.stock}
-            onChange={(value) => onFilterChange('stock', value)}
-            placeholder="Stock"
-            className="h-8 text-xs border-gray-200 focus:border-blue-500 bg-white dark:bg-slate-700"
-          />
-        </div> */}
-
-                {/* STOCK AGREGADO */}
-                {/* {showStockAgregado && (
-          <div className="w-24 px-1">
-            <NumericInputWithArrows
-              value={filters.stockAgregado}
-              onChange={(value) => onFilterChange('stockAgregado', value)}
-              placeholder="Stock agregado"
-              className="h-8 text-xs border-gray-200 focus:border-blue-500 bg-white dark:bg-slate-700"
-            />
-          </div>
-        )} */}
 
                 {/* Clear Filters Button */}
                 {hasActiveFilters && (
@@ -256,39 +206,9 @@ export function applyVariationFilters(variations: any[], filters: any, adminStor
             if (!sizeMatch) return false
         }
 
-        // PRECIO COSTO filter - búsqueda exacta
-        if (filters.precioCosto.trim()) {
-            const filterValue = parseInt(filters.precioCosto)
-            if (!isNaN(filterValue) && variation.priceCost !== filterValue) return false
-        }
-
-        // PRECIO PLAZA filter - búsqueda exacta
-        if (filters.precioPlaza.trim()) {
-            const filterValue = parseInt(filters.precioPlaza)
-            if (!isNaN(filterValue) && variation.priceList !== filterValue) return false
-        }
-
         // OFERTAS filter
         if (filters.ofertas) {
             if (!variation.offerPrice || variation.offerPrice <= 0) return false
-        }
-
-        // STOCK filter - búsqueda exacta
-        if (filters.stock.trim()) {
-            const filterValue = parseInt(filters.stock)
-            if (!isNaN(filterValue) && variation.stockQuantity !== filterValue) return false
-        }
-
-        // STOCK AGREGADO filter - búsqueda exacta
-        if (filters.stockAgregado.trim()) {
-            const stockAgregado =
-                variation.StoreProducts?.filter((sp: any) => !adminStoreIDs.includes(sp.storeID)).reduce(
-                    (sum: number, sp: any) => sum + sp.quantity,
-                    0
-                ) ?? 0
-
-            const filterValue = parseInt(filters.stockAgregado)
-            if (!isNaN(filterValue) && stockAgregado !== filterValue) return false
         }
 
         return true
