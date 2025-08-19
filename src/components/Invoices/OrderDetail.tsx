@@ -229,6 +229,7 @@ export default function OrderDetail({ orderId }: Props) {
                         Detalles de la Orden de Compra
                     </h1>
                 </div>
+                <StoreInfo store={order.Store} />
                 <div className="space-y-6 pt-6">
                     <OrderMainInfo
                         cantidadTotalProductos={cantidadTotalProductos}
@@ -248,7 +249,7 @@ export default function OrderDetail({ orderId }: Props) {
                         editQuotas={editQuotas}
                         setEditQuotas={setEditQuotas}
                     />
-                    <StoreInfo store={order.Store} />
+
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="flex items-center gap-2 text-lg font-semibold">

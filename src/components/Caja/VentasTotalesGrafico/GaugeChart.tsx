@@ -7,15 +7,16 @@ import { getResume } from "@/actions/totals/getResume"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useEffect, useState } from "react"
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts"
+import { toPrice } from "@/utils/priceFormat"
+import { IResume } from "@/interfaces/sales/ISalesResume"
 
 export default function GaugeChart() {
-    const [totales, setTotales] = useState<any>(null)
+    const [totales, setTotales] = useState<IResume | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     const [editingMeta, setEditingMeta] = useState(false)
     const [metaInput, setMetaInput] = useState("")
-
     const handleMetaSave = async () => {
         const metaNumber = Number(metaInput)
         if (!metaInput || isNaN(metaNumber) || metaNumber <= 0) {
@@ -30,7 +31,7 @@ export default function GaugeChart() {
 
             const result = await updateMeta(fecha, metaNumber)
             if (result) {
-                toast.success(`Meta actualizada a $${metaNumber.toLocaleString("es-AR")}`)
+                toast.success(`Meta actualizada a $${toPrice(metaNumber)}`)
                 setTotales((prev: any) => ({
                     ...prev,
                     metaMensual: { ...prev.metaMensual, meta: metaNumber },
@@ -52,7 +53,6 @@ export default function GaugeChart() {
                 setLoading(true)
                 setError(null)
                 const resume = await getResume()
-                console.log("Totales:", resume)
                 setTotales(resume)
             } catch (error) {
                 console.error("Error al obtener totales:", error)
@@ -61,13 +61,14 @@ export default function GaugeChart() {
                 setLoading(false)
             }
         }
-
         fetchTotales()
     }, [])
 
-    // Helper function to safely get nested values with fallbacks
-    const getSalesAmount = () => {
-        return totales?.totales?.sales?.month?.total?.amount || 0
+    const getSalesAmount = (): number => {
+        if (!totales) return 0
+        const { orders, sales } = totales.totales
+        const totalSaleAndOrderMonth = orders.month.amount + sales.month.total.amount
+        return totalSaleAndOrderMonth
     }
 
     const getMetaAmount = () => {
@@ -168,7 +169,7 @@ export default function GaugeChart() {
                 </RadialBarChart>
             </div>
 
-            <p className="text-xl -mt-6 dark:text-white font-bold">${getSalesAmount().toLocaleString("es-AR")}</p>
+            <p className="text-xl -mt-6 dark:text-white font-bold">${toPrice(getSalesAmount())}</p>
             {editingMeta ? (
                 <Input
                     type="number"
@@ -194,7 +195,7 @@ export default function GaugeChart() {
                         setEditingMeta(true)
                     }}
                 >
-                    Meta: ${getMetaAmount().toLocaleString("es-AR")}
+                    Meta: ${toPrice(getMetaAmount())}
                 </p>
             )}
 

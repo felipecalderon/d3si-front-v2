@@ -5,6 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import DateCell from "../../DateCell"
 import { useRouter } from "next/navigation"
+import { toPrice } from "@/utils/priceFormat"
 
 interface Props {
     sales: ISaleResponse[]
@@ -67,7 +68,7 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                             </TableCell>
                                             <TableCell className="min-w-[150px]">
                                                 {typeof sale.total === "number"
-                                                    ? `$${sale.total.toLocaleString("es-CL")}`
+                                                    ? `$${toPrice(sale.total)}`
                                                     : "Sin dato"}
                                             </TableCell>
                                             <TableCell className="min-w-[150px]">{productsDescription}</TableCell>

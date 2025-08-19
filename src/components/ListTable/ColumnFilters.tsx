@@ -88,7 +88,7 @@ export function ColumnFilters({
             {/* Filter Row */}
             <div className="flex items-center px-2 py-2 gap-1 overflow-x-auto min-w-max">
                 {/* PRODUCTO */}
-                <div className="flex-1 w-64 px-1">
+                <div className="flex-1 w-24 px-1">
                     <label className="text-xs text-slate-500 ml-2">Buscar por producto, SKU, género...</label>
                     <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 z-10" />
@@ -162,7 +162,7 @@ export function ColumnFilters({
         </div> */}
 
                 {/* OFERTAS */}
-                <div className="w-20 px-1 flex justify-center">
+                {/* <div className="w-20 px-1 flex justify-center">
                     <div className="flex flex-col py-4 px-2 rounded-md bg-white dark:hover:bg-slate-950 cursor-pointer dark:bg-slate-900 items-center space-x-1">
                         <Checkbox
                             id="ofertas-filter"
@@ -177,7 +177,7 @@ export function ColumnFilters({
                             Con oferta
                         </label>
                     </div>
-                </div>
+                </div> */}
 
                 {/* STOCK */}
                 {/* <div className="w-24 px-1">

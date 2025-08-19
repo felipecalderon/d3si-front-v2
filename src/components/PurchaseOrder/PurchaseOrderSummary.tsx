@@ -7,6 +7,7 @@ import { createOrder } from "@/actions/orders/purchaseOrder"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
+import { toPrice } from "@/utils/priceFormat"
 
 interface Props {
     totalProductsInOrder: number
@@ -56,34 +57,20 @@ export function PurchaseOrderSummary({
                     </div>
                     <div className="flex flex-col-reverse text-center">
                         <span>Neto:</span>
-                        <span className="font-bold">
-                            ${neto.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
+                        <span className="font-bold">${toPrice(neto)}</span>
                     </div>
                     <div className="flex flex-col-reverse text-center">
                         <span>IVA (19%):</span>
-                        <span className="font-bold">
-                            $
-                            {(neto * 0.19).toLocaleString("es-CL", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
-                        </span>
+                        <span className="font-bold">${toPrice(neto * 0.19)}</span>
                     </div>
                     <div className="flex justify-between border-t border-white pt-2 mt-2">
                         <span className="font-bold">Total:</span>
-                        <span className="font-bold text-yellow-200">
-                            $
-                            {(neto * 1.19).toLocaleString("es-CL", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
-                        </span>
+                        <span className="font-bold text-yellow-200">${toPrice(neto * 1.19)}</span>
                     </div>
                 </div>
                 <div className="flex gap-2 items-end">
                     <div className="text-sm font-semibold">
-                        <p>Subtotal: ${subtotal.toLocaleString("es-CL")}</p>
+                        <p>Subtotal: ${toPrice(subtotal)}</p>
                     </div>
                     <Button
                         size="sm"

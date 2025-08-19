@@ -1,5 +1,6 @@
 import React from "react"
 import { Package } from "lucide-react"
+import { toPrice } from "@/utils/priceFormat"
 
 interface Product {
     variationID: string
@@ -76,18 +77,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                                     <span className="font-semibold">{item.OrderProduct?.quantityOrdered ?? "-"}</span>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                    {item.OrderProduct &&
-                                        (typeof item.OrderProduct.subtotal === "number"
-                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 2,
-                                              })
-                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 2,
-                                              }))}
+                                    {item.OrderProduct && toPrice(item.OrderProduct.subtotal ?? 0)}
                                 </td>
                                 {isAdmin && (
                                     <td className="py-3 px-2 text-center">
@@ -132,17 +122,8 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                                 <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                 <p className="font-bold text-green-600 dark:text-green-400">
                                     {item.OrderProduct &&
-                                        (typeof item.OrderProduct.subtotal === "number"
-                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 2,
-                                              })
-                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 2,
-                                              }))}
+                                        typeof item.OrderProduct.subtotal === "number" &&
+                                        toPrice(item.OrderProduct.subtotal ?? 0)}
                                 </p>
                             </div>
                         </div>

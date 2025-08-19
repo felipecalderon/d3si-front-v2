@@ -8,6 +8,7 @@ import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
+import { toPrice } from "@/utils/priceFormat"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
     const { user } = useAuth()
@@ -81,7 +82,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                     <TableCell>{fecha}</TableCell>
                                     <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
                                     <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                                        ${total}
+                                        ${toPrice(total)}
                                     </TableCell>
                                     <TableCell>
                                         <span
@@ -109,7 +110,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                                     onClick={() => handleDelete(order.orderID)}
                                                     className="hover:bg-red-700"
                                                 >
-                                                    Anular
+                                                    Borrar
                                                 </Button>
                                             )}
                                         </div>
