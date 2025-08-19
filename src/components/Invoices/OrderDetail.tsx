@@ -2,9 +2,10 @@
 import React, { useEffect, useState, useRef } from "react"
 import { toast } from "react-hot-toast"
 import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
+import type { IProduct } from "@/interfaces/products/IProduct"
 import { getAllProducts } from "@/actions/products/getAllProducts"
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
-import { Calendar, Receipt, ShoppingBag } from "lucide-react"
+import { Receipt, ShoppingBag } from "lucide-react"
 import OrderMainInfo from "./OrderMainInfo"
 import StoreInfo from "./StoreInfo"
 import ProductsTable from "./ProductsTable"
@@ -44,6 +45,8 @@ function useOrder(orderId: string) {
 
 export default function OrderDetail({ orderId }: Props) {
     const { order, loading, error, fetchOrder } = useOrder(orderId)
+    // Estado local para forzar re-render de la tabla de productos
+    const [_, setForceUpdate] = useState(0)
     const printRef = useRef<HTMLDivElement>(null)
     const handlePrint = useReactToPrint({
         contentRef: printRef,
@@ -122,21 +125,19 @@ export default function OrderDetail({ orderId }: Props) {
     // Handler para agregar un producto seleccionado a la orden
     const handleProductSelect = (productId: string) => {
         if (!order) return
-        // Buscar el producto y su primera variation disponible
         const product = allProducts.find((p) => p.productID === productId)
         if (!product || !product.ProductVariations.length) {
             toast.error("No se encontró una variación para este producto.")
             return
         }
         const variation = product.ProductVariations[0]
-        // Evitar duplicados
         if (order.ProductVariations.some((v) => v.variationID === variation.variationID)) {
             toast.error("Este producto ya está en la orden.")
             return
         }
-        // Agregar a la orden (puedes ajustar cantidad y subtotal según tu lógica)
         order.ProductVariations.push({
             ...variation,
+            priceList: String(variation.priceList),
             Product: product,
             OrderProduct: {
                 quantityOrdered: 1,
@@ -144,8 +145,11 @@ export default function OrderDetail({ orderId }: Props) {
             },
             quantityOrdered: 1,
             subtotal: Number(variation.priceList),
+            createdAt: variation.createdAt || new Date().toISOString(),
+            updatedAt: variation.updatedAt || new Date().toISOString(),
         })
         setShowProductSelector(false)
+        setForceUpdate((f) => f + 1)
         toast.success("Producto agregado a la orden.")
     }
 
@@ -286,10 +290,51 @@ export default function OrderDetail({ orderId }: Props) {
                             isAdmin={isAdmin}
                             onRemove={(variationID) => {
                                 if (!order) return
-                                order.ProductVariations = order.ProductVariations.filter(
-                                    (v) => v.variationID !== variationID
-                                )
-                                setProductosSeleccionados((sel) => ({ ...sel }))
+                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
+                                if (idx === -1) return
+                                const pv = order.ProductVariations[idx]
+                                const qty = pv.OrderProduct?.quantityOrdered ?? 1
+                                if (qty === 1) {
+                                    if (confirm("¿Seguro que quiere eliminar el artículo de la orden de compra?")) {
+                                        order.ProductVariations = order.ProductVariations.filter(
+                                            (v) => v.variationID !== variationID
+                                        )
+                                        setForceUpdate((f) => f + 1)
+                                    }
+                                } else {
+                                    const newQty = qty - 1
+                                    const price = Number(pv.priceList)
+                                    order.ProductVariations[idx] = {
+                                        ...pv,
+                                        OrderProduct: {
+                                            ...pv.OrderProduct,
+                                            quantityOrdered: newQty,
+                                            subtotal: price * newQty,
+                                        },
+                                        quantityOrdered: newQty,
+                                        subtotal: price * newQty,
+                                    }
+                                    setForceUpdate((f) => f + 1)
+                                }
+                            }}
+                            onIncrement={(variationID) => {
+                                if (!order) return
+                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
+                                if (idx === -1) return
+                                const pv = order.ProductVariations[idx]
+                                const newQty = (pv.OrderProduct?.quantityOrdered ?? 1) + 1
+                                const price = Number(pv.priceList)
+                                order.ProductVariations[idx] = {
+                                    ...pv,
+                                    OrderProduct: {
+                                        ...pv.OrderProduct,
+                                        quantityOrdered: newQty,
+                                        subtotal: price * newQty,
+                                    },
+                                    quantityOrdered: newQty,
+                                    subtotal: price * newQty,
+                                }
+                                setForceUpdate((f) => f + 1)
                             }}
                         />
                     </div>
