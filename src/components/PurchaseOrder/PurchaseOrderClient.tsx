@@ -56,14 +56,6 @@ export default function PurchaseOrderClient({
     const filteredByStore = useMemo(() => {
         // Si es admin y no ha seleccionado tienda, ve todos
         if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
-        // Si es admin y seleccionó tienda, filtra por esa tienda
-        if (user?.role === "admin" && selectedStoreID) {
-            return filteredAndSortedProducts.filter((product) =>
-                product.ProductVariations.some((variation) =>
-                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === selectedStoreID)
-                )
-            )
-        }
         // Si es store_manager, filtra por la tienda global
         if (user?.role === "store_manager" && storeSelected?.storeID) {
             return filteredAndSortedProducts.filter((product) =>

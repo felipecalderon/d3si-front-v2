@@ -8,6 +8,7 @@ export interface IStoreProduct {
     priceCostStore: string
     createdAt: string
     updatedAt: string
+    Store: IStore
 }
 
 export interface IProductVariation {

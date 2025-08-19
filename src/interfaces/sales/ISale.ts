@@ -1,3 +1,5 @@
+import { IStore } from "../stores/IStore"
+
 // Para enviar una nueva venta desde el frontend
 export type PaymentType = "Efectivo" | "Debito" | "Credito"
 export type PaymentStatus = "Pagado" | "Pendiente" | "Anulado"
@@ -17,13 +19,12 @@ export interface IProductSold {
 // Para representar una venta que viene desde el backend (respuesta)
 export interface ISaleResponse {
     saleID: string
+    storeID: string
     total: number
     status: PaymentStatus
     createdAt: string
     paymentType?: string
-    Store?: {
-        name: string
-    }
+    Store: IStore
     SaleProducts?: {
         quantitySold: number
         unitPrice: number

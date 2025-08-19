@@ -17,6 +17,7 @@ import { inventoryStore } from "@/stores/inventory.store"
 import Image from "next/image"
 import useQueryParams from "@/hooks/useQueryParams"
 import { getProductById } from "@/actions/products/getProductById"
+import { toPrice } from "@/utils/priceFormat"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -43,14 +44,6 @@ const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory
     if (!cat.parentID) return cat.name
     const parent = categories.find((c) => c.categoryID === cat.parentID)
     return parent ? `${parent.name} / ${cat.name}` : cat.name
-}
-
-// Función para formatear números sin decimales
-const formatCurrency = (value: number): string => {
-    return Number(value).toLocaleString("es-CL", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    })
 }
 
 export function InventoryTable({
@@ -99,14 +92,11 @@ export function InventoryTable({
                                 {/* PRECIO COSTO solo si no es vendedor ni tercero */}
                                 {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
                                     <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        PRECIO COSTO
+                                        COSTO NETO
                                     </TableHead>
                                 )}
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
-                                </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    OFERTAS
                                 </TableHead>
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
@@ -122,7 +112,6 @@ export function InventoryTable({
                         <TableBody>
                             {currentItems.map(({ product, variation, isFirst, totalStock }, index) => {
                                 const productData = getProductById([product], storeID!, variation.sku)
-                                console.log(productData)
                                 // Stock agregado = suma de StoreProducts en sucursales (no admin)
                                 const stockAgregado =
                                     variation.StoreProducts?.filter(
@@ -349,7 +338,7 @@ export function InventoryTable({
                                                     </div>
                                                 ) : (
                                                     <span className="font-semibold text-sm">
-                                                        ${formatCurrency(variation.priceCost)}
+                                                        ${toPrice(variation.priceCost)}
                                                     </span>
                                                 )}
                                             </TableCell>
@@ -386,7 +375,7 @@ export function InventoryTable({
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1">
                                                     <span className="font-semibold text-sm">
-                                                        ${formatCurrency(variation.priceList)}
+                                                        ${toPrice(variation.priceList)}
                                                     </span>
                                                     <span
                                                         className={`text-xs ${
@@ -404,8 +393,7 @@ export function InventoryTable({
                                             )}
                                         </TableCell>
                                         {/* OFERTAS */}
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            {/* Aquí puedes mostrar el precio de oferta, porcentaje, o un botón, según tu lógica */}
+                                        {/* <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
                                             {variation.offerPrice ? (
                                                 <span className="font-semibold text-green-600">
                                                     ${formatCurrency(variation.offerPrice)}
@@ -413,7 +401,7 @@ export function InventoryTable({
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </TableCell>
+                                        </TableCell> */}
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
                                             className={`w-32 text-center py-3 transition-colors ${
@@ -456,14 +444,25 @@ export function InventoryTable({
 
                                         {user?.role === Role.Admin && (
                                             <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                <MotionItem
+                                                {/* <MotionItem
                                                     key={`${product.productID}-${variation.variationID}`}
                                                     delay={index + 3}
                                                 >
                                                     <span className="font-medium text-blue-600 dark:text-blue-400">
                                                         {stockAgregado}
                                                     </span>
-                                                </MotionItem>
+                                                </MotionItem> */}
+                                                <div className="flex flex-col">
+                                                    {productData?.StoreProducts.filter(
+                                                        (sp) => sp.Store.role === Role.Vendedor
+                                                    ).map((sp) => (
+                                                        <div className="flex" key={sp.storeProductID}>
+                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                                {sp.Store.location}: {sp.quantity}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </TableCell>
                                         )}
                                     </TableRow>

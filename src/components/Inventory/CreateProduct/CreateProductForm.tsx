@@ -29,6 +29,7 @@ import type { ICategory } from "@/interfaces/categories/ICategory"
 import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
 import type { IChildCategory } from "@/interfaces/categories/ICategory"
 import { CategoryManagementModal } from "@/components/Inventory/CategorySection/EditCategory/CategoryManagementModal"
+import { Brand, Genre } from "@/interfaces/products/IProduct"
 
 interface CategoryOption {
     id: string
@@ -156,13 +157,13 @@ export default function CreateProductForm() {
                 // Agrupar productos por nombre, imagen, categoría, género y marca
                 const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
                 for (const row of json) {
-                    const genre = row["Género"]?.trim() || "Unisex"
-                    const brand = row["Marca"]?.trim() || "otro"
-                    let categoryName = row["Categoría"]?.trim() || "Calzado"
+                    const genre: Genre = row["Género"]?.trim() || "Unisex"
+                    const brand: Brand = row["Marca"]?.trim() || "Otro"
+                    let categoryName: string = row["Categoría"]?.trim() || "Calzado"
                     let catId = findCategoryIdByName(categoryName)
                     if (!catId) {
-                        categoryName = "otros"
-                        catId = findCategoryIdByName("otros")
+                        categoryName = "Otro"
+                        catId = findCategoryIdByName("Otro")
                     }
                     let catLabel = categoryName
                     const option = categoryOptions.find((opt) => opt.id === catId)
@@ -197,25 +198,6 @@ export default function CreateProductForm() {
                     ({ _catLabel, ...rest }) => rest
                 )
                 const importedCategorySearches: string[] = Array.from(productMap.values()).map((p) => p._catLabel)
-
-                // Validar que todas las categorías existen
-                const notFound = json.filter((row) => {
-                    let categoryName = row["Categoría"]?.trim() || "otros"
-                    let catId = findCategoryIdByName(categoryName)
-                    if (!catId) {
-                        categoryName = "otros"
-                        catId = findCategoryIdByName("otros")
-                    }
-                    return !catId
-                })
-                if (notFound.length > 0) {
-                    toast.error(
-                        `Categoría no encontrada: "${notFound[0]["Categoría"] || "otros"}" en fila ${
-                            json.indexOf(notFound[0]) + 2
-                        }`
-                    )
-                    return
-                }
 
                 setProducts((prev) => {
                     // Si el primer producto está vacío, lo eliminamos
@@ -570,7 +552,23 @@ export default function CreateProductForm() {
                 sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
             })),
         }))
-        const validationErrors = validate(productsWithSku)
+
+        const productCleanBrand = productsWithSku.map((p) => {
+            let brand = p.brand
+            const brandType = {
+                Otro: "Otro",
+                D3SI: "D3SI",
+            }
+
+            if (!brandType[brand]) {
+                brand = "Otro"
+            }
+            return {
+                ...p,
+                brand,
+            }
+        })
+        const validationErrors = validate(productCleanBrand)
         setErrors(validationErrors)
 
         if (hasErrors(validationErrors)) {
@@ -579,7 +577,7 @@ export default function CreateProductForm() {
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products: productsWithSku })
+            const result = await createMassiveProducts({ products: productCleanBrand })
             if (result.success) {
                 toast.success("Productos guardados correctamente.")
                 router.push("/home/inventory")
@@ -604,7 +602,7 @@ export default function CreateProductForm() {
     }
 
     return (
-        <div className="min-h-screen lg:p-8">
+        <div className="lg:p-8">
             <div className="flex justify-end mb-4">
                 <Button
                     type="button"
@@ -687,6 +685,40 @@ export default function CreateProductForm() {
                     />
                 </div>
 
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                        <Button
+                            type="button"
+                            onClick={addProduct}
+                            className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Agregar otro producto
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            disabled={isPending || hasErrors(errors)}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                                isPending || hasErrors(errors)
+                                    ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
+                            }`}
+                        >
+                            {isPending ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-5 h-5" />
+                                    Guardar Productos
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {products.map((product, pIndex) => (

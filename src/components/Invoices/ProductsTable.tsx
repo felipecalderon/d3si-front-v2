@@ -1,5 +1,7 @@
 import React from "react"
+
 import { Package, Minus, Plus } from "lucide-react"
+
 
 interface Product {
     variationID: string
@@ -96,6 +98,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                     </div>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
+
                                     {item.OrderProduct &&
                                         (typeof item.OrderProduct.subtotal === "number"
                                             ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
@@ -108,6 +111,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                                   currency: "CLP",
                                                   minimumFractionDigits: 0,
                                               }))}
+
                                 </td>
                                 {/* La columna de quitar ya está integrada en la columna de cantidad con el ícono de menos */}
                             </tr>
@@ -143,6 +147,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                 <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                 <p className="font-bold text-green-600 dark:text-green-400">
                                     {item.OrderProduct &&
+
                                         (typeof item.OrderProduct.subtotal === "number"
                                             ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
                                                   style: "currency",
@@ -154,6 +159,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                                   currency: "CLP",
                                                   minimumFractionDigits: 0,
                                               }))}
+
                                 </p>
                             </div>
                         </div>
