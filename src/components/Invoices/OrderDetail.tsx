@@ -1,9 +1,8 @@
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import { toast } from "react-hot-toast"
-import dynamic from "next/dynamic"
-// Importa el modal dinámicamente para evitar SSR issues
-const AddProductsToOrderModal = dynamic(() => import("@/components/Modals/AddProductsToOrderModal"), { ssr: false })
+import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
+import { getAllProducts } from "@/actions/products/getAllProducts"
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Calendar, Receipt, ShoppingBag } from "lucide-react"
 import OrderMainInfo from "./OrderMainInfo"
@@ -62,11 +61,14 @@ export default function OrderDetail({ orderId }: Props) {
     const userRole = user?.role
     const isAdmin = userRole === Role.Admin
 
-    // Estado para modal de agregar productos
-    const [showAddProductsModal, setShowAddProductsModal] = useState(false)
-    const [productosSeleccionados, setProductosSeleccionados] = useState<
-        Record<string, { cantidad: number; producto: any; variation: any }>
-    >({})
+    // Estado para mostrar el selector de productos
+    const [showProductSelector, setShowProductSelector] = useState(false)
+    const [allProducts, setAllProducts] = useState<IProduct[]>([])
+    useEffect(() => {
+        if (showProductSelector) {
+            getAllProducts().then(setAllProducts)
+        }
+    }, [showProductSelector])
 
     useEffect(() => {
         if (order) {
@@ -117,34 +119,34 @@ export default function OrderDetail({ orderId }: Props) {
         timeZone: "UTC",
     })
 
-    // Handler para confirmar selección y cerrar modal (solo actualiza el estado local)
-    const handleAgregarProductosAOrden = (
-        seleccionados: Record<string, { cantidad: number; producto: any; variation: any }>
-    ) => {
+    // Handler para agregar un producto seleccionado a la orden
+    const handleProductSelect = (productId: string) => {
         if (!order) return
-
-        // Filtra los productos seleccionados con cantidad > 0
-        const nuevosVariations = Object.values(seleccionados)
-            .filter((sel) => sel.cantidad > 0)
-            .map((sel) => ({
-                ...sel.variation,
-                Product: sel.producto,
-                OrderProduct: {
-                    quantityOrdered: sel.cantidad,
-                    subtotal: Number(sel.variation.priceList) * sel.cantidad,
-                },
-            }))
-
-        // Combina los productos actuales con los nuevos (sin duplicar variationID)
-        const existentes = order.ProductVariations || []
-        const existentesMap = Object.fromEntries(existentes.map((v) => [v.variationID, v]))
-        nuevosVariations.forEach((nv) => {
-            existentesMap[nv.variationID] = nv
+        // Buscar el producto y su primera variation disponible
+        const product = allProducts.find((p) => p.productID === productId)
+        if (!product || !product.ProductVariations.length) {
+            toast.error("No se encontró una variación para este producto.")
+            return
+        }
+        const variation = product.ProductVariations[0]
+        // Evitar duplicados
+        if (order.ProductVariations.some((v) => v.variationID === variation.variationID)) {
+            toast.error("Este producto ya está en la orden.")
+            return
+        }
+        // Agregar a la orden (puedes ajustar cantidad y subtotal según tu lógica)
+        order.ProductVariations.push({
+            ...variation,
+            Product: product,
+            OrderProduct: {
+                quantityOrdered: 1,
+                subtotal: Number(variation.priceList),
+            },
+            quantityOrdered: 1,
+            subtotal: Number(variation.priceList),
         })
-        // Solo actualiza el estado local de la orden (no llama updateOrder)
-        order.ProductVariations = Object.values(existentesMap)
-        setShowAddProductsModal(false)
-        setProductosSeleccionados({})
+        setShowProductSelector(false)
+        toast.success("Producto agregado a la orden.")
     }
 
     // Handler para guardar cambios en la orden (actualizar en backend)
@@ -258,18 +260,27 @@ export default function OrderDetail({ orderId }: Props) {
                             {isAdmin && (
                                 <button
                                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
-                                    onClick={() => setShowAddProductsModal(true)}
+                                    onClick={() => setShowProductSelector(true)}
                                 >
                                     Agregar más productos
                                 </button>
                             )}
                         </div>
-                        <AddProductsToOrderModal
-                            open={showAddProductsModal}
-                            onClose={() => setShowAddProductsModal(false)}
-                            onConfirm={handleAgregarProductosAOrden}
-                            initialSelected={productosSeleccionados}
-                        />
+                        {showProductSelector && (
+                            <div className="mb-4">
+                                <ProductSelector
+                                    filteredProducts={allProducts}
+                                    onProductSelect={handleProductSelect}
+                                    onAddNewProduct={() => {}}
+                                />
+                                <button
+                                    className="mt-2 text-sm text-gray-500 underline"
+                                    onClick={() => setShowProductSelector(false)}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
                         <ProductsTable
                             products={order.ProductVariations || []}
                             isAdmin={isAdmin}
