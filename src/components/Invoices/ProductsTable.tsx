@@ -1,6 +1,7 @@
 import React from "react"
-import { Package } from "lucide-react"
-import { toPrice } from "@/utils/priceFormat"
+
+import { Package, Minus, Plus } from "lucide-react"
+
 
 interface Product {
     variationID: string
@@ -14,9 +15,10 @@ interface Props {
     products: Product[]
     isAdmin: boolean
     onRemove: (variationID: string) => void
+    onIncrement?: (variationID: string) => void
 }
 
-const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
+const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncrement }) => {
     if (!products || products.length === 0) {
         return (
             <div className="text-center py-8">
@@ -45,9 +47,6 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                             <th className="text-right py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
                                 Subtotal
                             </th>
-                            <th className="text-center py-3 px-2 font-semibold text-gray-700 dark:text-gray-300">
-                                Quitar
-                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,21 +73,47 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                                     </span>
                                 </td>
                                 <td className="py-3 px-2 text-center">
-                                    <span className="font-semibold">{item.OrderProduct?.quantityOrdered ?? "-"}</span>
+                                    <div className="flex items-center justify-center gap-2">
+                                        {isAdmin && (
+                                            <button
+                                                className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
+                                                onClick={() => onRemove(item.variationID)}
+                                                title="Quitar uno"
+                                            >
+                                                <Minus className="w-4 h-4 text-red-600" />
+                                            </button>
+                                        )}
+                                        <span className="font-semibold min-w-[24px] text-center block">
+                                            {item.OrderProduct?.quantityOrdered ?? "-"}
+                                        </span>
+                                        {isAdmin && (
+                                            <button
+                                                className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
+                                                onClick={() => onIncrement && onIncrement(item.variationID)}
+                                                title="Agregar uno"
+                                            >
+                                                <Plus className="w-4 h-4 text-green-600" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                    {item.OrderProduct && toPrice(item.OrderProduct.subtotal ?? 0)}
+
+                                    {item.OrderProduct &&
+                                        (typeof item.OrderProduct.subtotal === "number"
+                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 0,
+                                              })
+                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 0,
+                                              }))}
+
                                 </td>
-                                {isAdmin && (
-                                    <td className="py-3 px-2 text-center">
-                                        <button
-                                            className=" text-red-600 hover:underline text-xs"
-                                            onClick={() => onRemove(item.variationID)}
-                                        >
-                                            Quitar
-                                        </button>
-                                    </td>
-                                )}
+                                {/* La columna de quitar ya está integrada en la columna de cantidad con el ícono de menos */}
                             </tr>
                         ))}
                     </tbody>
@@ -122,18 +147,40 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove }) => {
                                 <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                 <p className="font-bold text-green-600 dark:text-green-400">
                                     {item.OrderProduct &&
-                                        typeof item.OrderProduct.subtotal === "number" &&
-                                        toPrice(item.OrderProduct.subtotal ?? 0)}
+
+                                        (typeof item.OrderProduct.subtotal === "number"
+                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 0,
+                                              })
+                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
+                                                  style: "currency",
+                                                  currency: "CLP",
+                                                  minimumFractionDigits: 0,
+                                              }))}
+
                                 </p>
                             </div>
                         </div>
                         {isAdmin && (
-                            <div className="mt-2 text-right">
+                            <div className="mt-2 flex items-center gap-2 justify-end">
                                 <button
-                                    className=" text-red-600 hover:underline text-xs"
+                                    className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
                                     onClick={() => onRemove(item.variationID)}
+                                    title="Quitar uno"
                                 >
-                                    Quitar
+                                    <Minus className="w-4 h-4 text-red-600" />
+                                </button>
+                                <span className="font-semibold min-w-[24px] text-center block">
+                                    {item.OrderProduct?.quantityOrdered ?? "-"}
+                                </span>
+                                <button
+                                    className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
+                                    onClick={() => onIncrement && onIncrement(item.variationID)}
+                                    title="Agregar uno"
+                                >
+                                    <Plus className="w-4 h-4 text-green-600" />
                                 </button>
                             </div>
                         )}

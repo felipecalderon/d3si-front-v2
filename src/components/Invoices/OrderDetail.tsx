@@ -1,11 +1,11 @@
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import { toast } from "react-hot-toast"
-import dynamic from "next/dynamic"
-// Importa el modal dinámicamente para evitar SSR issues
-const AddProductsToOrderModal = dynamic(() => import("@/components/Modals/AddProductsToOrderModal"), { ssr: false })
+import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
+import type { IProduct } from "@/interfaces/products/IProduct"
+import { getAllProducts } from "@/actions/products/getAllProducts"
 import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
-import { Calendar, Receipt, ShoppingBag } from "lucide-react"
+import { Receipt, ShoppingBag } from "lucide-react"
 import OrderMainInfo from "./OrderMainInfo"
 import StoreInfo from "./StoreInfo"
 import ProductsTable from "./ProductsTable"
@@ -45,6 +45,8 @@ function useOrder(orderId: string) {
 
 export default function OrderDetail({ orderId }: Props) {
     const { order, loading, error, fetchOrder } = useOrder(orderId)
+    // Estado local para forzar re-render de la tabla de productos
+    const [_, setForceUpdate] = useState(0)
     const printRef = useRef<HTMLDivElement>(null)
     const handlePrint = useReactToPrint({
         contentRef: printRef,
@@ -62,11 +64,14 @@ export default function OrderDetail({ orderId }: Props) {
     const userRole = user?.role
     const isAdmin = userRole === Role.Admin
 
-    // Estado para modal de agregar productos
-    const [showAddProductsModal, setShowAddProductsModal] = useState(false)
-    const [productosSeleccionados, setProductosSeleccionados] = useState<
-        Record<string, { cantidad: number; producto: any; variation: any }>
-    >({})
+    // Estado para mostrar el selector de productos
+    const [showProductSelector, setShowProductSelector] = useState(false)
+    const [allProducts, setAllProducts] = useState<IProduct[]>([])
+    useEffect(() => {
+        if (showProductSelector) {
+            getAllProducts().then(setAllProducts)
+        }
+    }, [showProductSelector])
 
     useEffect(() => {
         if (order) {
@@ -117,34 +122,35 @@ export default function OrderDetail({ orderId }: Props) {
         timeZone: "UTC",
     })
 
-    // Handler para confirmar selección y cerrar modal (solo actualiza el estado local)
-    const handleAgregarProductosAOrden = (
-        seleccionados: Record<string, { cantidad: number; producto: any; variation: any }>
-    ) => {
+    // Handler para agregar un producto seleccionado a la orden
+    const handleProductSelect = (productId: string) => {
         if (!order) return
-
-        // Filtra los productos seleccionados con cantidad > 0
-        const nuevosVariations = Object.values(seleccionados)
-            .filter((sel) => sel.cantidad > 0)
-            .map((sel) => ({
-                ...sel.variation,
-                Product: sel.producto,
-                OrderProduct: {
-                    quantityOrdered: sel.cantidad,
-                    subtotal: Number(sel.variation.priceList) * sel.cantidad,
-                },
-            }))
-
-        // Combina los productos actuales con los nuevos (sin duplicar variationID)
-        const existentes = order.ProductVariations || []
-        const existentesMap = Object.fromEntries(existentes.map((v) => [v.variationID, v]))
-        nuevosVariations.forEach((nv) => {
-            existentesMap[nv.variationID] = nv
+        const product = allProducts.find((p) => p.productID === productId)
+        if (!product || !product.ProductVariations.length) {
+            toast.error("No se encontró una variación para este producto.")
+            return
+        }
+        const variation = product.ProductVariations[0]
+        if (order.ProductVariations.some((v) => v.variationID === variation.variationID)) {
+            toast.error("Este producto ya está en la orden.")
+            return
+        }
+        order.ProductVariations.push({
+            ...variation,
+            priceList: String(variation.priceList),
+            Product: product,
+            OrderProduct: {
+                quantityOrdered: 1,
+                subtotal: Number(variation.priceList),
+            },
+            quantityOrdered: 1,
+            subtotal: Number(variation.priceList),
+            createdAt: variation.createdAt || new Date().toISOString(),
+            updatedAt: variation.updatedAt || new Date().toISOString(),
         })
-        // Solo actualiza el estado local de la orden (no llama updateOrder)
-        order.ProductVariations = Object.values(existentesMap)
-        setShowAddProductsModal(false)
-        setProductosSeleccionados({})
+        setShowProductSelector(false)
+        setForceUpdate((f) => f + 1)
+        toast.success("Producto agregado a la orden.")
     }
 
     // Handler para guardar cambios en la orden (actualizar en backend)
@@ -259,27 +265,77 @@ export default function OrderDetail({ orderId }: Props) {
                             {isAdmin && (
                                 <button
                                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
-                                    onClick={() => setShowAddProductsModal(true)}
+                                    onClick={() => setShowProductSelector(true)}
                                 >
                                     Agregar más productos
                                 </button>
                             )}
                         </div>
-                        <AddProductsToOrderModal
-                            open={showAddProductsModal}
-                            onClose={() => setShowAddProductsModal(false)}
-                            onConfirm={handleAgregarProductosAOrden}
-                            initialSelected={productosSeleccionados}
-                        />
+                        {showProductSelector && (
+                            <div className="mb-4">
+                                <ProductSelector
+                                    filteredProducts={allProducts}
+                                    onProductSelect={handleProductSelect}
+                                    onAddNewProduct={() => {}}
+                                />
+                                <button
+                                    className="mt-2 text-sm text-gray-500 underline"
+                                    onClick={() => setShowProductSelector(false)}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
                         <ProductsTable
                             products={order.ProductVariations || []}
                             isAdmin={isAdmin}
                             onRemove={(variationID) => {
                                 if (!order) return
-                                order.ProductVariations = order.ProductVariations.filter(
-                                    (v) => v.variationID !== variationID
-                                )
-                                setProductosSeleccionados((sel) => ({ ...sel }))
+                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
+                                if (idx === -1) return
+                                const pv = order.ProductVariations[idx]
+                                const qty = pv.OrderProduct?.quantityOrdered ?? 1
+                                if (qty === 1) {
+                                    if (confirm("¿Seguro que quiere eliminar el artículo de la orden de compra?")) {
+                                        order.ProductVariations = order.ProductVariations.filter(
+                                            (v) => v.variationID !== variationID
+                                        )
+                                        setForceUpdate((f) => f + 1)
+                                    }
+                                } else {
+                                    const newQty = qty - 1
+                                    const price = Number(pv.priceList)
+                                    order.ProductVariations[idx] = {
+                                        ...pv,
+                                        OrderProduct: {
+                                            ...pv.OrderProduct,
+                                            quantityOrdered: newQty,
+                                            subtotal: price * newQty,
+                                        },
+                                        quantityOrdered: newQty,
+                                        subtotal: price * newQty,
+                                    }
+                                    setForceUpdate((f) => f + 1)
+                                }
+                            }}
+                            onIncrement={(variationID) => {
+                                if (!order) return
+                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
+                                if (idx === -1) return
+                                const pv = order.ProductVariations[idx]
+                                const newQty = (pv.OrderProduct?.quantityOrdered ?? 1) + 1
+                                const price = Number(pv.priceList)
+                                order.ProductVariations[idx] = {
+                                    ...pv,
+                                    OrderProduct: {
+                                        ...pv.OrderProduct,
+                                        quantityOrdered: newQty,
+                                        subtotal: price * newQty,
+                                    },
+                                    quantityOrdered: newQty,
+                                    subtotal: price * newQty,
+                                }
+                                setForceUpdate((f) => f + 1)
                             }}
                         />
                     </div>
@@ -300,12 +356,14 @@ export default function OrderDetail({ orderId }: Props) {
                                 Actualizar Orden
                             </button>
                         )}
-                        <button
-                            className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
-                            onClick={handleDelete}
-                        >
-                            Eliminar OC
-                        </button>
+                        {isAdmin && (
+                            <button
+                                className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
+                                onClick={handleDelete}
+                            >
+                                Eliminar OC
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

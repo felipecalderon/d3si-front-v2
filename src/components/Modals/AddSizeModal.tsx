@@ -71,7 +71,9 @@ export function AddSizeModal({ open, onOpenChange, name, image, genre, onAddSize
                     stockQuantity: parseInt(form.stockQuantity),
                     variationID: crypto.randomUUID(),
                     StoreProducts: [],
-                    Stores: [], // si tu modelo lo permite; si no, añade lo que corresponda
+                    Stores: [],
+                    createdAt: "",
+                    updatedAt: "",
                 })
 
                 setForm({ sizeNumber: "", priceCost: "", priceList: "", sku: "", stockQuantity: "" })
