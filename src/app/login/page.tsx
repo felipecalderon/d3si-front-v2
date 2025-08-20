@@ -2,8 +2,26 @@
 
 import { motion } from "framer-motion"
 import LoginForm from "@/components/Login/LoginForm"
+import { useAuth } from "@/stores/user.store"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useTienda } from "@/stores/tienda.store"
+import { toast } from "sonner"
 
 export default function LoginPage() {
+    const { user } = useAuth()
+    const { storeSelected } = useTienda()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (user) {
+            console.log(storeSelected)
+            if (storeSelected) {
+                toast("Sesión guardada, redirgiendo...")
+                router.push(`/home?storeID=${storeSelected.storeID}`)
+            }
+        }
+    }, [user])
     return (
         <main className=" flex items-center justify-center px-4">
             <motion.div
