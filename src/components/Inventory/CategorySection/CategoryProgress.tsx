@@ -285,6 +285,7 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
                         totalProfit: stats.totalRevenue - stats.totalCost,
                         count: stats.count,
                         productCount: stats.productCount,
+                        id: type,
                     }
                 })
                 .sort((a, b) => b.productCount - a.productCount) // ✅ ordenar por cantidad de productos

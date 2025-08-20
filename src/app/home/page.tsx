@@ -1,12 +1,11 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
 import SalesTable from "@/components/Caja/Table/SalesTable"
-import Link from "next/link"
 import Facturacion from "@/components/Caja/Dashboard/Facturacion"
 import Ventas from "@/components/Caja/Dashboard/Ventas"
 import Payment from "@/components/Caja/Dashboard/PaymentMethods"
 import Filters from "@/components/Caja/Dashboard/Filters"
-import Grafico from "@/components/Caja/VentasTotalesGrafico/Grafico"
+import GaugeChart from "@/components/Caja/VentasTotalesGrafico/GaugeChart"
 
 interface SerchParams {
     searchParams: Promise<{
@@ -44,7 +43,7 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                         {/* Gráfico primero en mobile */}
                         <div className="flex justify-center">
                             <div className="w-full max-w-[280px] mx-auto">
-                                <Grafico />
+                                <GaugeChart />
                             </div>
                         </div>
 
@@ -69,7 +68,7 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                         {/* Gráfico - Centrado verticalmente */}
                         <div className="h-full flex justify-center items-center">
                             <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                                <Grafico />
+                                <GaugeChart />
                             </div>
                         </div>
 

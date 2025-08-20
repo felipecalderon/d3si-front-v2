@@ -19,12 +19,13 @@ export default function LoginForm() {
     const router = useRouter()
     const { setUser, setUsers } = useAuth()
     const { setStores, setStoreSelected, setStoresUser } = useTienda()
-
+    const [isLoading, setLoading] = useState(false)
     const { isDarkMode, setIsDarkMode } = useDarkMode()
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         try {
+            setLoading(true)
             const data = await login(email, password)
             if (!data.cleanUsr) {
                 toast.error("Email o contraseña incorrectos")
@@ -55,6 +56,8 @@ export default function LoginForm() {
         } catch (err) {
             console.error(err)
             toast.error("Error inesperado al iniciar sesión")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -88,7 +91,9 @@ export default function LoginForm() {
                 />
             </div>
 
-            <Button type="submit">Iniciar sesión</Button>
+            <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Iniciando sesión" : "Iniciar sesión"}
+            </Button>
             <div className="pt-10 flex flex-row justify-center items-center gap-2">
                 {isDarkMode ? (
                     <span className="text-xs italic">Modo Oscuro</span>
