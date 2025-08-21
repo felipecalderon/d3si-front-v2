@@ -38,6 +38,26 @@ const OrderMainInfo: React.FC<Props> = ({
     editQuotas,
     setEditQuotas,
 }) => {
+    // Si las cuotas coinciden, el estado debe ser 'Pagado' y el select debe estar deshabilitado
+    React.useEffect(() => {
+        if (
+            typeof currentQuota === "number" &&
+            typeof totalQuotas === "number" &&
+            currentQuota > 0 &&
+            totalQuotas > 0 &&
+            currentQuota === totalQuotas &&
+            paymentStatus !== "Pagado"
+        ) {
+            setPaymentStatus("Pagado")
+        }
+    }, [currentQuota, totalQuotas, setPaymentStatus, paymentStatus])
+
+    const isPagado =
+        typeof currentQuota === "number" &&
+        typeof totalQuotas === "number" &&
+        currentQuota > 0 &&
+        totalQuotas > 0 &&
+        currentQuota === totalQuotas
     const [editCurrentQuota, setEditCurrentQuota] = React.useState(false)
     const [editTotalQuotas, setEditTotalQuotas] = React.useState(false)
 
@@ -102,18 +122,16 @@ const OrderMainInfo: React.FC<Props> = ({
                     </label>
                     <select
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={paymentStatus}
+                        value={isPagado ? "Pagado" : paymentStatus}
                         onChange={(e) => setPaymentStatus(e.target.value)}
-                        disabled={!isAdmin}
+                        disabled={isPagado || !isAdmin}
                     >
                         {paymentStates.map((state) => (
                             <option key={state} value={state}>
                                 {state}
                             </option>
                         ))}
-                        <option value="Pagado" disabled>
-                            Pagado
-                        </option>
+                        <option value="Pagado">Pagado</option>
                     </select>
                 </div>
                 {/* Llegada de mercadería */}
@@ -150,6 +168,7 @@ const OrderMainInfo: React.FC<Props> = ({
                     <input
                         type="number"
                         min={0}
+                        max={typeof totalQuotas === "number" ? totalQuotas : undefined}
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                         value={totalQuotas ?? ""}
                         placeholder="Sin cuota"
@@ -157,6 +176,8 @@ const OrderMainInfo: React.FC<Props> = ({
                         onChange={(e) => {
                             const val = Number(e.target.value)
                             if (val < 0) return
+                            if (typeof totalQuotas === "number" && val > totalQuotas) return
+                            setCurrentQuota(Number.isNaN(val) ? undefined : val)
                             const newTotalQuotas = Number.isNaN(val) ? undefined : val
                             setTotalQuotas(newTotalQuotas)
 

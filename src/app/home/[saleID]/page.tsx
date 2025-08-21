@@ -80,7 +80,7 @@ export default async function SingleSalePage({ params }: PropsSale) {
                         {/* Estado del pago */}
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Estado del pago
+                                Estado del pago1
                             </label>
                             <select
                                 className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"

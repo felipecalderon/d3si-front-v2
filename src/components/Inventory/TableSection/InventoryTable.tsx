@@ -205,7 +205,27 @@ export function InventoryTable({
                                                                 {product.name}
                                                             </span>
                                                             <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium inline-block mt-1">
-                                                                Stock Total: {totalStock}
+                                                                {(() => {
+                                                                    // Determinar el storeID de la tienda seleccionada (o admin)
+                                                                    const storeID = searchParams.get("storeID")
+                                                                    // Sumar la cantidad (quantity) de todas las variaciones de la tienda correspondiente
+                                                                    const total = product.ProductVariations.reduce(
+                                                                        (sum, v) => {
+                                                                            if (!storeID) return sum
+                                                                            const storeProduct = v.StoreProducts?.find(
+                                                                                (sp) => sp.storeID === storeID
+                                                                            )
+                                                                            return (
+                                                                                sum +
+                                                                                (storeProduct
+                                                                                    ? storeProduct.quantity
+                                                                                    : 0)
+                                                                            )
+                                                                        },
+                                                                        0
+                                                                    )
+                                                                    return `Stock Total: ${total}`
+                                                                })()}
                                                             </span>
                                                         </div>
 

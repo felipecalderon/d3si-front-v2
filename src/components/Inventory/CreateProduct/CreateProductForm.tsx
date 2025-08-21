@@ -720,7 +720,8 @@ export default function CreateProductForm() {
                     </div>
                 </div>
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Área de cards con scroll propio */}
+                <div className="space-y-8 overflow-y-auto" style={{ maxHeight: "60vh", minHeight: "200px" }}>
                     {products.map((product, pIndex) => (
                         <div
                             key={pIndex}
@@ -1126,43 +1127,44 @@ export default function CreateProductForm() {
                             </div>
                         </div>
                     ))}
+                </div>
 
-                    {/* Action Buttons */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
-                        <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-                            <Button
-                                type="button"
-                                onClick={addProduct}
-                                className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            >
-                                <Plus className="w-5 h-5" />
-                                Agregar otro producto
-                            </Button>
+                {/* Action Buttons */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8 mt-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                        <Button
+                            type="button"
+                            onClick={addProduct}
+                            className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Agregar otro producto
+                        </Button>
 
-                            <Button
-                                type="submit"
-                                disabled={isPending || hasErrors(errors)}
-                                className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                    isPending || hasErrors(errors)
-                                        ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
-                                }`}
-                            >
-                                {isPending ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="w-5 h-5" />
-                                        Guardar Productos
-                                    </>
-                                )}
-                            </Button>
-                        </div>
+                        <Button
+                            type="submit"
+                            disabled={isPending || hasErrors(errors)}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                                isPending || hasErrors(errors)
+                                    ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
+                            }`}
+                        >
+                            {isPending ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-5 h-5" />
+                                    Guardar Productos
+                                </>
+                            )}
+                        </Button>
                     </div>
-                </form>
+                </div>
+                {/* Fin Action Buttons */}
             </div>
         </div>
     )

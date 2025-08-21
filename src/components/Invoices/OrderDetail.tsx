@@ -68,10 +68,8 @@ export default function OrderDetail({ orderId }: Props) {
     const [showProductSelector, setShowProductSelector] = useState(false)
     const [allProducts, setAllProducts] = useState<IProduct[]>([])
     useEffect(() => {
-        if (showProductSelector) {
-            getAllProducts().then(setAllProducts)
-        }
-    }, [showProductSelector])
+        getAllProducts().then(setAllProducts)
+    }, [])
 
     useEffect(() => {
         if (order) {
@@ -287,7 +285,16 @@ export default function OrderDetail({ orderId }: Props) {
                             </div>
                         )}
                         <ProductsTable
-                            products={order.ProductVariations || []}
+                            products={(order.ProductVariations || []).map((pv) => {
+                                // Buscar el producto padre para obtener todas las tallas disponibles
+                                const parent = allProducts.find((p) => p.productID === pv.productID)
+                                return {
+                                    ...pv,
+                                    availableSizes: parent
+                                        ? parent.ProductVariations.map((v) => v.sizeNumber)
+                                        : [pv.sizeNumber],
+                                }
+                            })}
                             isAdmin={isAdmin}
                             onRemove={(variationID) => {
                                 if (!order) return
@@ -334,6 +341,37 @@ export default function OrderDetail({ orderId }: Props) {
                                     },
                                     quantityOrdered: newQty,
                                     subtotal: price * newQty,
+                                }
+                                setForceUpdate((f) => f + 1)
+                            }}
+                            onSelectTallas={(variationID, tallas) => {
+                                if (!order) return
+                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
+                                if (idx === -1) return
+                                const pv = order.ProductVariations[idx]
+                                const parent = allProducts.find((p) => p.productID === pv.productID)
+                                if (!parent) return
+                                const newVariation = parent.ProductVariations.find((v) => v.sizeNumber === tallas[0])
+                                if (!newVariation) return
+                                // Mantener cantidad y subtotal previos
+                                order.ProductVariations[idx] = {
+                                    ...newVariation,
+                                    Product: parent,
+                                    OrderProduct: {
+                                        ...pv.OrderProduct,
+                                        // Mantener cantidad y recalcular subtotal
+                                        quantityOrdered: pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered,
+                                        subtotal:
+                                            (pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered) *
+                                            Number(newVariation.priceList),
+                                    },
+                                    quantityOrdered: pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered,
+                                    subtotal:
+                                        (pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered) *
+                                        Number(newVariation.priceList),
+                                    priceList: String(newVariation.priceList),
+                                    createdAt: newVariation.createdAt || new Date().toISOString(),
+                                    updatedAt: newVariation.updatedAt || new Date().toISOString(),
                                 }
                                 setForceUpdate((f) => f + 1)
                             }}

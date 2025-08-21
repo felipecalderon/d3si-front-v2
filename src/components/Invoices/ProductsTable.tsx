@@ -2,11 +2,11 @@ import React from "react"
 
 import { Package, Minus, Plus } from "lucide-react"
 
-
 interface Product {
     variationID: string
     sku: string
-    sizeNumber: string
+    sizeNumber: string | string[]
+    availableSizes?: string[]
     Product?: { name?: string }
     OrderProduct?: { quantityOrdered?: number; subtotal?: number | string }
 }
@@ -16,9 +16,10 @@ interface Props {
     isAdmin: boolean
     onRemove: (variationID: string) => void
     onIncrement?: (variationID: string) => void
+    onSelectTallas?: (variationID: string, tallas: string[]) => void
 }
 
-const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncrement }) => {
+const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncrement, onSelectTallas }) => {
     if (!products || products.length === 0) {
         return (
             <div className="text-center py-8">
@@ -68,9 +69,27 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                     </span>
                                 </td>
                                 <td className="py-3 px-2">
-                                    <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
-                                        {item.sizeNumber}
-                                    </span>
+                                    <select
+                                        className="min-w-[80px] border rounded px-2 py-1 text-xs bg-white dark:bg-slate-800 text-blue-800 dark:text-blue-300"
+                                        value={
+                                            typeof item.sizeNumber === "string"
+                                                ? item.sizeNumber
+                                                : item.sizeNumber[0] || ""
+                                        }
+                                        onChange={(e) => {
+                                            const selected = e.target.value
+                                            if (onSelectTallas) onSelectTallas(item.variationID, [selected])
+                                        }}
+                                    >
+                                        {(
+                                            item.availableSizes ||
+                                            (typeof item.sizeNumber === "string" ? [item.sizeNumber] : [])
+                                        ).map((size) => (
+                                            <option key={size} value={size}>
+                                                {size}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </td>
                                 <td className="py-3 px-2 text-center">
                                     <div className="flex items-center justify-center gap-2">
@@ -98,7 +117,6 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                     </div>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-
                                     {item.OrderProduct &&
                                         (typeof item.OrderProduct.subtotal === "number"
                                             ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
@@ -111,9 +129,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                                   currency: "CLP",
                                                   minimumFractionDigits: 0,
                                               }))}
-
                                 </td>
-                                {/* La columna de quitar ya está integrada en la columna de cantidad con el ícono de menos */}
                             </tr>
                         ))}
                     </tbody>
@@ -147,7 +163,6 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                 <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
                                 <p className="font-bold text-green-600 dark:text-green-400">
                                     {item.OrderProduct &&
-
                                         (typeof item.OrderProduct.subtotal === "number"
                                             ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
                                                   style: "currency",
@@ -159,7 +174,6 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                                   currency: "CLP",
                                                   minimumFractionDigits: 0,
                                               }))}
-
                                 </p>
                             </div>
                         </div>
