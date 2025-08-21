@@ -12,8 +12,6 @@ interface Props {
 }
 
 export const SalesTable: React.FC<Props> = ({ sales }) => {
-    const { push } = useRouter()
-
     return (
         <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
             <div className="overflow-x-auto w-full">

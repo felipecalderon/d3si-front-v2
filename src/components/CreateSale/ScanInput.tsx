@@ -15,7 +15,7 @@ export const ScanInput = ({ codigo, setCodigo, handleAddProduct, isAdding }: Sca
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
             placeholder="Código de producto"
-            className="flex-1 bg-transparent"
+            className="flex-1"
             autoFocus
         />
 
