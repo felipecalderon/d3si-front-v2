@@ -20,10 +20,9 @@ export const useAuth = create(
             users: [],
             setUsers: (users) => set({ users }),
             logout: () => {
-                const { setStores, setStoreSelected } = useTienda.getState()
+                const { cleanStores } = useTienda.getState()
                 const { setUsers } = useAuth.getState()
-                setStoreSelected(null)
-                setStores([])
+                cleanStores()
                 setUsers([])
                 set({ user: null })
             },

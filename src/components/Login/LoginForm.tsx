@@ -10,23 +10,25 @@ import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
 import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
+import useDarkMode from "@/hooks/useDarkMode"
+import { Switch } from "../ui/switch"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
     const { setUser, setUsers } = useAuth()
-    const { setStores } = useTienda()
-
+    const { setStores, setStoreSelected, setStoresUser } = useTienda()
+    const [isLoading, setLoading] = useState(false)
+    const { isDarkMode, setIsDarkMode } = useDarkMode()
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         try {
+            setLoading(true)
             const data = await login(email, password)
-            console.log("Respuesta del login:", data)
-
             if (!data.cleanUsr) {
-                toast.error("Usuario no encontrado")
+                toast.error("Email o contraseña incorrectos")
                 return
             }
 
@@ -39,14 +41,23 @@ export default function LoginForm() {
             setUsers(usuarios)
             setStores(tiendas)
 
+            const storesFromUser = tiendas.filter((t) => t.Users.some((u) => u.userID === data.cleanUsr.userID))
+            setStoresUser(storesFromUser)
+            setStoreSelected(storesFromUser[0])
+            const storeID = storesFromUser[0].storeID
             toast.success("Inicio de sesión exitoso")
             if (data.cleanUsr.role === Role.Consignado) {
-                return router.push("/home/purchaseOrder")
+                return router.push(`/home/purchaseOrder?storeID=${storeID}`)
             }
-            router.push("/home")
+            if (data.cleanUsr.role === Role.Tercero) {
+                return router.push(`/home/inventory?storeID=${storeID}`)
+            }
+            router.push(`/home?storeID=${storeID}`)
         } catch (err) {
             console.error(err)
             toast.error("Error inesperado al iniciar sesión")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -80,7 +91,22 @@ export default function LoginForm() {
                 />
             </div>
 
-            <Button type="submit">Iniciar sesión</Button>
+            <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Iniciando sesión" : "Iniciar sesión"}
+            </Button>
+            <div className="pt-10 flex flex-row justify-center items-center gap-2">
+                {isDarkMode ? (
+                    <span className="text-xs italic">Modo Oscuro</span>
+                ) : (
+                    <span className="text-xs italic">Modo Claro</span>
+                )}
+                <Switch
+                    checked={!!isDarkMode}
+                    title="Clic para cambiar"
+                    onCheckedChange={() => setIsDarkMode(!isDarkMode)}
+                    className="bg-gray-300 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-slate-900 flex-shrink-0"
+                />
+            </div>
         </form>
     )
 }

@@ -17,7 +17,7 @@ interface CategoryProgressProps {
 type ViewMode = "categoria" | "tipo"
 
 export function CategoryProgress({ products, categories = [] }: CategoryProgressProps) {
-    const [viewMode, setViewMode] = useState<ViewMode>("tipo")
+    const [viewMode, setViewMode] = useState<ViewMode>("categoria")
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
     const [showModal, setShowModal] = useState(false)
 
@@ -32,10 +32,8 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
 
     // Datos para vista por tipo (género)
     const typeStats = useMemo(() => {
-        console.log("--- Starting typeStats calculation ---")
         const stats = products.reduce((acc, product) => {
             const type = product.genre || "Sin género"
-            console.log(`  Processing product: ${product.name}, Genre: ${product.genre || "N/A"}`)
 
             if (!acc[type]) {
                 acc[type] = {
@@ -44,7 +42,6 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
                     count: 0,
                     productCount: 0,
                 }
-                console.log(`    Initialized type: ${type}`)
             }
 
             acc[type].productCount += 1 // (ESTO está bien para contar productos únicos por tipo)
@@ -52,40 +49,17 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
             product.ProductVariations.forEach((variation, varIndex) => {
                 const cost = Number(variation.priceCost) * variation.stockQuantity
                 const revenue = Number(variation.priceList) * variation.stockQuantity
-                console.log(
-                    `    Variation ${varIndex} for ${product.name}: priceCost=${variation.priceCost}, priceList=${variation.priceList}, stockQuantity=${variation.stockQuantity}, calculated cost=${cost}, revenue=${revenue}`
-                )
-
                 acc[type].totalCost += cost
                 acc[type].totalRevenue += revenue
                 acc[type].count += variation.stockQuantity
             })
-            console.log(
-                `    Current stats for ${type}: productCount=${acc[type].productCount}, totalRevenue=${acc[type].totalRevenue}`
-            )
             return acc
         }, {} as Record<string, { totalCost: number; totalRevenue: number; count: number; productCount: number }>)
-        console.log("--- Finished typeStats calculation. Raw stats:", stats)
         return stats
     }, [products])
 
     // Datos para vista por categoría (agrupados por categoría padre)
     const categoryStats = useMemo(() => {
-        console.log("--- Starting categoryStats calculation ---")
-        console.log(
-            "Input products (relevant fields):",
-            products.map((p) => ({
-                id: p.productID,
-                name: p.name,
-                categoryID: p.categoryID,
-                Category_object: p.Category ? { id: p.Category.categoryID, parentID: p.Category.parentID } : null,
-            }))
-        )
-        console.log(
-            "Input categories (relevant fields):",
-            categories.map((c) => ({ id: c.categoryID, name: c.name, parentID: c.parentID }))
-        )
-
         const stats: Record<
             string,
             {
@@ -112,7 +86,6 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
                     productCount: 0,
                     subcategories: categories.filter((sub) => sub.parentID === parentCat.categoryID),
                 }
-                console.log(`Initialized parent category: ${parentCat.name} (ID: ${parentCat.categoryID})`)
             })
 
         // 2. Add "Sin Categoría" placeholder (always present)
@@ -125,66 +98,38 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
             productCount: 0,
             subcategories: [],
         }
-        console.log("Initialized 'Sin Categoría' placeholder.")
 
         // 3. Aggregate product data into their respective parent categories
         products.forEach((product) => {
-            let effectiveParentCategoryId = "sin-categoria" // Default to "Sin Categoría"
-            let categoryDebugInfo = `Product: ${product.name} (ID: ${product.productID})`
+            let parentId = "sin-categoria"
+            const category = product.Category
+            const fallbackCategory = product.categoryID ? allCategoriesMap.get(product.categoryID) : null
 
-            // --- NEW LOGIC: Prioritize product.Category object ---
-            if (product.Category && typeof product.Category === "object" && product.Category.categoryID) {
-                categoryDebugInfo += `, Found product.Category object. Subcategory ID: ${product.Category.categoryID}, Parent ID from object: ${product.Category.parentID}`
-                if (product.Category.parentID && product.Category.parentID !== "") {
-                    effectiveParentCategoryId = product.Category.parentID
-                    categoryDebugInfo += `, Using product.Category.parentID: ${effectiveParentCategoryId}`
-                } else {
-                    // If product.Category exists but has no parentID, it means it's a top-level category itself
-                    effectiveParentCategoryId = product.Category.categoryID
-                    categoryDebugInfo += `, Using product.Category.categoryID (top-level from object): ${effectiveParentCategoryId}`
-                }
-            } else if (product.categoryID) {
-                // --- FALLBACK LOGIC: Use product.categoryID and lookup in map ---
-                categoryDebugInfo += `, product.Category object not suitable or not found. Falling back to product.categoryID: ${product.categoryID}`
-                const productCategoryFromMap = allCategoriesMap.get(product.categoryID)
-                if (productCategoryFromMap) {
-                    categoryDebugInfo += `, Found category in map: ${productCategoryFromMap.name} (ID: ${productCategoryFromMap.categoryID}, ParentID: ${productCategoryFromMap.parentID})`
-                    if (productCategoryFromMap.parentID && productCategoryFromMap.parentID !== "") {
-                        effectiveParentCategoryId = productCategoryFromMap.parentID
-                        categoryDebugInfo += `, Determined effective parent ID (from map lookup of subcategory): ${effectiveParentCategoryId}`
-                    } else {
-                        effectiveParentCategoryId = productCategoryFromMap.categoryID
-                        categoryDebugInfo += `, Determined effective parent ID (from map lookup of top-level category): ${effectiveParentCategoryId}`
-                    }
-                } else {
-                    categoryDebugInfo += `, Product categoryID ${product.categoryID} NOT found in allCategoriesMap. Assigning to "Sin Categoría".`
-                }
-            } else {
-                categoryDebugInfo += `, Product has NO category information (neither categoryID nor Category object). Assigning to "Sin Categoría".`
+            if (category?.categoryID) {
+                parentId = category.parentID || category.categoryID
+            } else if (fallbackCategory) {
+                parentId = fallbackCategory.parentID || fallbackCategory.categoryID
             }
 
-            // Ensure the target stat object exists before adding to it
-            if (!stats[effectiveParentCategoryId]) {
+            // Validate that parentId exists in stats, fallback to "sin-categoria" if not
+            if (!stats[parentId]) {
                 console.warn(
-                    `WARNING: Effective parent category ID '${effectiveParentCategoryId}' for product '${product.name}' is not a recognized parent category in the initialized stats. This might indicate a data inconsistency. Assigning to "Sin Categoría" as fallback. Debug info: ${categoryDebugInfo}`
+                    `WARNING: Unrecognized category ID '${parentId}' for product '${product.name}'. Falling back to "Sin Categoría".`
                 )
-                effectiveParentCategoryId = "sin-categoria" // Fallback
-            } else {
-                console.log(
-                    `Processing: ${categoryDebugInfo}. Aggregating to parent: ${stats[effectiveParentCategoryId].name} (ID: ${effectiveParentCategoryId})`
-                )
+                parentId = "sin-categoria"
             }
 
-            const targetStat = stats[effectiveParentCategoryId]
+            const target = stats[parentId]
 
-            targetStat.productCount += 1
-            product.ProductVariations.forEach((variation) => {
-                const cost = Number(variation.priceCost) * variation.stockQuantity
-                const revenue = Number(variation.priceList) * variation.stockQuantity
+            target.productCount += 1
 
-                targetStat.totalCost += cost
-                targetStat.totalRevenue += revenue
-                targetStat.count += variation.stockQuantity
+            product.ProductVariations.forEach((v) => {
+                const cost = Number(v.priceCost) * v.stockQuantity
+                const revenue = Number(v.priceList) * v.stockQuantity
+
+                target.totalCost += cost
+                target.totalRevenue += revenue
+                target.count += v.stockQuantity
             })
         })
 
@@ -193,148 +138,123 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
 
         // Sort by totalRevenue for consistent pie chart display (categories with products first, then empty ones)
         finalStatsArray.sort((a, b) => b.totalRevenue - a.totalRevenue)
-        console.log("--- Finished categoryStats calculation. Final stats array:", finalStatsArray)
         return finalStatsArray
     }, [products, categories, allCategoriesMap])
-    console.log({ categoryStats })
+
     // Datos para subcategorías de la categoría seleccionada
     const subcategoryStats = useMemo(() => {
-        console.log("--- Starting subcategoryStats calculation ---")
-        console.log(`Selected Category ID: ${selectedCategoryId}`)
-
         if (!selectedCategoryId || selectedCategoryId === "sin-categoria") {
-            console.log("  No category selected or 'Sin Categoría'. Returning empty array.")
             return []
         }
 
         const selectedParentCategory = allCategoriesMap.get(selectedCategoryId)
-        if (!selectedParentCategory) {
-            console.log(
-                `  Selected category ID ${selectedCategoryId} not found in allCategoriesMap. Returning empty array.`
-            )
-            return []
-        }
-        console.log(
-            `  Selected Parent Category: ${selectedParentCategory.name} (ID: ${selectedParentCategory.categoryID})`
-        )
+        if (selectedParentCategory) {
+            const directSubcategories = categories.filter((cat) => cat.parentID === selectedParentCategory.categoryID)
 
-        // Get direct subcategories of the selected parent
-        const directSubcategories = categories.filter((cat) => cat.parentID === selectedParentCategory.categoryID)
-        console.log(
-            `  Direct subcategories found for ${selectedParentCategory.name}:`,
-            directSubcategories.map((s) => s.name)
-        )
+            // Get direct subcategories of the selected parent
 
-        let itemsToShow: {
-            name: string
-            productCount: number
-            count: number
-            totalValue: number
-            profitMargin: number
-        }[] = []
+            let itemsToShow: {
+                name: string
+                productCount: number
+                count: number
+                totalValue: number
+                profitMargin: number
+            }[] = []
 
-        if (directSubcategories.length > 0) {
-            // Show direct subcategories
-            const stats: Record<
-                string,
-                {
-                    name: string
-                    totalCost: number
-                    totalRevenue: number
-                    count: number
-                    productCount: number
-                    totalValue: number
-                    profitMargin: number
-                }
-            > = {}
+            if (directSubcategories.length > 0) {
+                // Show direct subcategories
+                const stats: Record<
+                    string,
+                    {
+                        name: string
+                        totalCost: number
+                        totalRevenue: number
+                        count: number
+                        productCount: number
+                        totalValue: number
+                        profitMargin: number
+                    }
+                > = {}
 
-            // Initialize stats for all direct subcategories, even if they have no products
-            directSubcategories.forEach((subcat) => {
-                stats[subcat.categoryID] = {
-                    name: subcat.name,
-                    totalCost: 0,
-                    totalRevenue: 0,
-                    count: 0,
-                    productCount: 0,
-                    totalValue: 0,
-                    profitMargin: 0,
-                }
-                console.log(`    Initialized subcategory stat: ${subcat.name} (ID: ${subcat.categoryID})`)
-            })
-
-            products.forEach((product) => {
-                let productSubcategoryId = null
-                let productDebugInfo = `  Processing product: ${product.name} (ID: ${product.productID})`
-
-                // Determine the subcategory ID of the product, prioritizing product.Category object
-                if (product.Category && typeof product.Category === "object" && product.Category.categoryID) {
-                    productSubcategoryId = product.Category.categoryID
-                    productDebugInfo += `, Subcategory ID from product.Category: ${productSubcategoryId}`
-                } else if (product.categoryID) {
-                    productSubcategoryId = product.categoryID
-                    productDebugInfo += `, Subcategory ID from product.categoryID: ${productSubcategoryId}`
-                } else {
-                    productDebugInfo += `, No subcategory ID found for product.`
-                }
-
-                // Check if this product's subcategory ID is one of the direct subcategories of the selected parent
-                if (productSubcategoryId && stats[productSubcategoryId]) {
-                    const targetStat = stats[productSubcategoryId]
-                    productDebugInfo += `. Matches direct subcategory: ${targetStat.name}. Aggregating.`
-                    console.log(productDebugInfo)
-
-                    targetStat.productCount += 1
-                    product.ProductVariations.forEach((variation) => {
-                        const cost = Number(variation.priceCost) * variation.stockQuantity
-                        const revenue = Number(variation.priceList) * variation.stockQuantity
-
-                        targetStat.totalCost += cost
-                        targetStat.totalRevenue += revenue
-                        targetStat.count += variation.stockQuantity
-                    })
-                } else {
-                    console.log(
-                        productDebugInfo + `. Does NOT match any direct subcategory of selected parent. Skipping.`
-                    )
-                }
-            })
-
-            itemsToShow = Object.values(stats)
-                .map((item) => {
-                    const profitMargin =
-                        item.totalRevenue > 0 ? ((item.totalRevenue - item.totalCost) / item.totalRevenue) * 100 : 0
-                    return {
-                        ...item,
-                        totalValue: item.totalRevenue,
-                        profitMargin: Math.max(0, Math.min(100, profitMargin)),
+                // Initialize stats for all direct subcategories, even if they have no products
+                directSubcategories.forEach((subcat) => {
+                    stats[subcat.categoryID] = {
+                        name: subcat.name,
+                        totalCost: 0,
+                        totalRevenue: 0,
+                        count: 0,
+                        productCount: 0,
+                        totalValue: 0,
+                        profitMargin: 0,
                     }
                 })
-                .sort((a, b) => b.totalValue - a.totalValue)
-        } else {
-            // If no direct subcategories, show the selected parent category itself
-            console.log(
-                `  Selected parent category ${selectedParentCategory.name} has no direct subcategories. Showing itself.`
-            )
-            const selectedCategoryData = categoryStats.find((cat) => cat.id === selectedCategoryId)
-            if (selectedCategoryData) {
-                itemsToShow = [
-                    {
-                        name: selectedCategoryData.name,
-                        productCount: selectedCategoryData.productCount,
-                        count: selectedCategoryData.count,
-                        totalValue: selectedCategoryData.totalRevenue,
-                        profitMargin:
-                            selectedCategoryData.totalRevenue > 0
-                                ? ((selectedCategoryData.totalRevenue - selectedCategoryData.totalCost) /
-                                      selectedCategoryData.totalRevenue) *
-                                  100
-                                : 0,
-                    },
-                ]
+
+                products.forEach((product) => {
+                    let productSubcategoryId = null
+                    let productDebugInfo = `  Processing product: ${product.name} (ID: ${product.productID})`
+
+                    // Determine the subcategory ID of the product, prioritizing product.Category object
+                    if (product.Category && typeof product.Category === "object" && product.Category.categoryID) {
+                        productSubcategoryId = product.Category.categoryID
+                        productDebugInfo += `, Subcategory ID from product.Category: ${productSubcategoryId}`
+                    } else if (product.categoryID) {
+                        productSubcategoryId = product.categoryID
+                        productDebugInfo += `, Subcategory ID from product.categoryID: ${productSubcategoryId}`
+                    } else {
+                        productDebugInfo += `, No subcategory ID found for product.`
+                    }
+
+                    // Check if this product's subcategory ID is one of the direct subcategories of the selected parent
+                    if (productSubcategoryId && stats[productSubcategoryId]) {
+                        const targetStat = stats[productSubcategoryId]
+                        productDebugInfo += `. Matches direct subcategory: ${targetStat.name}. Aggregating.`
+
+                        targetStat.productCount += 1
+                        product.ProductVariations.forEach((variation) => {
+                            const cost = Number(variation.priceCost) * variation.stockQuantity
+                            const revenue = Number(variation.priceList) * variation.stockQuantity
+
+                            targetStat.totalCost += cost
+                            targetStat.totalRevenue += revenue
+                            targetStat.count += variation.stockQuantity
+                        })
+                    }
+                })
+
+                itemsToShow = Object.values(stats)
+                    .map((item) => {
+                        const profitMargin =
+                            item.totalRevenue > 0 ? ((item.totalRevenue - item.totalCost) / item.totalRevenue) * 100 : 0
+                        return {
+                            ...item,
+                            totalValue: item.totalRevenue,
+                            profitMargin: Math.max(0, Math.min(100, profitMargin)),
+                        }
+                    })
+                    .sort((a, b) => b.totalValue - a.totalValue)
+            } else {
+                // If no direct subcategories, show the selected parent category itself
+                const selectedCategoryData = categoryStats.find((cat) => cat.id === selectedCategoryId)
+                if (selectedCategoryData) {
+                    itemsToShow = [
+                        {
+                            name: selectedCategoryData.name,
+                            productCount: selectedCategoryData.productCount,
+                            count: selectedCategoryData.count,
+                            totalValue: selectedCategoryData.totalRevenue,
+                            profitMargin:
+                                selectedCategoryData.totalRevenue > 0
+                                    ? ((selectedCategoryData.totalRevenue - selectedCategoryData.totalCost) /
+                                          selectedCategoryData.totalRevenue) *
+                                      100
+                                    : 0,
+                        },
+                    ]
+                }
             }
+
+            return itemsToShow
         }
-        console.log("--- Finished subcategoryStats calculation. Items to show:", itemsToShow)
-        return itemsToShow
     }, [selectedCategoryId, products, categories, allCategoriesMap, categoryStats])
 
     // Preparar datos para el pie chart
@@ -365,6 +285,7 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
                         totalProfit: stats.totalRevenue - stats.totalCost,
                         count: stats.count,
                         productCount: stats.productCount,
+                        id: type,
                     }
                 })
                 .sort((a, b) => b.productCount - a.productCount) // ✅ ordenar por cantidad de productos
@@ -393,7 +314,6 @@ export function CategoryProgress({ products, categories = [] }: CategoryProgress
                     }
                 })
                 .sort((a, b) => b.totalProfit - a.totalProfit)
-            console.log("Pie Data (Category view):", categoryData)
             return categoryData
         }
     }, [viewMode, typeStats, categoryStats])

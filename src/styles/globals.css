@@ -30,19 +30,25 @@
 }
 
 @media print {
-    body * {
-        visibility: hidden;
+    /* Reduce el tamaño del contenido al 60% */
+    body {
+        zoom: 0.9; /* Funciona en Chrome y algunos navegadores */
     }
 
-    #print-area,
-    #print-area * {
-        visibility: visible;
+    /* Alternativa si zoom no funciona bien: usar transform */
+    .print-container {
+        transform: scale(0.9);
+        transform-origin: top center;
+        margin: 0 auto;
     }
 
-    #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+    /* Opcional: elimina elementos que no quieres imprimir */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Ajusta márgenes para impresión */
+    @page {
+        margin: 2cm;
     }
 }

@@ -1,9 +1,7 @@
-/* eslint-disable jsx-a11y/alt-text */
 "use client"
 
-import type React from "react"
-
-import { useState, useTransition, useEffect, useRef } from "react"
+import * as XLSX from "xlsx"
+import React, { useState, useRef, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
@@ -30,6 +28,8 @@ import { getAllCategories } from "@/actions/categories/getAllCategories"
 import type { ICategory } from "@/interfaces/categories/ICategory"
 import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
 import type { IChildCategory } from "@/interfaces/categories/ICategory"
+import { CategoryManagementModal } from "@/components/Inventory/CategorySection/EditCategory/CategoryManagementModal"
+import { Brand, Genre } from "@/interfaces/products/IProduct"
 
 interface CategoryOption {
     id: string
@@ -39,8 +39,217 @@ interface CategoryOption {
 }
 
 export default function CreateProductForm() {
+    // Estados principales deben ir arriba para evitar uso antes de declaración
+    const [categories, setCategories] = useState<ICategory[]>([])
+    const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
+    const [categorySearches, setCategorySearches] = useState<string[]>([])
+    const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
+    const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
+    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
+    const dropRef = useRef<HTMLDivElement>(null)
+
+    // Columnas requeridas (deben coincidir con el Excel exportado)
+    const REQUIRED_COLUMNS = [
+        "Producto",
+        "Género",
+        "Marca",
+        "Categoría",
+        "TALLA",
+        "PRECIO COSTO",
+        "PRECIO PLAZA",
+        "CÓDIGO EAN",
+        "STOCK CENTRAL",
+        "STOCK AGREGADO",
+    ]
+
+    // Normaliza texto para comparar categorías
+    const normalize = (str: string) =>
+        str
+            ?.toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .trim() || ""
+
+    // Buscar categoryID por nombre (mejorado: busca en todas las subcategorías, tolerante a vacíos)
+    const findCategoryIdByName = (catName: string) => {
+        const norm = normalize(catName || "")
+        if (!norm) return ""
+
+        // 1. Coincidencia exacta en categoría padre
+        const found = categories.find((cat) => normalize(cat.name) === norm)
+        if (found) return found.categoryID
+
+        // 2. Coincidencia exacta en cualquier subcategoría (nombre del hijo)
+        for (const cat of categories) {
+            if (cat.subcategories && Array.isArray(cat.subcategories)) {
+                for (const subcat of cat.subcategories) {
+                    if (normalize(subcat?.name || "") === norm) {
+                        return subcat.categoryID || ""
+                    }
+                }
+            }
+        }
+
+        // 3. Coincidencia parcial (incluye) en cualquier subcategoría
+        for (const cat of categories) {
+            if (cat.subcategories && Array.isArray(cat.subcategories)) {
+                for (const subcat of cat.subcategories) {
+                    if (normalize(subcat?.name || "").includes(norm)) {
+                        return subcat.categoryID || ""
+                    }
+                }
+            }
+        }
+
+        // 4. Coincidencia parcial (incluye) en categoría padre
+        const foundPartial = categories.find((cat) => normalize(cat.name).includes(norm))
+        if (foundPartial) return foundPartial.categoryID
+
+        return ""
+    }
+
+    // Validar formato y datos del Excel
+    function validateExcelRows(rows: any[]): string | null {
+        if (!rows.length) return "El archivo está vacío."
+        const cols = Object.keys(rows[0])
+        for (const col of REQUIRED_COLUMNS) {
+            if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`
+        }
+        // Columnas que pueden estar vacías porque tienen valor por defecto
+        const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "TALLA"]
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i]
+            for (const col of REQUIRED_COLUMNS) {
+                if (ALLOW_EMPTY.includes(col)) continue
+                if (row[col] === undefined || row[col] === null || row[col] === "") {
+                    return `Fila ${i + 2}: Falta valor en columna "${col}".`
+                }
+            }
+            // Validaciones extra (puedes agregar más)
+            if (isNaN(Number(row["PRECIO COSTO"])) || isNaN(Number(row["PRECIO PLAZA"]))) {
+                return `Fila ${i + 2}: Precio inválido.`
+            }
+            if (isNaN(Number(row["STOCK CENTRAL"]))) {
+                return `Fila ${i + 2}: Stock central inválido.`
+            }
+        }
+        return null
+    }
+
+    // Importar productos desde Excel (useCallback para dependencia estable)
+    const handleExcelImport = React.useCallback(
+        async (file: File) => {
+            try {
+                const data = await file.arrayBuffer()
+                const workbook = XLSX.read(data)
+                const sheetName = workbook.SheetNames[0]
+                const worksheet = workbook.Sheets[sheetName]
+                const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" })
+
+                // Validar formato y datos
+                const error = validateExcelRows(json)
+                if (error) {
+                    toast.error(error)
+                    return
+                }
+
+                // Mapear los datos del Excel al formato de CreateProductFormData y sincronizar el input de búsqueda
+                // Agrupar productos por nombre, imagen, categoría, género y marca
+                const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
+                for (const row of json) {
+                    const genre: Genre = row["Género"]?.trim() || "Unisex"
+                    const brand: Brand = row["Marca"]?.trim() || "Otro"
+                    let categoryName: string = row["Categoría"]?.trim() || "Calzado"
+                    let catId = findCategoryIdByName(categoryName)
+                    if (!catId) {
+                        categoryName = "Otro"
+                        catId = findCategoryIdByName("Otro")
+                    }
+                    let catLabel = categoryName
+                    const option = categoryOptions.find((opt) => opt.id === catId)
+                    if (option) catLabel = option.label
+                    const sizeNumber = row["TALLA"]?.trim() || "NA"
+                    const defaultImage =
+                        "https://procircuit.cl/cdn/shop/files/Producto_sin_foto_e9abdc66-1532-404b-a9b1-b9685337c804.png?v=1713308305"
+                    const image = row["Imagen"]?.trim() || defaultImage
+                    const key = `${row["Producto"]}|${image}|${catId}|${genre}|${brand}`
+                    const size = {
+                        sizeNumber,
+                        priceList: Number(row["PRECIO PLAZA"]),
+                        priceCost: Number(row["PRECIO COSTO"]),
+                        sku: row["CÓDIGO EAN"],
+                        stockQuantity: Number(row["STOCK CENTRAL"]),
+                    }
+                    if (productMap.has(key)) {
+                        productMap.get(key)!.sizes.push(size)
+                    } else {
+                        productMap.set(key, {
+                            name: row["Producto"],
+                            image,
+                            categoryID: catId,
+                            genre,
+                            brand,
+                            sizes: [size],
+                            _catLabel: catLabel,
+                        })
+                    }
+                }
+                const importedProducts: CreateProductFormData[] = Array.from(productMap.values()).map(
+                    ({ _catLabel, ...rest }) => rest
+                )
+                const importedCategorySearches: string[] = Array.from(productMap.values()).map((p) => p._catLabel)
+
+                setProducts((prev) => {
+                    // Si el primer producto está vacío, lo eliminamos
+                    const isFirstEmpty =
+                        prev.length === 1 && !prev[0].name && (!prev[0].sizes || !prev[0].sizes[0]?.sku)
+                    if (isFirstEmpty) {
+                        return [...importedProducts]
+                    }
+                    return [...prev, ...importedProducts]
+                })
+                // Sincronizar categorySearches exactamente con los productos importados
+                setCategorySearches(importedCategorySearches)
+                toast.success("Productos importados desde Excel.")
+            } catch (err) {
+                toast.error("Error al procesar el archivo Excel.")
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [categories, findCategoryIdByName, validateExcelRows]
+    )
+
+    // Handler para input file
+    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) handleExcelImport(file)
+    }
+
+    // Drag and drop
+    useEffect(() => {
+        const drop = dropRef.current
+        if (!drop) return
+        const handleDrop = (e: DragEvent) => {
+            e.preventDefault()
+            if (e.dataTransfer?.files?.length) {
+                const file = e.dataTransfer.files[0]
+                if (file.name.endsWith(".xlsx")) handleExcelImport(file)
+                else toast.error("Solo se permiten archivos .xlsx")
+            }
+        }
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault()
+        }
+        drop.addEventListener("drop", handleDrop)
+        drop.addEventListener("dragover", handleDragOver)
+        return () => {
+            drop.removeEventListener("drop", handleDrop)
+            drop.removeEventListener("dragover", handleDragOver)
+        }
+    }, [categories, handleExcelImport])
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
+    const [showModal, setShowModal] = useState(false)
 
     const [products, setProducts] = useState<CreateProductFormData[]>([
         {
@@ -68,27 +277,15 @@ export default function CreateProductForm() {
         },
     ])
 
-    // Estados para autocompletado de categorías
-    const [categories, setCategories] = useState<ICategory[]>([])
-    const [childCategories, setChildCategories] = useState<IChildCategory[]>([])
-    const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
-    const [categorySearches, setCategorySearches] = useState<string[]>([])
-    const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
-    const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
-    const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
-    // console.log(categoryOptions[0])
     useEffect(() => {
         Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
             setCategories(cats)
-            setChildCategories(childCats)
-
             // Crear opciones combinadas para autocompletado
             const options: CategoryOption[] = []
 
             childCats.forEach((child) => {
                 const parent = cats.find((cat) => cat.categoryID === child.parentID)
                 if (parent) {
-                    console.log(child)
                     options.push({
                         id: child.categoryID,
                         label: `${parent.name} > ${child.name}`,
@@ -212,9 +409,10 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
+                /*SE COMENTA PORQUE EL INVENTARIO TIENE MUCHOS SKU ANTIGUOS QUE NO INICIAN CON 1
                 if (size.sku && !/^1\d{11}$/.test(size.sku)) {
                     sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
-                }
+                }*/
                 if (size.stockQuantity === null || size.stockQuantity === undefined || isNaN(size.stockQuantity)) {
                     sizeErrors.stockQuantity = "Falta llenar este campo"
                 }
@@ -355,7 +553,22 @@ export default function CreateProductForm() {
             })),
         }))
 
-        const validationErrors = validate(productsWithSku)
+        const productCleanBrand = productsWithSku.map((p) => {
+            let brand = p.brand
+            const brandType = {
+                Otro: "Otro",
+                D3SI: "D3SI",
+            }
+
+            if (!brandType[brand]) {
+                brand = "Otro"
+            }
+            return {
+                ...p,
+                brand,
+            }
+        })
+        const validationErrors = validate(productCleanBrand)
         setErrors(validationErrors)
 
         if (hasErrors(validationErrors)) {
@@ -364,7 +577,7 @@ export default function CreateProductForm() {
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products: productsWithSku })
+            const result = await createMassiveProducts({ products: productCleanBrand })
             if (result.success) {
                 toast.success("Productos guardados correctamente.")
                 router.push("/home/inventory")
@@ -389,7 +602,20 @@ export default function CreateProductForm() {
     }
 
     return (
-        <div className="min-h-screen lg:p-8">
+        <div className="lg:p-8">
+            <div className="flex justify-end mb-4">
+                <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                        setProducts([])
+                        setErrors([])
+                    }}
+                    disabled={products.length === 0}
+                >
+                    Eliminar todos los productos
+                </Button>
+            </div>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -436,8 +662,66 @@ export default function CreateProductForm() {
                     </div>
                 </div>
 
+                {/* Importar desde Excel (input y drag-and-drop) */}
+                <div
+                    ref={dropRef}
+                    className="mb-6 flex flex-col lg:flex-row items-start gap-4 border-2 border-dashed border-blue-400 rounded-xl p-4 bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
+                    style={{ minHeight: 80 }}
+                >
+                    <div className="flex-1 flex flex-col gap-2">
+                        <Label className="font-semibold text-gray-700 dark:text-gray-300">
+                            Importar productos desde Excel (.xlsx):
+                        </Label>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                            Arrastra y suelta el archivo aquí o haz clic para seleccionarlo.
+                        </span>
+                    </div>
+                    <Input
+                        type="file"
+                        accept=".xlsx"
+                        onChange={handleFileInput}
+                        className="max-w-xs"
+                        style={{ display: "block" }}
+                    />
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                        <Button
+                            type="button"
+                            onClick={addProduct}
+                            className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Agregar otro producto
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            disabled={isPending || hasErrors(errors)}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                                isPending || hasErrors(errors)
+                                    ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
+                            }`}
+                        >
+                            {isPending ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-5 h-5" />
+                                    Guardar Productos
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Área de cards con scroll propio */}
+                <div className="space-y-8 overflow-y-auto" style={{ maxHeight: "60vh", minHeight: "200px" }}>
                     {products.map((product, pIndex) => (
                         <div
                             key={pIndex}
@@ -489,10 +773,10 @@ export default function CreateProductForm() {
                                             }`}
                                         />
                                         {errors[pIndex]?.name && (
-                                            <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
+                                            <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                                 {errors[pIndex].name}
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
 
@@ -544,14 +828,41 @@ export default function CreateProductForm() {
                                             </div>
                                         )}
                                     </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            <Package className="w-4 h-4" />
+                                            Marca
+                                        </Label>
+                                        <Input
+                                            value={product.brand}
+                                            onChange={(e) => handleProductChange(pIndex, "brand", e.target.value)}
+                                            placeholder="Ej: D3SI, Otro..."
+                                            className="h-12 text-base border-2 transition-all duration-200 border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Category Autocomplete */}
                                 <div className="space-y-3">
-                                    <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        <Users className="w-4 h-4" />
-                                        Categoría
-                                    </Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            <Users className="w-4 h-4" />
+                                            Categoría
+                                        </Label>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setShowModal(true)}
+                                            className="text-blue-600 hover:text-blue-800 bg-slate-200 dark:bg-slate-950 text-sm font-semibold flex items-center"
+                                        >
+                                            <Plus className="w-4 h-4 mr-1" />
+                                        </Button>
+                                        <CategoryManagementModal
+                                            isOpen={showModal}
+                                            onClose={() => setShowModal(false)}
+                                            categories={categories}
+                                        />
+                                    </div>
                                     <div
                                         className="relative"
                                         ref={(el) => {
@@ -667,6 +978,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceCost}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -697,6 +1011,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0.00"
                                                             value={size.priceList}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -754,6 +1071,9 @@ export default function CreateProductForm() {
                                                             type="number"
                                                             placeholder="0"
                                                             value={size.stockQuantity}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) =>
                                                                 handleSizeChange(
                                                                     pIndex,
@@ -807,43 +1127,44 @@ export default function CreateProductForm() {
                             </div>
                         </div>
                     ))}
+                </div>
 
-                    {/* Action Buttons */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8">
-                        <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-                            <Button
-                                type="button"
-                                onClick={addProduct}
-                                className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            >
-                                <Plus className="w-5 h-5" />
-                                Agregar otro producto
-                            </Button>
+                {/* Action Buttons */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl p-8 mt-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+                        <Button
+                            type="button"
+                            onClick={addProduct}
+                            className="flex items-center gap-3 px-8 py-4 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Agregar otro producto
+                        </Button>
 
-                            <Button
-                                type="submit"
-                                disabled={isPending || hasErrors(errors)}
-                                className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                                    isPending || hasErrors(errors)
-                                        ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
-                                }`}
-                            >
-                                {isPending ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="w-5 h-5" />
-                                        Guardar Productos
-                                    </>
-                                )}
-                            </Button>
-                        </div>
+                        <Button
+                            type="submit"
+                            disabled={isPending || hasErrors(errors)}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                                isPending || hasErrors(errors)
+                                    ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white"
+                            }`}
+                        >
+                            {isPending ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-5 h-5" />
+                                    Guardar Productos
+                                </>
+                            )}
+                        </Button>
                     </div>
-                </form>
+                </div>
+                {/* Fin Action Buttons */}
             </div>
         </div>
     )

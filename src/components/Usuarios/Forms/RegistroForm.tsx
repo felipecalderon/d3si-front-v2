@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "../../ui/button"
+import { Button } from "@/components/ui/button"
 import { register } from "@/actions/auth/authActions"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
@@ -21,7 +21,6 @@ export default function RegistroForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Registro with:", { nombre, email, role, password })
         try {
             const data = await register(nombre, email, role, password)
 

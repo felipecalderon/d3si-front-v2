@@ -1,6 +1,7 @@
 import StatCard from "@/components/Caja/Dashboard/StatCard"
 import { DollarSign, FileText, FileCheck2 } from "lucide-react"
 import { IResume } from "@/interfaces/sales/ISalesResume"
+import { toPrice } from "@/utils/priceFormat"
 
 const Facturacion = ({ resume }: { resume: IResume }) => {
     const { orders, sales } = resume.totales
@@ -12,7 +13,7 @@ const Facturacion = ({ resume }: { resume: IResume }) => {
                 <StatCard
                     icon={<DollarSign />}
                     label="Facturación mensual"
-                    value={`$${orders.month.amount.toLocaleString("es-CL", { maximumFractionDigits: 0 })}`}
+                    value={`$${toPrice(orders.month.amount)}`}
                 />
             </div>
         </div>

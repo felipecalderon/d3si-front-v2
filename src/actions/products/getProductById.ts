@@ -1,23 +1,20 @@
-import { getAllProducts } from "@/actions/products/getAllProducts" 
+import { IProduct } from "@/interfaces/products/IProduct"
 
-export const getProductById = async (storeId: string, skuInput: string) => {
-    const products = await getAllProducts()
-
+export const getProductById = (products: IProduct[], storeId: string, skuInput: string) => {
     for (const product of products) {
         const variation = product.ProductVariations.find((v) => v.sku === skuInput)
         if (variation) {
-            const storeProduct = Array.isArray(variation.StoreProducts)
-                ? variation.StoreProducts.find((sp) => sp.storeID === storeId)
-                : null
+            const variationStoreProduct = variation.StoreProducts.find((sp) => sp.storeID === storeId)
+            if (!variationStoreProduct) return null
 
-            
             return {
+                ...variationStoreProduct,
                 ...variation,
                 name: product.name,
                 image: product.image || "",
-                storeProductID: storeProduct?.storeProductID || "",
+                storeProductID: variationStoreProduct.storeProductID || "",
                 priceList: Number(variation.priceList),
-                stock: storeProduct?.quantity ?? 0,
+                stock: variationStoreProduct.quantity ?? 0,
             }
         }
     }

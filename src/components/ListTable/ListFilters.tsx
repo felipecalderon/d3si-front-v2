@@ -3,94 +3,38 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Filter, X, TrendingUp, TrendingDown, Users, Tag, DollarSign, Package, Calendar, Clock } from "lucide-react"
+import { Filter, X, TrendingUp, TrendingDown, Users, DollarSign, Package, Calendar, Clock } from "lucide-react"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import type { ICategory } from "@/interfaces/categories/ICategory"
-import { useMemo } from "react"
 
-export type FilterType = "category" | "genre" | "cost" | "quantity" | "created" | "updated"
+export type FilterType = "genre" | "cost" | "quantity" | "created" | "updated"
 export type SortDirection = "asc" | "desc"
 
 interface ProductFiltersProps {
     products: IProduct[]
-    categories: ICategory[]
     selectedFilter: FilterType
     sortDirection: SortDirection
-    selectedCategory?: string
     selectedGenre?: string
     onFilterChange: (filter: FilterType) => void
     onSortDirectionChange: (direction: SortDirection) => void
-    onCategoryChange: (category: string | undefined) => void
     onGenreChange: (genre: string | undefined) => void
     onClearFilters: () => void
 }
 
 export function ListFilters({
     products,
-    categories,
     selectedFilter,
     sortDirection,
-    selectedCategory,
     selectedGenre,
     onFilterChange,
     onSortDirectionChange,
-    onCategoryChange,
     onGenreChange,
     onClearFilters,
 }: ProductFiltersProps) {
-    // Obtener categorías con contador de productos
-    const categoriesWithCount = useMemo(() => {
-        // Validar que tenemos datos válidos
-        if (!Array.isArray(categories) || !Array.isArray(products)) {
-            return []
-        }
-
-        return categories
-            .map((category) => {
-                // Validar que la categoría tiene nombre
-                if (!category || !category.name) {
-                    return null
-                }
-
-                const productCount = products.filter((product) => {
-                    // Validaciones exhaustivas para evitar errores de null/undefined
-                    if (!product || !product.categoryID) {
-                        return false
-                    }
-
-                    // Verificar que categoryID es un array válido
-                    if (!Array.isArray(product.categoryID) || product.categoryID.length === 0) {
-                        return false
-                    }
-
-                    // Verificar que al menos una categoría coincide
-                    return product.categoryID.some((cat) => {
-                        return cat && cat.name && cat.name === category.name
-                    })
-                }).length
-
-                return {
-                    ...category,
-                    productCount,
-                }
-            })
-            .filter((cat) => cat !== null && cat.productCount > 0) // Solo mostrar categorías válidas que tienen productos
-            .sort((a, b) => (a?.name || "").localeCompare(b?.name || ""))
-    }, [products, categories])
-
-    // Función helper para obtener el nombre de la categoría
-    const getCategoryName = (categoryName: string) => {
-        const category = categoriesWithCount.find((cat) => cat?.name === categoryName)
-        return category ? category.name : categoryName
-    }
-
     // Obtener géneros únicos
     const genres = Array.from(new Set(products.map((p) => p.genre).filter(Boolean)))
 
     const getFilterIcon = (filter: FilterType) => {
         switch (filter) {
-            case "category":
-                return <Tag className="w-4 h-4" />
             case "genre":
                 return <Users className="w-4 h-4" />
             case "cost":
@@ -106,7 +50,6 @@ export function ListFilters({
 
     const getFilterLabel = (filter: FilterType) => {
         const labels = {
-            category: "Por Categoría",
             genre: "Por Género",
             cost: "Por Costo",
             quantity: "Por Cantidad",
@@ -118,7 +61,6 @@ export function ListFilters({
 
     const getSortLabel = () => {
         const baseLabels = {
-            category: "Categoría",
             genre: "Género",
             cost: "Costo",
             quantity: "Cantidad",
@@ -138,7 +80,7 @@ export function ListFilters({
         return `${baseLabels[selectedFilter]} - ${originalDirection}`
     }
 
-    const hasActiveFilters = selectedCategory || selectedGenre
+    const hasActiveFilters = selectedGenre
 
     return (
         <div className="flex flex-col gap-4">
@@ -153,12 +95,6 @@ export function ListFilters({
                         </div>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="category">
-                            <div className="flex items-center gap-2">
-                                <Tag className="w-4 h-4" />
-                                Por Categoría
-                            </div>
-                        </SelectItem>
                         <SelectItem value="genre">
                             <div className="flex items-center gap-2">
                                 <Users className="w-4 h-4" />
@@ -239,26 +175,6 @@ export function ListFilters({
                     </SelectContent>
                 </Select>
 
-                {/* Filtro de categorías - siempre visible cuando está seleccionado */}
-                {selectedFilter === "category" && categories.length > 0 && (
-                    <Select
-                        value={selectedCategory || "all"}
-                        onValueChange={(value) => onCategoryChange(value === "all" ? undefined : value)}
-                    >
-                        <SelectTrigger className="w-[200px] h-11 border-2">
-                            <SelectValue placeholder="Todas las categorías" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todas las categorías</SelectItem>
-                            {categories.map((category) => (
-                                <SelectItem key={category.categoryID} value={category.name}>
-                                    {category.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
-
                 {selectedFilter === "genre" && genres.length > 0 && (
                     <Select
                         value={selectedGenre || "all"}
@@ -295,12 +211,6 @@ export function ListFilters({
                         {getSortLabel()}
                     </div>
                 </Badge>
-
-                {selectedCategory && selectedCategory !== "all" && (
-                    <Badge variant="secondary" className="text-sm px-3 py-1">
-                        Categoría: {getCategoryName(selectedCategory)}
-                    </Badge>
-                )}
 
                 {selectedGenre && selectedGenre !== "all" && (
                     <Badge variant="secondary" className="text-sm px-3 py-1">

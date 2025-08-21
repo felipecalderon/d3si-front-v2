@@ -15,6 +15,7 @@ import { updateSubCategory } from "@/actions/categories/updateSubCategory"
 import { deleteCategory } from "@/actions/categories/deleteCategory"
 import { Edit2, Trash2, Check } from "lucide-react"
 import { ICategory } from "@/interfaces/categories/ICategory"
+import { usePathname, useRouter } from "next/navigation"
 
 interface CategoryManagementModalProps {
     isOpen: boolean
@@ -46,6 +47,7 @@ export function CategoryManagementModal({
     const [editCategoryName, setEditCategoryName] = useState("")
     const [editSubcategoryName, setEditSubcategoryName] = useState("")
     const [deleting, setDeleting] = useState<string | null>(null)
+    const route = useRouter()
 
     useEffect(() => {
         setCategories(initialCategories)
@@ -131,6 +133,9 @@ export function CategoryManagementModal({
             setEditSubcategoryName("")
         } catch (error) {
             console.error("Error updating subcategory:", error)
+        } finally {
+            route.refresh()
+            onClose()
         }
     }
 
@@ -190,14 +195,12 @@ export function CategoryManagementModal({
             for (const subcategory of newSubcategories) {
                 await createSubategory(subcategory.parentID, subcategory.name)
             }
-
-            // Siempre redireccionar a la página especificada
-            window.location.href = "http://localhost:3000/home/inventory"
         } catch (error) {
             console.error("Error saving categories:", error)
             // Incluso si hay error, redirigir para mostrar el estado actual
-            window.location.href = "http://localhost:3000/home/inventory"
         } finally {
+            route.refresh()
+            onClose()
             setSaving(false)
         }
     }
@@ -208,8 +211,6 @@ export function CategoryManagementModal({
         setAddingSubcategoryFor(null)
         setNewSubcategoryName("")
         onClose()
-        // Recargar la página de control de mando para mostrar los cambios
-        window.location.href = "http://localhost:3000/home/inventory"
     }
 
     return (

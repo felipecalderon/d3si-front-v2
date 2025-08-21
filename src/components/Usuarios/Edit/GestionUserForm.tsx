@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { motion } from "framer-motion"
-import { Button } from "../../ui/button"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { IUser } from "@/interfaces/users/IUser"
 import { IStore } from "@/interfaces/stores/IStore"
@@ -14,7 +14,7 @@ import { updateUser } from "@/actions/users/updateUser"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { addUserStore } from "@/actions/stores/addUserStore"
 import { removeUserFromStore } from "@/actions/stores/removeUserFromStore"
-import Modal from "./ModalUserTienda"
+import Modal from "./ModalGestion"
 import { User, Store, Plus, Trash2, Save, X } from "lucide-react"
 import { useAuth } from "@/stores/user.store"
 
@@ -88,7 +88,7 @@ export default function GestionUserForm({ isOpen, onClose, usuario }: GestionUse
                 await removeUserFromStore(usuario.userID, storeId)
                 setTiendasAsignadas((prev) => prev.filter((tienda) => tienda.storeID !== storeId.toString()))
             } catch (error) {
-                console.log(error)
+                console.error(error)
             }
         }
     }

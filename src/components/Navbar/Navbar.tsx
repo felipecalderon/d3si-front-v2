@@ -1,4 +1,5 @@
 "use client"
+import { useTienda } from "@/stores/tienda.store"
 import { useAuth } from "@/stores/user.store"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -8,6 +9,7 @@ import { FaChevronDown, FaSignOutAlt, FaUser } from "react-icons/fa"
 export default function Navbar() {
     const router = useRouter()
     const { user, logout } = useAuth()
+    const { storeSelected } = useTienda()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     const handleLogout = () => {
@@ -24,6 +26,7 @@ export default function Navbar() {
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200">
                         Bienvenido, {user?.name || "Usuario"}
                     </h1>
+                    {storeSelected && <p className="text-gray-800 dark:text-gray-200">Tienda: {storeSelected.name}</p>}
                 </div>
 
                 {/* Mobile: User info and controls */}

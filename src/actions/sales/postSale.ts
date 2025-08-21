@@ -2,10 +2,15 @@ import { API_URL } from "@/lib/enviroments"
 import { fetcher } from "@/lib/fetcher"
 import { ISaleRequest } from "@/interfaces/sales/ISale"
 
+interface ResponseSale {
+    message: string
+    saleID: string
+    total: number
+}
+
 export const postSale = async (saleData: ISaleRequest) => {
-    console.log(saleData)
     try {
-        const data = await fetcher(`${API_URL}/sale`, {
+        const data = await fetcher<ResponseSale>(`${API_URL}/sale`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "../../ui/button"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { IUser } from "@/interfaces/users/IUser"
 import { useTienda } from "@/stores/tienda.store"

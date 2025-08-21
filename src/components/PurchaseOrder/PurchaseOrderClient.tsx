@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import React, { useState, useMemo, useEffect } from "react"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,11 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { ListFilters } from "@/components/ListTable/ListFilters"
-import { useProductFilters } from "@/hooks/use-product-filters"
 import { useRouter } from "next/navigation"
 import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
+import { useProductFilter } from "@/stores/productsFilters"
+import { inventoryStore } from "@/stores/inventory.store"
+import { useAuth } from "@/stores/user.store"
+import { useTienda } from "@/stores/tienda.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -26,40 +27,57 @@ export default function PurchaseOrderClient({
     initialStores,
 }: PurchaseOrderClientProps) {
     const router = useRouter()
-
+    const { user } = useAuth()
     // Estados
     const [search, setSearch] = useState("")
-    const [rawProducts] = useState<IProduct[]>(initialProducts)
-    const [categories] = useState<ICategory[]>(initialCategories)
     const [stores] = useState<IStore[]>(initialStores)
+    const { storeSelected } = useTienda()
+    // Si es admin, puede elegir tienda; si es store_manager, usa la global
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
+    const [isLargeScreen, setIsLargeScreen] = useState(false)
 
     // Hook para filtros personalizados
     const {
         selectedFilter,
         sortDirection,
-        selectedCategory,
         selectedGenre,
         filteredAndSortedProducts,
         setSelectedFilter,
         setSortDirection,
-        setSelectedCategory,
         setSelectedGenre,
         clearFilters,
-    } = useProductFilters(rawProducts)
+    } = useProductFilter()
+
+    const { setRawProducts } = inventoryStore()
+
+    // Filtrar productos por tienda seleccionada (admin ve todos)
+    const filteredByStore = useMemo(() => {
+        // Si es admin y no ha seleccionado tienda, ve todos
+        if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
+        // Si es store_manager, filtra por la tienda global
+        if (user?.role === "store_manager" && storeSelected?.storeID) {
+            return filteredAndSortedProducts.filter((product) =>
+                product.ProductVariations.some((variation) =>
+                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === storeSelected.storeID)
+                )
+            )
+        }
+        // Por defecto, retorna todos
+        return filteredAndSortedProducts
+    }, [filteredAndSortedProducts, selectedStoreID, user?.role, storeSelected?.storeID])
 
     // Filtrar productos según búsqueda
     const searchedProducts = useMemo(() => {
-        if (!search.trim()) return filteredAndSortedProducts
+        if (!search.trim()) return filteredByStore
         const lower = search.toLowerCase()
-        return filteredAndSortedProducts.filter(
+        return filteredByStore.filter(
             (product) =>
                 product.name.toLowerCase().includes(lower) ||
                 product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
         )
-    }, [search, filteredAndSortedProducts])
+    }, [search, filteredByStore])
 
     // Aplanar productos con variaciones para paginación
     const flattenedProducts = useMemo(() => {
@@ -82,15 +100,6 @@ export default function PurchaseOrderClient({
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
     const currentItems = flattenedProducts.slice(startIndex, endIndex)
-
-    // Resetear página cuando cambian filtros o búsqueda
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedCategory, selectedGenre])
-
-    const totalProductsInOrder = useMemo(() => {
-        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
-    }, [pedido])
 
     // Funciones para agregar o quitar productos a pedido
     const handleAgregarCalzados = () => {
@@ -128,7 +137,7 @@ export default function PurchaseOrderClient({
 
     // Calcular subtotal de pedido
     const subtotal = useMemo(() => {
-        return rawProducts.reduce((total, product) => {
+        return initialProducts.reduce((total, product) => {
             return (
                 total +
                 product.ProductVariations.reduce((sub, variation) => {
@@ -137,7 +146,11 @@ export default function PurchaseOrderClient({
                 }, 0)
             )
         }, 0)
-    }, [pedido, rawProducts])
+    }, [pedido, initialProducts])
+
+    const totalProductsInOrder = useMemo(() => {
+        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
+    }, [pedido])
 
     // Función para obtener páginas visibles en paginación
     const getVisiblePages = () => {
@@ -160,7 +173,21 @@ export default function PurchaseOrderClient({
 
         return pages
     }
+    // Resetear página cuando cambian filtros o búsqueda
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [search, selectedFilter, sortDirection, selectedGenre])
 
+    useEffect(() => {
+        setRawProducts(initialProducts)
+        setSelectedFilter("genre")
+    }, [])
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setIsLargeScreen(window.innerWidth >= 1024)
+        }
+    }, [])
     return (
         <>
             <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
@@ -175,48 +202,66 @@ export default function PurchaseOrderClient({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            <div className="flex gap-2">
-                                <Button
-                                    onClick={handleAgregarCalzados}
-                                    className="h-11 bg-green-600 hover:bg-green-700"
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Agregar
-                                </Button>
-                                <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
-                                    <Minus className="w-4 h-4 mr-2" />
-                                    Quitar
-                                </Button>
-                            </div>
                         </div>
                         {/* Filtros */}
                         <ListFilters
-                            products={rawProducts}
-                            categories={categories}
+                            products={filteredAndSortedProducts}
                             selectedFilter={selectedFilter}
                             sortDirection={sortDirection}
-                            selectedCategory={selectedCategory}
                             selectedGenre={selectedGenre}
                             onFilterChange={setSelectedFilter}
                             onSortDirectionChange={setSortDirection}
-                            onCategoryChange={setSelectedCategory}
                             onGenreChange={setSelectedGenre}
                             onClearFilters={clearFilters}
                         />
                         <div className="flex lg:flex-row flex-col items-center gap-4">
-                            <span className="text-sm font-semibold whitespace-nowrap">Orden de compra para:</span>
-                            <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                                <SelectTrigger className="w-[300px] h-11 border-2">
-                                    <SelectValue placeholder="Seleccionar tienda" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stores.map((store) => (
-                                        <SelectItem key={store.storeID} value={store.storeID}>
-                                            {store.name} - {store.city}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="flex w-full justify-between items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-semibold whitespace-nowrap">
+                                        Orden de compra para:
+                                    </span>
+                                    {user?.role === "admin" ? (
+                                        <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Select value={storeSelected?.storeID || ""} disabled>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={handleAgregarCalzados}
+                                        className="h-11 bg-green-600 hover:bg-green-700"
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Agregar +1
+                                    </Button>
+                                    <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
+                                        <Minus className="w-4 h-4 mr-2" />
+                                        Quitar -1
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
@@ -240,6 +285,8 @@ export default function PurchaseOrderClient({
                                             {uniqueProductsInCurrentPage}
                                         </span>
                                     </div>
+                                    {/*Aqui debe ir los botones de agregar o quitar */}
+
                                     <span className="ml-1">de {searchedProducts.length} productos</span>
                                 </Badge>
                             </div>
@@ -314,30 +361,20 @@ export default function PurchaseOrderClient({
                 )}
             </main>
             {/*Barra de resumen del total estatica*/}
-            <div
-                style={{
-                    position: "fixed",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 50,
-                    background: "rgba(255,255,255,0.97)",
-                    boxShadow: "0 -2px 16px rgba(0,0,0,0.07)",
-                    borderTop: "1px solid #e5e7eb",
-                    padding: "0.25rem 2rem",
-                }}
-            >
-                <PurchaseOrderSummary
-                    totalProductsInOrder={totalProductsInOrder}
-                    subtotal={subtotal}
-                    isLoading={false}
-                    selectedStoreID={selectedStoreID}
-                    pedido={pedido}
-                    rawProducts={rawProducts}
-                    setPedido={setPedido}
-                    router={router}
-                />
-            </div>
+            <MotionItem>
+                <div className=" fixed left-0 right-0 bottom-0 z-50 dark:bg-slate-900 bg-slate-200 shadow-[4px_-4px_8px_rgba(0,0,0,0.1)] dark:shadow-slate-950 shadow-slate-400 border-t px-8 py-1 transition-all duration-300 w-full lg:ml-[260px] lg:w-[calc(100%-250px)]">
+                    <PurchaseOrderSummary
+                        totalProductsInOrder={totalProductsInOrder}
+                        subtotal={subtotal}
+                        isLoading={false}
+                        selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
+                        pedido={pedido}
+                        rawProducts={initialProducts}
+                        setPedido={setPedido}
+                        router={router}
+                    />
+                </div>
+            </MotionItem>
         </>
     )
 }

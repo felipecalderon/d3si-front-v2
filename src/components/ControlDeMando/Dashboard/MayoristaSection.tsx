@@ -70,8 +70,7 @@ export default function MayoristaSection() {
                                 {tiendasActuales.map((tienda, index) => (
                                     <div
                                         key={index}
-                                        className="py-2 px-4 md:px-16 rounded text-white text-center text-xs md:text-sm font-medium"
-                                        style={{ backgroundColor: colores[index] }}
+                                        className={`py-2 px-4 md:px-16 rounded bg-[${colores[index]}] dark:text-white text-center text-xs md:text-sm font-medium`}
                                     >
                                         {tienda.nombre} → {tienda.ventas.toLocaleString()}
                                     </div>
@@ -86,9 +85,7 @@ export default function MayoristaSection() {
             <div className="lg:col-span-4 lg:col-start-9 lg:row-start-2 lg:row-span-4">
                 <Card className="dark:bg-gray-800 border-0 shadow-lg">
                     <CardHeader>
-                        <CardTitle className="text-sm my-2 dark:text-white">
-                            Ventas Totales vs Objetivos
-                        </CardTitle>
+                        <CardTitle className="text-sm my-2 dark:text-white">Ventas Totales vs Objetivos</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -121,9 +118,7 @@ export default function MayoristaSection() {
                                             <p className="text-lg md:text-xl font-bold dark:text-white text-gray-900">
                                                 717.304
                                             </p>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                776.000
-                                            </p>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400">776.000</p>
                                         </div>
                                     </div>
                                 </div>

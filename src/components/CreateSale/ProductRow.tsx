@@ -1,6 +1,8 @@
 import { FC } from "react"
 import { Trash2 } from "lucide-react"
 import { TableRow, TableCell } from "@/components/ui/table"
+import Image from "next/image"
+import { Input } from "../ui/input"
 
 interface Producto {
     nombre: string
@@ -33,17 +35,28 @@ const ProductRow: FC<ProductRowProps> = ({ producto, onDelete, onCantidadChange 
     return (
         <TableRow className="hover:bg-muted/50 dark:hover:bg-gray-700/50">
             <TableCell className="flex items-center gap-3 p-2">
-                <img src={image} alt={nombre} className="w-10 h-10 object-cover rounded" />
+                {image && (
+                    <Image
+                        width={100}
+                        height={100}
+                        src={image}
+                        alt={nombre}
+                        className="w-10 h-10 object-cover rounded"
+                    />
+                )}
                 <span>{nombre}</span>
             </TableCell>
             <TableCell className="p-2 text-center">
                 <div>
-                    <input
+                    <Input
                         title="Cantidad"
                         type="number"
                         min={1}
                         max={producto.stockDisponible}
                         value={cantidad}
+                        onWheel={(e) => {
+                            e.currentTarget.blur()
+                        }}
                         onChange={handleCantidadChange}
                         className="w-16 text-center rounded border border-gray-300 p-1"
                     />
