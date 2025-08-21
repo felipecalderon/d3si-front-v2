@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useTienda } from "@/stores/tienda.store"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,23 +10,19 @@ import { InvoicesClientProps } from "@/interfaces/invoices/IInvoices"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { toPrice } from "@/utils/priceFormat"
+import { useRouter } from "next/navigation"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
     const { user } = useAuth()
     const { storeSelected } = useTienda()
     const isStoreManager = user?.role === Role.Vendedor
     const isAdmin = user?.role === Role.Admin
-    // Filtrar órdenes según el rol
-    const filteredOrders = isAdmin
-        ? initialOrders
-        : isStoreManager && storeSelected?.storeID
-        ? initialOrders.filter((order) => order.storeID === storeSelected.storeID)
-        : []
-    const [orders, setOrders] = useState<IOrderWithStore[]>(filteredOrders)
-    const [selectedOrder, setSelectedOrder] = useState<IOrderWithStore | null>(null)
+    const route = useRouter()
+
+    const [orders, setOrders] = useState<IOrderWithStore[]>([])
 
     const handleView = (order: IOrderWithStore) => {
-        window.location.href = `/home/order/${order.orderID}`
+        route.push(`/home/order/${order.orderID}`)
     }
 
     const getStoreName = (storeID: string) => {
@@ -34,11 +30,21 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
     }
 
     const handleDelete = async (orderID: string) => {
-        if (confirm("¿Estás seguro de que quieres anular esta orden?")) {
+        if (confirm("¿Estás seguro de que quieres borrar esta orden?")) {
             await deleteOrder(orderID)
             setOrders((prev) => prev.filter((order) => order.orderID !== orderID))
         }
     }
+
+    useEffect(() => {
+        // Filtrar órdenes según el rol
+        const filteredOrders = isAdmin
+            ? initialOrders
+            : isStoreManager && storeSelected?.storeID
+            ? initialOrders.filter((order) => order.storeID === storeSelected.storeID)
+            : []
+        setOrders(filteredOrders)
+    }, [user])
 
     const getStatusBadge = (status: string) => {
         const statusConfig = {
@@ -95,7 +101,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                         ${toPrice(total)}
                                     </TableCell>
                                     <TableCell className="font-semibold text-blue-600 dark:text-blue-400">
-                                        ${totalConIVA}
+                                        ${toPrice(totalConIVA)}
                                     </TableCell>
                                     <TableCell>
                                         <span

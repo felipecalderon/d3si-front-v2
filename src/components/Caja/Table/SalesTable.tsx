@@ -60,7 +60,7 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                         <TableRow
                                             key={sale.saleID}
                                             className="cursor-pointer"
-                                            onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
+                                            // onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
                                         >
                                             <TableCell className="min-w-[150px]">{storeName}</TableCell>
                                             <TableCell className="min-w-[150px]">

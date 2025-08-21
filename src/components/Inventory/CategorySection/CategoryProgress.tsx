@@ -11,12 +11,12 @@ import type { ICategory } from "@/interfaces/categories/ICategory"
 
 interface CategoryProgressProps {
     products: IProduct[]
-    categories?: ICategory[]
+    categories: ICategory[]
 }
 
 type ViewMode = "categoria" | "tipo"
 
-export function CategoryProgress({ products, categories = [] }: CategoryProgressProps) {
+export function CategoryProgress({ products, categories }: CategoryProgressProps) {
     const [viewMode, setViewMode] = useState<ViewMode>("categoria")
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
     const [showModal, setShowModal] = useState(false)

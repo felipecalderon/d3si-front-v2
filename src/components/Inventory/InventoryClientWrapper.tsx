@@ -23,6 +23,7 @@ import { inventoryStore } from "@/stores/inventory.store"
 import { useTienda } from "@/stores/tienda.store"
 import { InventoryTable } from "./TableSection/InventoryTable"
 import InventoryHeader from "./HeaderSetion/InventoryHeader"
+import { useCategories } from "@/stores/categories.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -32,12 +33,12 @@ interface Props {
     stores: IStore[]
 }
 
-export default function UnifiedInventoryClientWrapper({ initialProducts, categories, stores }: Props) {
+export default function UnifiedInventoryClientWrapper({ initialProducts, categories: cats, stores }: Props) {
     const { user } = useAuth()
     const { storeSelected } = useTienda()
     const { currentPage, editValue, editingField, rawProducts, setCurrentPage, setEditingField, setRawProducts } =
         inventoryStore()
-
+    const { categories, setCategories } = useCategories()
     // Column filters state
     const [columnFilters, setColumnFilters] = useState({
         producto: "",
@@ -275,6 +276,9 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
         setRawProducts(filteredInitialProducts)
     }, [filteredInitialProducts])
 
+    useEffect(() => {
+        setCategories(cats)
+    }, [])
     return (
         <main className="lg:p-6 flex-1 flex flex-col h-screen">
             {/* Category Progress, no se muestra si es store manager */}

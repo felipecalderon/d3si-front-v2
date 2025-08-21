@@ -16,12 +16,13 @@ import { deleteCategory } from "@/actions/categories/deleteCategory"
 import { Edit2, Trash2, Check } from "lucide-react"
 import { ICategory } from "@/interfaces/categories/ICategory"
 import { usePathname, useRouter } from "next/navigation"
+import { useCategories } from "@/stores/categories.store"
+import { toast } from "sonner"
 
 interface CategoryManagementModalProps {
     isOpen: boolean
     onClose: () => void
     categories: ICategory[]
-    onCategoriesUpdate?: (categories: ICategory[]) => void // Agregar esta línea
 }
 
 interface NewSubcategory {
@@ -32,10 +33,9 @@ interface NewSubcategory {
 export function CategoryManagementModal({
     isOpen,
     onClose,
-    categories: initialCategories,
-    onCategoriesUpdate, // Agregar esta línea
+    categories: initialCategories, //deprecated: ya no se usa, viene de store zustand
 }: CategoryManagementModalProps) {
-    const [categories, setCategories] = useState<ICategory[]>(initialCategories)
+    const { categories, setCategories } = useCategories()
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [newParentCategory, setNewParentCategory] = useState("")
@@ -48,10 +48,6 @@ export function CategoryManagementModal({
     const [editSubcategoryName, setEditSubcategoryName] = useState("")
     const [deleting, setDeleting] = useState<string | null>(null)
     const route = useRouter()
-
-    useEffect(() => {
-        setCategories(initialCategories)
-    }, [initialCategories])
 
     const handleAddSubcategory = (parentID: string) => {
         setAddingSubcategoryFor(parentID)
@@ -95,9 +91,9 @@ export function CategoryManagementModal({
             const updatedCategories = categories.map((cat) =>
                 cat.categoryID === categoryId ? { ...cat, name: editCategoryName.trim() } : cat
             )
+            toast.success(`Categoría ${editCategoryName} actualizada con éxito`)
             setCategories(updatedCategories)
             // Notificar al componente padre
-            onCategoriesUpdate?.(updatedCategories)
             setEditingCategory(null)
             setEditCategoryName("")
         } catch (error) {
@@ -126,9 +122,9 @@ export function CategoryManagementModal({
                         sub.categoryID === subcategoryId ? { ...sub, name: editSubcategoryName.trim() } : sub
                     ) || [],
             }))
+            toast.success(`Subcategoría ${editSubcategoryName} actualizada con éxito`)
+
             setCategories(updatedCategories)
-            // Notificar al componente padre
-            onCategoriesUpdate?.(updatedCategories)
             setEditingSubcategory(null)
             setEditSubcategoryName("")
         } catch (error) {
@@ -167,8 +163,6 @@ export function CategoryManagementModal({
             }
 
             setCategories(updatedCategories)
-            // Notificar al componente padre
-            onCategoriesUpdate?.(updatedCategories)
         } catch (error) {
             console.error("Error deleting category:", error)
         } finally {
@@ -189,17 +183,18 @@ export function CategoryManagementModal({
             // Crear categoría padre si existe
             if (newParentCategory.trim()) {
                 await createCategory(newParentCategory.trim())
+                toast.success(`Categoría ${newParentCategory} creada con éxito`)
             }
 
             // Crear subcategorías
             for (const subcategory of newSubcategories) {
                 await createSubategory(subcategory.parentID, subcategory.name)
+                toast.success(`Subcategoría ${subcategory.name} creada con éxito`)
             }
         } catch (error) {
             console.error("Error saving categories:", error)
             // Incluso si hay error, redirigir para mostrar el estado actual
         } finally {
-            route.refresh()
             onClose()
             setSaving(false)
         }
