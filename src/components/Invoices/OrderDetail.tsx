@@ -377,7 +377,13 @@ export default function OrderDetail({ orderId }: Props) {
                             }}
                         />
                     </div>
-                    <FinancialSummary neto={neto} iva={iva} totalConIva={totalConIva} />
+                    <FinancialSummary
+                        neto={neto}
+                        iva={iva}
+                        totalConIva={totalConIva}
+                        totalQuotas={totalQuotas}
+                        currentQuota={currentQuota}
+                    />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <button
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
