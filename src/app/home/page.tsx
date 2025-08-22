@@ -1,19 +1,19 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
-import SalesTable from "@/components/Caja/Table/SalesTable"
-import Facturacion from "@/components/Caja/Dashboard/Facturacion"
-import Ventas from "@/components/Caja/Dashboard/Ventas"
-import Payment from "@/components/Caja/Dashboard/PaymentMethods"
-import Filters from "@/components/Caja/Dashboard/Filters"
-import GaugeChart from "@/components/Caja/VentasTotalesGrafico/GaugeChart"
+import SalesTable from "@/components/Caja/SalesTable"
+import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
+import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
+import DailyResumeCards from "@/components/Caja/DailyResumeCards"
+import FilterStoreMonthYear from "@/components/Caja/FilterStoreMonthYear"
+import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 
-interface SerchParams {
+interface SearchParams {
     searchParams: Promise<{
         storeID: string
     }>
 }
 
-const HomePage = async ({ searchParams }: SerchParams) => {
+const HomePage = async ({ searchParams }: SearchParams) => {
     const { storeID } = await searchParams
     if (!storeID) return null
     const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
@@ -26,13 +26,13 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                     {/* Filtros + botón vender */}
                     <div className="lg:w-3/6">
                         <div className="sm:w-auto">
-                            <Filters />
+                            <FilterStoreMonthYear />
                         </div>
                     </div>
 
                     {/* Métodos de pago */}
                     <div className="lg:w-3/6">
-                        <Payment />
+                        <DailyResumeCards />
                     </div>
                 </div>
 
@@ -43,18 +43,18 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                         {/* Gráfico primero en mobile */}
                         <div className="flex justify-center">
                             <div className="w-full max-w-[280px] mx-auto">
-                                <GaugeChart />
+                                <TotalSalesResumeGraph resume={resume} />
                             </div>
                         </div>
 
                         {/* Facturación */}
                         <div>
-                            <Facturacion resume={resume} />
+                            <ResumeLeftSideChart resume={resume} />
                         </div>
 
                         {/* Ventas */}
                         <div>
-                            <Ventas resume={resume} />
+                            <ResumeRightSideChart resume={resume} />
                         </div>
                     </div>
 
@@ -62,19 +62,19 @@ const HomePage = async ({ searchParams }: SerchParams) => {
                     <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
                         {/* Facturación */}
                         <div className="h-full flex flex-col justify-between gap-4">
-                            <Facturacion resume={resume} />
+                            <ResumeLeftSideChart resume={resume} />
                         </div>
 
                         {/* Gráfico - Centrado verticalmente */}
                         <div className="h-full flex justify-center items-center">
                             <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                                <GaugeChart />
+                                <TotalSalesResumeGraph resume={resume} />
                             </div>
                         </div>
 
                         {/* Ventas */}
                         <div className="h-full flex flex-col justify-between gap-4">
-                            <Ventas resume={resume} />
+                            <ResumeRightSideChart resume={resume} />
                         </div>
                     </div>
                 </div>

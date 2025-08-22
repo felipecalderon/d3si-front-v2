@@ -4,7 +4,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const Filters = () => {
+export default function FilterStoreMonthYear() {
     const { stores, storeSelected } = useTienda()
 
     return (
@@ -87,5 +87,3 @@ const Filters = () => {
         </div>
     )
 }
-
-export default Filters

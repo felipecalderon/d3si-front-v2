@@ -3,20 +3,17 @@ import { updateMeta } from "@/actions/totals/updateMeta"
 import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { getResume } from "@/actions/totals/getResume"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts"
 import { toPrice } from "@/utils/priceFormat"
 import { IResume } from "@/interfaces/sales/ISalesResume"
+import { useRouter } from "next/navigation"
 
-export default function GaugeChart() {
-    const [totales, setTotales] = useState<IResume | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
+export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
     const [editingMeta, setEditingMeta] = useState(false)
     const [metaInput, setMetaInput] = useState("")
+    const route = useRouter()
+
     const handleMetaSave = async () => {
         const metaNumber = Number(metaInput)
         if (!metaInput || isNaN(metaNumber) || metaNumber <= 0) {
@@ -32,10 +29,7 @@ export default function GaugeChart() {
             const result = await updateMeta(fecha, metaNumber)
             if (result) {
                 toast.success(`Meta actualizada a $${toPrice(metaNumber)}`)
-                setTotales((prev: any) => ({
-                    ...prev,
-                    metaMensual: { ...prev.metaMensual, meta: metaNumber },
-                }))
+                route.refresh()
             } else {
                 toast.error("No se pudo guardar la meta")
             }
@@ -47,32 +41,14 @@ export default function GaugeChart() {
         }
     }
 
-    useEffect(() => {
-        const fetchTotales = async () => {
-            try {
-                setLoading(true)
-                setError(null)
-                const resume = await getResume()
-                setTotales(resume)
-            } catch (error) {
-                console.error("Error al obtener totales:", error)
-                setError("Error al cargar los datos")
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchTotales()
-    }, [])
-
     const getSalesAmount = (): number => {
-        if (!totales) return 0
-        const { orders, sales } = totales.totales
+        const { orders, sales } = resume.totales
         const totalSaleAndOrderMonth = orders.month.amount + sales.month.total.amount
         return totalSaleAndOrderMonth
     }
 
     const getMetaAmount = () => {
-        return totales?.metaMensual?.meta || 0
+        return resume?.metaMensual?.meta || 0
     }
 
     // Calculate progress percentage
@@ -80,7 +56,7 @@ export default function GaugeChart() {
         const sales = getSalesAmount()
         const meta = getMetaAmount()
         if (meta === 0) return 0
-        return Math.min((sales / meta) * 100, 100) // Cap at 100%
+        return Math.min((sales / meta) * 100)
     }
 
     // Generate chart data based on actual progress
@@ -102,50 +78,22 @@ export default function GaugeChart() {
         ]
     }
 
-    if (loading) {
-        return (
-            <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
-                <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">
-                    Ventas totales del presente mes / Meta
-                </h3>
-                <div className="space-y-2">
-                    <div className="flex justify-center">
-                        <Skeleton className="h-[200px] w-[200px] rounded-full" />
-                    </div>
-                    <Skeleton className="h-6 w-40 mx-auto" />
-                    <Skeleton className="h-4 w-24 mx-auto" />
-                </div>
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
-                <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">
-                    Ventas totales del presente mes / Meta
-                </h3>
-                <div className="flex justify-center">
-                    <RadialBarChart
-                        width={200}
-                        height={200}
-                        cx={100}
-                        cy={100}
-                        innerRadius={60}
-                        outerRadius={80}
-                        barSize={20}
-                        data={getChartData()}
-                        startAngle={180}
-                        endAngle={0}
-                    >
-                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                        <RadialBar background dataKey="value" />
-                    </RadialBarChart>
-                </div>
-                <p className="text-red-500 text-sm">{error}</p>
-            </div>
-        )
-    }
+    // if (loading) {
+    //     return (
+    //         <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
+    //             <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">
+    //                 Ventas totales del presente mes / Meta
+    //             </h3>
+    //             <div className="space-y-2">
+    //                 <div className="flex justify-center">
+    //                     <Skeleton className="h-[200px] w-[200px] rounded-full" />
+    //                 </div>
+    //                 <Skeleton className="h-6 w-40 mx-auto" />
+    //                 <Skeleton className="h-4 w-24 mx-auto" />
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     return (
         <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
@@ -165,7 +113,7 @@ export default function GaugeChart() {
                     endAngle={0}
                 >
                     <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                    <RadialBar background dataKey="value" />
+                    <RadialBar background dataKey="value" suppressHydrationWarning />
                 </RadialBarChart>
             </div>
 

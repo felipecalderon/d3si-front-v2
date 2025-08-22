@@ -3,7 +3,9 @@
 import React from "react"
 import dynamic from "next/dynamic"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-const DynamicGaugeChart = dynamic(() => import("@/components/Caja/VentasTotalesGrafico/GaugeChart"), { ssr: false })
+const DynamicGaugeChart = dynamic(() => import("@/components/Caja/TotalSalesResumeGraph"), {
+    ssr: false,
+})
 
 export default function GaugeChartSection() {
     return (
