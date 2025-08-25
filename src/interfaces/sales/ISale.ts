@@ -1,3 +1,5 @@
+import { IProduct } from "../products/IProduct"
+import { IProductVariation } from "../products/IProductVariation"
 import { IStore } from "../stores/IStore"
 
 // Para enviar una nueva venta desde el frontend
@@ -16,6 +18,16 @@ export interface IProductSold {
     quantitySold: number
 }
 
+export interface ISaleProduct {
+    SaleProductID: string
+    storeProductID: string
+    quantitySold: number
+    unitPrice: number
+    subtotal: number
+    StoreProduct: {
+        ProductVariation: IProductVariation & { Product: IProduct }
+    }
+}
 // Para representar una venta que viene desde el backend (respuesta)
 export interface ISaleResponse {
     saleID: string
@@ -25,15 +37,5 @@ export interface ISaleResponse {
     createdAt: string
     paymentType?: string
     Store: IStore
-    SaleProducts?: {
-        quantitySold: number
-        unitPrice: number
-        StoreProduct?: {
-            ProductVariation?: {
-                Product?: {
-                    name: string
-                }
-            }
-        }
-    }[]
+    SaleProducts: ISaleProduct[]
 }

@@ -3,7 +3,7 @@ import { fetcher } from "@/lib/fetcher"
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 
 export const getSales = async (storeID: string): Promise<(ISaleResponse & { createdAtFormatted: string })[]> => {
-    const sales = (await fetcher(`${API_URL}/sale?storeID=${storeID}`)) as ISaleResponse[]
+    const sales = await fetcher<ISaleResponse[]>(`${API_URL}/sale?storeID=${storeID}`)
 
     return sales.map((sale) => ({
         ...sale,
@@ -15,4 +15,8 @@ export const getSales = async (storeID: string): Promise<(ISaleResponse & { crea
             minute: "2-digit",
         }),
     }))
+}
+
+export const getSingleSale = async (saleID: string) => {
+    return await fetcher<ISaleResponse>(`${API_URL}/sale/${saleID}`)
 }
