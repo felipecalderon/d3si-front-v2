@@ -1,5 +1,5 @@
 /**
- * Función utilitaria para realizar peticiones HTTP con `fetch`. 
+ * Función utilitaria para realizar peticiones HTTP con `fetch`.
  * Envuelve la función fetch nativa y lanza un error si la respuesta no es exitosa.
  *
  * @template T - Tipo de dato esperado en la respuesta (por ejemplo, un objeto, un array, etc.).
@@ -9,11 +9,11 @@
  * @throws {Error} - Lanza un error si la respuesta del servidor no es exitosa (`response.ok` es false).
  *
  * @example
- * const user = await fetcher<User>(`${API_URL}/users/123`); 
+ * const user = await fetcher<User>(`${API_URL}/users/123`);
  */
 
 export const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
-    const response = await fetch(url, options)
+    const response = await fetch(url, { ...options, cache: "no-store" })
 
     const data = await response.json()
     return data
