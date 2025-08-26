@@ -1,7 +1,7 @@
 import { getSingleSale } from "@/actions/sales/getSales"
+import AnularVentaControl from "@/components/Caja/AnularVentaControl"
 import PrintSaleButton from "@/components/Caja/PrintSaleButton"
 import SingleSaleTable from "@/components/Caja/SingleSaleTable"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toPrice } from "@/utils/priceFormat"
 import { MapPin, Phone, Receipt, ShoppingBag, Store } from "lucide-react"
 import Link from "next/link"
@@ -15,8 +15,8 @@ export default async function SingleSalePage({ params }: PropsSale) {
     const { saleID } = await params
     const sale = await getSingleSale(saleID)
     const products = sale.SaleProducts
-    const total = products.reduce((acc, act) => acc + act.subtotal, 0)
     if (!sale || !products) return null
+    const total = products.reduce((acc, act) => acc + act.subtotal, 0)
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
             <div className="max-w-5xl mx-auto print-container">
@@ -154,12 +154,7 @@ export default async function SingleSalePage({ params }: PropsSale) {
                     </div>
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <PrintSaleButton sale={sale} />
-                        <button
-                            disabled
-                            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
-                        >
-                            Anular Venta
-                        </button>
+                        <AnularVentaControl saleId={sale.saleID} status={sale.status} />
                     </div>
                 </div>
             </div>

@@ -18,6 +18,7 @@ import { ICategory } from "@/interfaces/categories/ICategory"
 import { usePathname, useRouter } from "next/navigation"
 import { useCategories } from "@/stores/categories.store"
 import { toast } from "sonner"
+import { getAllCategories } from "@/actions/categories/getAllCategories"
 
 interface CategoryManagementModalProps {
     isOpen: boolean
@@ -36,7 +37,6 @@ export function CategoryManagementModal({
     categories: initialCategories, //deprecated: ya no se usa, viene de store zustand
 }: CategoryManagementModalProps) {
     const { categories, setCategories } = useCategories()
-    const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [newParentCategory, setNewParentCategory] = useState("")
     const [newSubcategories, setNewSubcategories] = useState<NewSubcategory[]>([])
@@ -191,6 +191,9 @@ export function CategoryManagementModal({
                 await createSubategory(subcategory.parentID, subcategory.name)
                 toast.success(`Subcategoría ${subcategory.name} creada con éxito`)
             }
+
+            const categories = await getAllCategories()
+            setCategories(categories)
         } catch (error) {
             console.error("Error saving categories:", error)
             // Incluso si hay error, redirigir para mostrar el estado actual

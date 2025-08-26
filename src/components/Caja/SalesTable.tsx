@@ -15,74 +15,64 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
     const { push } = useRouter()
     return (
         <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
-            <div className="overflow-x-auto w-full">
-                <Table>
-                    <TableHeader>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead align="center">Sucursal</TableHead>
+                        <TableHead align="center">Fecha</TableHead>
+                        <TableHead align="center">Monto</TableHead>
+                        <TableHead align="center">Productos</TableHead>
+                        <TableHead align="center">Estado</TableHead>
+                        <TableHead align="center">Tipo de pago</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody className="max-h-96 overflow-y-auto">
+                    {sales.length === 0 ? (
                         <TableRow>
-                            <TableHead className="min-w-[150px]">Sucursal</TableHead>
-                            <TableHead className="min-w-[150px]">Fecha</TableHead>
-                            <TableHead className="min-w-[150px]">Monto</TableHead>
-                            <TableHead className="min-w-[150px]">Productos</TableHead>
-                            <TableHead className="min-w-[150px]">Estado</TableHead>
-                            <TableHead className="min-w-[150px]">Tipo de pago</TableHead>
+                            <TableCell colSpan={5}>No hay ventas para mostrar.</TableCell>
                         </TableRow>
-                    </TableHeader>
-                </Table>
-            </div>
+                    ) : (
+                        sales.map((sale) => {
+                            const storeName = sale.Store?.name || "Sucursal"
+                            const productsDescription = sale.SaleProducts?.length
+                                ? sale.SaleProducts.map((sp) => {
+                                      const productName =
+                                          sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
+                                      const quantity = sp.quantitySold ?? "-"
+                                      return `${quantity} x ${productName}`
+                                  }).join(", ")
+                                : "-"
 
-            <div
-                className={`dark:bg-gray-800 bg-white rounded shadow ${
-                    sales.length > 8 ? "max-h-[32rem] overflow-y-auto" : ""
-                }`}
-            >
-                <div className="overflow-x-auto w-full">
-                    <Table>
-                        <TableBody>
-                            {sales.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5}>No hay ventas para mostrar.</TableCell>
+                            return (
+                                <TableRow
+                                    key={sale.saleID}
+                                    className="cursor-pointer"
+                                    onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
+                                >
+                                    <TableCell align="left">{storeName}</TableCell>
+                                    <TableCell align="left">
+                                        <DateCell date={sale.createdAt} />
+                                    </TableCell>
+                                    <TableCell align="left">
+                                        {typeof sale.total === "number" ? `$${toPrice(sale.total)}` : "Sin dato"}
+                                    </TableCell>
+                                    <TableCell align="left" className="max-w-96">
+                                        {productsDescription}
+                                    </TableCell>
+                                    <TableCell
+                                        className={`${
+                                            sale.status === "Pagado" ? "text-green-600" : "text-rose-700"
+                                        } font-medium`}
+                                    >
+                                        {sale.status}
+                                    </TableCell>
+                                    <TableCell align="center">{sale.paymentType}</TableCell>
                                 </TableRow>
-                            ) : (
-                                sales.map((sale) => {
-                                    const storeName = sale.Store?.name || "Sucursal"
-                                    const productsDescription = sale.SaleProducts?.length
-                                        ? sale.SaleProducts.map((sp) => {
-                                              const productName =
-                                                  sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                              const quantity = sp.quantitySold ?? "-"
-                                              const price = sp.unitPrice ?? "-"
-                                              return `${quantity} x ${productName}`
-                                          }).join(", ")
-                                        : "-"
-
-                                    return (
-                                        <TableRow
-                                            key={sale.saleID}
-                                            className="cursor-pointer"
-                                            onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
-                                        >
-                                            <TableCell className="min-w-[150px]">{storeName}</TableCell>
-                                            <TableCell className="min-w-[150px]">
-                                                <DateCell date={sale.createdAt} />
-                                            </TableCell>
-                                            <TableCell className="min-w-[150px]">
-                                                {typeof sale.total === "number"
-                                                    ? `$${toPrice(sale.total)}`
-                                                    : "Sin dato"}
-                                            </TableCell>
-                                            <TableCell className="min-w-[150px]">{productsDescription}</TableCell>
-                                            <TableCell className="text-green-600 min-w-[160px] font-medium">
-                                                {sale.status}
-                                            </TableCell>
-                                            <TableCell className="min-w-[150px]">{sale.paymentType}</TableCell>
-                                        </TableRow>
-                                    )
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+                            )
+                        })
+                    )}
+                </TableBody>
+            </Table>
         </div>
     )
 }
