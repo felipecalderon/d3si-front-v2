@@ -38,13 +38,11 @@ export function CategoryManagementModal({
 }: CategoryManagementModalProps) {
     const { categories, setCategories } = useCategories()
     const [saving, setSaving] = useState(false)
-    const [newParentCategory, setNewParentCategory] = useState("")
     const [newSubcategories, setNewSubcategories] = useState<NewSubcategory[]>([])
     const [addingSubcategoryFor, setAddingSubcategoryFor] = useState<string | null>(null)
     const [newSubcategoryName, setNewSubcategoryName] = useState("")
-    const [editingCategory, setEditingCategory] = useState<string | null>(null)
+    const [editingCategory, setEditingCategory] = useState<ICategory | null>(null)
     const [editingSubcategory, setEditingSubcategory] = useState<string | null>(null)
-    const [editCategoryName, setEditCategoryName] = useState("")
     const [editSubcategoryName, setEditSubcategoryName] = useState("")
     const [deleting, setDeleting] = useState<string | null>(null)
     const route = useRouter()
@@ -77,25 +75,23 @@ export function CategoryManagementModal({
         setNewSubcategories((prev) => prev.filter((_, i) => i !== index))
     }
 
-    const handleEditCategory = (categoryId: string, currentName: string) => {
-        setEditingCategory(categoryId)
-        setEditCategoryName(currentName)
+    const handleEditCategory = (category: ICategory) => {
+        setEditingCategory(category)
     }
 
     const handleSaveEditCategory = async (categoryId: string) => {
-        if (!editCategoryName.trim()) return
+        if (!editingCategory?.name.trim()) return
 
         try {
-            await updateCategory(editCategoryName.trim(), categoryId)
+            await updateCategory(editingCategory)
             // Actualizar el estado local
             const updatedCategories = categories.map((cat) =>
-                cat.categoryID === categoryId ? { ...cat, name: editCategoryName.trim() } : cat
+                cat.categoryID === categoryId ? { ...cat, name: editingCategory.name.trim() } : cat
             )
-            toast.success(`Categoría ${editCategoryName} actualizada con éxito`)
+            toast.success(`Categoría ${editingCategory.name} actualizada con éxito`)
             setCategories(updatedCategories)
             // Notificar al componente padre
             setEditingCategory(null)
-            setEditCategoryName("")
         } catch (error) {
             console.error("Error updating category:", error)
         }
@@ -173,7 +169,8 @@ export function CategoryManagementModal({
     const handleCancelEdit = () => {
         setEditingCategory(null)
         setEditingSubcategory(null)
-        setEditCategoryName("")
+        setAddingSubcategoryFor(null)
+        setNewSubcategories([])
         setEditSubcategoryName("")
     }
 
@@ -181,9 +178,9 @@ export function CategoryManagementModal({
         setSaving(true)
         try {
             // Crear categoría padre si existe
-            if (newParentCategory.trim()) {
-                await createCategory(newParentCategory.trim())
-                toast.success(`Categoría ${newParentCategory} creada con éxito`)
+            if (editingCategory?.name.trim()) {
+                await createCategory(editingCategory?.name.trim())
+                toast.success(`Categoría ${editingCategory?.name} creada con éxito`)
             }
 
             // Crear subcategorías
@@ -194,17 +191,16 @@ export function CategoryManagementModal({
 
             const categories = await getAllCategories()
             setCategories(categories)
+            handleCancelEdit()
         } catch (error) {
             console.error("Error saving categories:", error)
-            // Incluso si hay error, redirigir para mostrar el estado actual
         } finally {
-            onClose()
             setSaving(false)
         }
     }
 
     const handleClose = () => {
-        setNewParentCategory("")
+        setEditingCategory(null)
         setNewSubcategories([])
         setAddingSubcategoryFor(null)
         setNewSubcategoryName("")
@@ -236,18 +232,23 @@ export function CategoryManagementModal({
                                         <CardTitle className="text-base font-medium text-gray-900 dark:text-white flex items-center justify-between">
                                             <div className="flex items-center space-x-2">
                                                 <Folder className="w-4 h-4" />
-                                                {editingCategory === category.categoryID ? (
+                                                {!!editingCategory ? (
                                                     <div className="flex items-center space-x-2">
                                                         <Input
-                                                            value={editCategoryName}
-                                                            onChange={(e) => setEditCategoryName(e.target.value)}
+                                                            value={editingCategory.name}
+                                                            onChange={(e) =>
+                                                                setEditingCategory({
+                                                                    ...editingCategory,
+                                                                    name: e.target.value,
+                                                                })
+                                                            }
                                                             className="h-8 text-sm dark:bg-slate-800 dark:border-gray-500"
                                                             autoFocus
                                                         />
                                                         <Button
                                                             size="sm"
                                                             onClick={() => handleSaveEditCategory(category.categoryID)}
-                                                            disabled={!editCategoryName.trim()}
+                                                            disabled={!editingCategory.name.trim()}
                                                             className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700"
                                                         >
                                                             <Check className="h-3 w-3" />
@@ -266,14 +267,12 @@ export function CategoryManagementModal({
                                                 )}
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                {editingCategory !== category.categoryID && (
+                                                {!!editingCategory && (
                                                     <>
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() =>
-                                                                handleEditCategory(category.categoryID, category.name)
-                                                            }
+                                                            onClick={() => handleEditCategory(category)}
                                                             className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                         >
                                                             <Edit2 className="h-3 w-3" />
@@ -291,19 +290,6 @@ export function CategoryManagementModal({
                                                         </Button>
                                                     </>
                                                 )}
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleAddSubcategory(category.categoryID)}
-                                                    disabled={
-                                                        addingSubcategoryFor === category.categoryID ||
-                                                        editingCategory === category.categoryID
-                                                    }
-                                                    className="dark:border-gray-500 dark:text-white dark:hover:bg-gray-600"
-                                                >
-                                                    <Plus className="h-4 w-4 mr-1" />
-                                                    Agregar Subcategoría
-                                                </Button>
                                             </div>
                                         </CardTitle>
                                     </CardHeader>
@@ -453,6 +439,19 @@ export function CategoryManagementModal({
                                                     </Button>
                                                 </div>
                                             )}
+
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleAddSubcategory(category.categoryID)}
+                                                disabled={
+                                                    addingSubcategoryFor === category.categoryID || !!editingCategory
+                                                }
+                                                className="dark:border-gray-500 dark:text-white dark:hover:bg-gray-600"
+                                            >
+                                                <Plus className="h-4 w-4 mr-1" />
+                                                Agregar Subcategoría
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -468,22 +467,26 @@ export function CategoryManagementModal({
                         <span>Crear Nueva Categoría</span>
                     </div>
 
-                    <Card className="border-green-200 dark:border-green-700 dark:bg-slate-700">
-                        <CardContent className="pt-6">
-                            <div className="space-y-3">
-                                <Label htmlFor="newParentCategory" className="text-sm font-medium dark:text-white">
-                                    Nombre de la categoría padre *
-                                </Label>
-                                <Input
-                                    id="newParentCategory"
-                                    value={newParentCategory}
-                                    onChange={(e) => setNewParentCategory(e.target.value)}
-                                    placeholder="Ingresa el nombre de la nueva categoría"
-                                    className="dark:bg-slate-800 dark:border-gray-500"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {editingCategory && (
+                        <Card className="border-green-200 dark:border-green-700 dark:bg-slate-700">
+                            <CardContent className="pt-6">
+                                <div className="space-y-3">
+                                    <Label htmlFor="editCategoryName" className="text-sm font-medium dark:text-white">
+                                        Nombre de la categoría padre *
+                                    </Label>
+                                    <Input
+                                        id="editCategoryName"
+                                        value={editingCategory?.name}
+                                        onChange={(e) =>
+                                            setEditingCategory({ ...editingCategory, name: e.target.value })
+                                        }
+                                        placeholder="Ingresa el nombre de la nueva categoría"
+                                        className="dark:bg-slate-800 dark:border-gray-500"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Botones de acción */}

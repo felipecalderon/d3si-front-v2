@@ -26,11 +26,6 @@ export const createMassiveProducts = async (data: MassiveCreateProductData) => {
             body: JSON.stringify({ products: productsWithStringPrices }),
         })
 
-        if (res.status === 404) {
-            revalidatePath("/inventory")
-            return { success: true }
-        }
-
         if (!res.ok) {
             return {
                 success: false,

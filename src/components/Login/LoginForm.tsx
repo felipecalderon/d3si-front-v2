@@ -12,6 +12,7 @@ import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
 import useDarkMode from "@/hooks/useDarkMode"
 import { Switch } from "../ui/switch"
+import { Input } from "../ui/input"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -67,7 +68,7 @@ export default function LoginForm() {
                 <label className="block text-sm font-medium mb-1" htmlFor="email">
                     Correo electrónico
                 </label>
-                <input
+                <Input
                     id="email"
                     type="email"
                     value={email}
@@ -81,7 +82,7 @@ export default function LoginForm() {
                 <label className="block text-sm font-medium mb-1" htmlFor="password">
                     Contraseña
                 </label>
-                <input
+                <Input
                     id="password"
                     type="password"
                     value={password}

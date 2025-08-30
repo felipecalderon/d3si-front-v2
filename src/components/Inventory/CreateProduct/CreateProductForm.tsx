@@ -54,12 +54,11 @@ export default function CreateProductForm() {
         "Género",
         "Marca",
         "Categoría",
-        "TALLA",
-        "PRECIO COSTO",
-        "PRECIO PLAZA",
-        "CÓDIGO EAN",
-        "STOCK CENTRAL",
-        "STOCK AGREGADO",
+        "Talla",
+        "Precio Costo Neto",
+        "Precio Plaza",
+        "Código EAN",
+        "Cantidad",
     ]
 
     // Normaliza texto para comparar categorías
@@ -116,7 +115,7 @@ export default function CreateProductForm() {
             if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`
         }
         // Columnas que pueden estar vacías porque tienen valor por defecto
-        const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "TALLA"]
+        const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "Talla", "Código EAN"]
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             for (const col of REQUIRED_COLUMNS) {
@@ -126,10 +125,10 @@ export default function CreateProductForm() {
                 }
             }
             // Validaciones extra (puedes agregar más)
-            if (isNaN(Number(row["PRECIO COSTO"])) || isNaN(Number(row["PRECIO PLAZA"]))) {
+            if (isNaN(Number(row["Precio Costo Neto"])) || isNaN(Number(row["Precio Plaza"]))) {
                 return `Fila ${i + 2}: Precio inválido.`
             }
-            if (isNaN(Number(row["STOCK CENTRAL"]))) {
+            if (isNaN(Number(row["Cantidad"]))) {
                 return `Fila ${i + 2}: Stock central inválido.`
             }
         }
@@ -157,8 +156,8 @@ export default function CreateProductForm() {
                 // Agrupar productos por nombre, imagen, categoría, género y marca
                 const productMap = new Map<string, CreateProductFormData & { _catLabel: string }>()
                 for (const row of json) {
-                    const genre: Genre = row["Género"]?.trim() || "Unisex"
-                    const brand: Brand = row["Marca"]?.trim() || "Otro"
+                    const genre: Genre = !row["Género"] ? "Unisex" : row["Género"]
+                    const brand: Brand = !row["Marca"] ? "Otro" : row["Marca"]
                     let categoryName: string = row["Categoría"]?.trim() || "Calzado"
                     let catId = findCategoryIdByName(categoryName)
                     if (!catId) {
@@ -168,17 +167,15 @@ export default function CreateProductForm() {
                     let catLabel = categoryName
                     const option = categoryOptions.find((opt) => opt.id === catId)
                     if (option) catLabel = option.label
-                    const sizeNumber = row["TALLA"]?.trim() || "NA"
-                    const defaultImage =
-                        "https://procircuit.cl/cdn/shop/files/Producto_sin_foto_e9abdc66-1532-404b-a9b1-b9685337c804.png?v=1713308305"
+                    const defaultImage = ""
                     const image = row["Imagen"]?.trim() || defaultImage
                     const key = `${row["Producto"]}|${image}|${catId}|${genre}|${brand}`
                     const size = {
-                        sizeNumber,
-                        priceList: Number(row["PRECIO PLAZA"]),
-                        priceCost: Number(row["PRECIO COSTO"]),
-                        sku: row["CÓDIGO EAN"],
-                        stockQuantity: Number(row["STOCK CENTRAL"]),
+                        sizeNumber: String(row["Talla"]),
+                        priceList: Number(row["Precio Plaza"]),
+                        priceCost: Number(row["Precio Costo Neto"]),
+                        sku: !!row["Código EAN"] ? row["Código EAN"] : generateRandomSku(),
+                        stockQuantity: Number(row["Cantidad"]),
                     }
                     if (productMap.has(key)) {
                         productMap.get(key)!.sizes.push(size)
@@ -212,6 +209,7 @@ export default function CreateProductForm() {
                 setCategorySearches(importedCategorySearches)
                 toast.success("Productos importados desde Excel.")
             } catch (err) {
+                console.log(err)
                 toast.error("Error al procesar el archivo Excel.")
             }
         },
@@ -263,7 +261,7 @@ export default function CreateProductForm() {
                     sizeNumber: "",
                     priceList: 0,
                     priceCost: 0,
-                    sku: "",
+                    sku: generateRandomSku(),
                     stockQuantity: 0,
                 },
             ],
@@ -324,7 +322,7 @@ export default function CreateProductForm() {
             }
             return newFiltered.slice(0, products.length)
         })
-    }, [products.length, categoryOptions])
+    }, [products.length])
 
     // Función mejorada para normalizar texto (quitar espacios extra y convertir a minúsculas)
     const normalizeText = (text: string) => {
@@ -409,10 +407,6 @@ export default function CreateProductForm() {
                 const sizeErrors: Record<string, string> = {}
                 if (!size.priceList) sizeErrors.priceList = "Falta llenar este campo"
                 if (!size.priceCost) sizeErrors.priceCost = "Falta llenar este campo"
-                /*SE COMENTA PORQUE EL INVENTARIO TIENE MUCHOS SKU ANTIGUOS QUE NO INICIAN CON 1
-                if (size.sku && !/^1\d{11}$/.test(size.sku)) {
-                    sizeErrors.sku = "El SKU debe iniciar con 1 y tener 12 dígitos numéricos"
-                }*/
                 if (size.stockQuantity === null || size.stockQuantity === undefined || isNaN(size.stockQuantity)) {
                     sizeErrors.stockQuantity = "Falta llenar este campo"
                 }
@@ -549,26 +543,11 @@ export default function CreateProductForm() {
             ...product,
             sizes: product.sizes.map((size) => ({
                 ...size,
-                sku: size.sku.trim() === "" ? generateRandomSku() : size.sku,
+                sku: !size.sku ? generateRandomSku() : size.sku.toString(),
             })),
         }))
 
-        const productCleanBrand = productsWithSku.map((p) => {
-            let brand = p.brand
-            const brandType = {
-                Otro: "Otro",
-                D3SI: "D3SI",
-            }
-
-            if (!brandType[brand]) {
-                brand = "Otro"
-            }
-            return {
-                ...p,
-                brand,
-            }
-        })
-        const validationErrors = validate(productCleanBrand)
+        const validationErrors = validate(productsWithSku)
         setErrors(validationErrors)
 
         if (hasErrors(validationErrors)) {
@@ -577,13 +556,14 @@ export default function CreateProductForm() {
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products: productCleanBrand })
-            if (result.success) {
-                toast.success("Productos guardados correctamente.")
-                router.push("/home/inventory")
-            } else {
-                toast.error(result.error || "Error al guardar productos.")
-            }
+            console.log(productsWithSku)
+            // const result = await createMassiveProducts({ products: productCleanBrand })
+            // if (result.success) {
+            //     toast.success("Productos guardados correctamente.")
+            //     router.push("/home/inventory")
+            // } else {
+            //     toast.error(result.error || "Error al guardar productos.")
+            // }
         })
     }
 
@@ -699,6 +679,7 @@ export default function CreateProductForm() {
                         <Button
                             type="submit"
                             disabled={isPending || hasErrors(errors)}
+                            onClick={handleSubmit}
                             className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                                 isPending || hasErrors(errors)
                                     ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
@@ -1044,7 +1025,14 @@ export default function CreateProductForm() {
                                                             placeholder="ABC123"
                                                             value={size.sku}
                                                             onChange={(e) =>
-                                                                handleSizeChange(pIndex, sIndex, "sku", e.target.value)
+                                                                handleSizeChange(
+                                                                    pIndex,
+                                                                    sIndex,
+                                                                    "sku",
+                                                                    !e.target.value
+                                                                        ? generateRandomSku()
+                                                                        : e.target.value
+                                                                )
                                                             }
                                                             onBlur={(e) =>
                                                                 handleSkuBlur(pIndex, sIndex, e.target.value)
@@ -1144,6 +1132,7 @@ export default function CreateProductForm() {
                         <Button
                             type="submit"
                             disabled={isPending || hasErrors(errors)}
+                            onClick={handleSubmit}
                             className={`flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                                 isPending || hasErrors(errors)
                                     ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
