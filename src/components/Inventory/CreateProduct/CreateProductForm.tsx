@@ -24,10 +24,7 @@ import {
     Save,
     ChevronDown,
 } from "lucide-react"
-import { getAllCategories } from "@/actions/categories/getAllCategories"
 import type { ICategory } from "@/interfaces/categories/ICategory"
-import { getAllChildCategories } from "@/actions/categories/getAllChildCategories"
-import type { IChildCategory } from "@/interfaces/categories/ICategory"
 import { CategoryManagementModal } from "@/components/Inventory/CategorySection/EditCategory/CategoryManagementModal"
 import { Brand, Genre } from "@/interfaces/products/IProduct"
 
@@ -38,15 +35,18 @@ interface CategoryOption {
     childName: string
 }
 
-export default function CreateProductForm() {
+export default function CreateProductForm({ categories }: { categories: ICategory[] }) {
     // Estados principales deben ir arriba para evitar uso antes de declaración
-    const [categories, setCategories] = useState<ICategory[]>([])
     const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([])
     const [categorySearches, setCategorySearches] = useState<string[]>([])
     const [showCategoryDropdowns, setShowCategoryDropdowns] = useState<boolean[]>([])
     const [filteredOptions, setFilteredOptions] = useState<CategoryOption[][]>([])
     const categoryRefs = useRef<(HTMLDivElement | null)[]>([])
     const dropRef = useRef<HTMLDivElement>(null)
+
+    const router = useRouter()
+    const [isPending, startTransition] = useTransition()
+    const [showModal, setShowModal] = useState(false)
 
     // Columnas requeridas (deben coincidir con el Excel exportado)
     const REQUIRED_COLUMNS = [
@@ -169,7 +169,8 @@ export default function CreateProductForm() {
                     if (option) catLabel = option.label
                     const defaultImage = ""
                     const image = row["Imagen"]?.trim() || defaultImage
-                    const key = `${row["Producto"]}|${image}|${catId}|${genre}|${brand}`
+                    const productName = row["Producto"].replace(/\s+/g, " ").trim()
+                    const key = `${productName}|${image}|${catId}|${genre}|${brand}`
                     const size = {
                         sizeNumber: String(row["Talla"]),
                         priceList: Number(row["Precio Plaza"]),
@@ -181,7 +182,7 @@ export default function CreateProductForm() {
                         productMap.get(key)!.sizes.push(size)
                     } else {
                         productMap.set(key, {
-                            name: row["Producto"],
+                            name: productName,
                             image,
                             categoryID: catId,
                             genre,
@@ -198,8 +199,7 @@ export default function CreateProductForm() {
 
                 setProducts((prev) => {
                     // Si el primer producto está vacío, lo eliminamos
-                    const isFirstEmpty =
-                        prev.length === 1 && !prev[0].name && (!prev[0].sizes || !prev[0].sizes[0]?.sku)
+                    const isFirstEmpty = prev.length === 1 && !prev[0].name
                     if (isFirstEmpty) {
                         return [...importedProducts]
                     }
@@ -214,7 +214,7 @@ export default function CreateProductForm() {
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [categories, findCategoryIdByName, validateExcelRows]
+        []
     )
 
     // Handler para input file
@@ -222,32 +222,6 @@ export default function CreateProductForm() {
         const file = e.target.files?.[0]
         if (file) handleExcelImport(file)
     }
-
-    // Drag and drop
-    useEffect(() => {
-        const drop = dropRef.current
-        if (!drop) return
-        const handleDrop = (e: DragEvent) => {
-            e.preventDefault()
-            if (e.dataTransfer?.files?.length) {
-                const file = e.dataTransfer.files[0]
-                if (file.name.endsWith(".xlsx")) handleExcelImport(file)
-                else toast.error("Solo se permiten archivos .xlsx")
-            }
-        }
-        const handleDragOver = (e: DragEvent) => {
-            e.preventDefault()
-        }
-        drop.addEventListener("drop", handleDrop)
-        drop.addEventListener("dragover", handleDragOver)
-        return () => {
-            drop.removeEventListener("drop", handleDrop)
-            drop.removeEventListener("dragover", handleDragOver)
-        }
-    }, [categories, handleExcelImport])
-    const router = useRouter()
-    const [isPending, startTransition] = useTransition()
-    const [showModal, setShowModal] = useState(false)
 
     const [products, setProducts] = useState<CreateProductFormData[]>([
         {
@@ -274,55 +248,6 @@ export default function CreateProductForm() {
             category: "",
         },
     ])
-
-    useEffect(() => {
-        Promise.all([getAllCategories(), getAllChildCategories()]).then(([cats, childCats]) => {
-            setCategories(cats)
-            // Crear opciones combinadas para autocompletado
-            const options: CategoryOption[] = []
-
-            childCats.forEach((child) => {
-                const parent = cats.find((cat) => cat.categoryID === child.parentID)
-                if (parent) {
-                    options.push({
-                        id: child.categoryID,
-                        label: `${parent.name} > ${child.name}`,
-                        parentName: parent.name,
-                        childName: child.name,
-                    })
-                }
-            })
-
-            setCategoryOptions(options)
-        })
-    }, [])
-
-    // Inicializar arrays de búsqueda cuando cambie el número de productos
-    useEffect(() => {
-        setCategorySearches((prev) => {
-            const newSearches = [...prev]
-            while (newSearches.length < products.length) {
-                newSearches.push("")
-            }
-            return newSearches.slice(0, products.length)
-        })
-
-        setShowCategoryDropdowns((prev) => {
-            const newDropdowns = [...prev]
-            while (newDropdowns.length < products.length) {
-                newDropdowns.push(false)
-            }
-            return newDropdowns.slice(0, products.length)
-        })
-
-        setFilteredOptions((prev) => {
-            const newFiltered = [...prev]
-            while (newFiltered.length < products.length) {
-                newFiltered.push(categoryOptions)
-            }
-            return newFiltered.slice(0, products.length)
-        })
-    }, [products.length])
 
     // Función mejorada para normalizar texto (quitar espacios extra y convertir a minúsculas)
     const normalizeText = (text: string) => {
@@ -377,22 +302,6 @@ export default function CreateProductForm() {
 
         setErrors(validate(newProducts))
     }
-
-    // Cerrar dropdown al hacer click fuera
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            categoryRefs.current.forEach((ref, index) => {
-                if (ref && !ref.contains(event.target as Node)) {
-                    const newDropdowns = [...showCategoryDropdowns]
-                    newDropdowns[index] = false
-                    setShowCategoryDropdowns(newDropdowns)
-                }
-            })
-        }
-
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
-    }, [showCategoryDropdowns])
 
     const validate = (data: CreateProductFormData[]): ErrorState[] => {
         return data.map((product) => {
@@ -557,13 +466,13 @@ export default function CreateProductForm() {
 
         startTransition(async () => {
             console.log(productsWithSku)
-            // const result = await createMassiveProducts({ products: productCleanBrand })
-            // if (result.success) {
-            //     toast.success("Productos guardados correctamente.")
-            //     router.push("/home/inventory")
-            // } else {
-            //     toast.error(result.error || "Error al guardar productos.")
-            // }
+            const result = await createMassiveProducts({ products: productsWithSku })
+            if (result.success) {
+                toast.success("Productos guardados correctamente.")
+                router.push("/home/inventory")
+            } else {
+                toast.error(result.error || "Error al guardar productos.")
+            }
         })
     }
 
@@ -580,6 +489,84 @@ export default function CreateProductForm() {
         }
         return sku
     }
+
+    useEffect(() => {
+        // Crear opciones combinadas para autocompletado
+        const subcategories = categories.flatMap((c) => c.subcategories)
+        const subCatOptions: CategoryOption[] = subcategories.map((cat) => ({
+            id: cat.categoryID ?? "",
+            childName: cat.name ?? "",
+            label: cat.name ?? "",
+            parentName: categories.find((c) => c.categoryID === cat.parentID)?.name ?? "",
+        }))
+        setCategoryOptions(subCatOptions)
+    }, [])
+
+    // Inicializar arrays de búsqueda cuando cambie el número de productos
+    useEffect(() => {
+        setCategorySearches((prev) => {
+            const newSearches = [...prev]
+            while (newSearches.length < products.length) {
+                newSearches.push("")
+            }
+            return newSearches.slice(0, products.length)
+        })
+
+        setShowCategoryDropdowns((prev) => {
+            const newDropdowns = [...prev]
+            while (newDropdowns.length < products.length) {
+                newDropdowns.push(false)
+            }
+            return newDropdowns.slice(0, products.length)
+        })
+
+        setFilteredOptions((prev) => {
+            const newFiltered = [...prev]
+            while (newFiltered.length < products.length) {
+                newFiltered.push(categoryOptions)
+            }
+            return newFiltered.slice(0, products.length)
+        })
+    }, [products.length])
+
+    // Drag and drop
+    useEffect(() => {
+        const drop = dropRef.current
+        if (!drop) return
+        const handleDrop = (e: DragEvent) => {
+            e.preventDefault()
+            if (e.dataTransfer?.files?.length) {
+                const file = e.dataTransfer.files[0]
+                if (file.name.endsWith(".xlsx")) handleExcelImport(file)
+                else toast.error("Solo se permiten archivos .xlsx")
+            }
+        }
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault()
+        }
+        drop.addEventListener("drop", handleDrop)
+        drop.addEventListener("dragover", handleDragOver)
+        return () => {
+            drop.removeEventListener("drop", handleDrop)
+            drop.removeEventListener("dragover", handleDragOver)
+        }
+    }, [categories, handleExcelImport])
+
+    // Cerrar dropdown al hacer click fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            categoryRefs.current.forEach((ref, index) => {
+                if (ref && !ref.contains(event.target as Node)) {
+                    const newDropdowns = [...showCategoryDropdowns]
+                    newDropdowns[index] = false
+                    setShowCategoryDropdowns(newDropdowns)
+                }
+            })
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [showCategoryDropdowns])
 
     return (
         <div className="lg:p-8">
