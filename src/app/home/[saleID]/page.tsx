@@ -108,8 +108,9 @@ export default async function SingleSalePage({ params }: PropsSale) {
                                 </span>
                             </div>
                             <p className="text-lg font-semibold">
-                                {new Date(sale.createdAt).toLocaleDateString()} |{" "}
-                                {new Date(sale.createdAt).toLocaleTimeString()}
+                                {new Date(sale.createdAt).toLocaleDateString("es-CL", { timeZone: "America/Santiago" })}{" "}
+                                |{" "}
+                                {new Date(sale.createdAt).toLocaleTimeString("es-CL", { timeZone: "America/Santiago" })}
                             </p>
                         </div>
                         {/* Vencimiento del Pago */}
@@ -141,8 +142,14 @@ export default async function SingleSalePage({ params }: PropsSale) {
                                         Esta venta fue anulada: {sale.Return.reason}
                                     </p>
                                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">
-                                        El día: {new Date(sale.Return.createdAt).toLocaleDateString()} a las:{" "}
-                                        {new Date(sale.Return.createdAt).toLocaleTimeString()}
+                                        El día:{" "}
+                                        {new Date(sale.Return.createdAt).toLocaleDateString("es-CL", {
+                                            timeZone: "America/Santiago",
+                                        })}{" "}
+                                        a las:{" "}
+                                        {new Date(sale.Return.createdAt).toLocaleTimeString("es-CL", {
+                                            timeZone: "America/Santiago",
+                                        })}
                                     </p>
                                     <p className="text-sm font-bold text-blue-900 dark:text-blue-100">
                                         Observación: {sale.Return.additionalNotes}
