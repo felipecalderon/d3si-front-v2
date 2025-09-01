@@ -7,6 +7,8 @@ import DailyResumeCards from "@/components/Caja/DailyResumeCards"
 import FilterStoreMonthYear from "@/components/Caja/FilterStoreMonthYear"
 import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 
+export const revalidate = 0
+
 interface SearchParams {
     searchParams: Promise<{
         storeID: string
