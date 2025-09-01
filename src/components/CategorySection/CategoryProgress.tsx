@@ -46,11 +46,7 @@ export function CategoryProgress({ products, categories }: CategoryProgressProps
                     </div>
                 </CardContent>
                 {viewMode === "categoria" && (
-                    <CategoryManagementModal
-                        isOpen={showModal}
-                        onClose={() => setShowModal(false)}
-                        categories={categories}
-                    />
+                    <CategoryManagementModal isOpen={showModal} onClose={() => setShowModal(false)} />
                 )}
             </Card>
         )
@@ -83,7 +79,7 @@ export function CategoryProgress({ products, categories }: CategoryProgressProps
                 </div>
             </CardContent>
 
-            <CategoryManagementModal isOpen={showModal} onClose={() => setShowModal(false)} categories={categories} />
+            <CategoryManagementModal isOpen={showModal} onClose={() => setShowModal(false)} />
         </Card>
     )
 }
