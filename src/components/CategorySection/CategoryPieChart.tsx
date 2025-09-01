@@ -49,6 +49,7 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
     }
     const totalProducts = data.reduce((acc, prev) => prev.productCount + acc, 0)
     const minPercentToDisplay = 0.01 // 0.01 = mostrará solo los porcentajes mayores a 1%
+    console.log(data)
     return (
         <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
@@ -58,7 +59,7 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={data.filter((d) => d.totalValue / totalProducts > minPercentToDisplay)}
+                            data={data}
                             cx="50%"
                             cy="50%"
                             outerRadius={100}

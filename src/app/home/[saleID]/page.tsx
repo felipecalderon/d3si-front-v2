@@ -107,7 +107,10 @@ export default async function SingleSalePage({ params }: PropsSale) {
                                     Fecha de emisión
                                 </span>
                             </div>
-                            <p className="text-lg font-semibold">{new Date(sale.createdAt).toLocaleDateString()}</p>
+                            <p className="text-lg font-semibold">
+                                {new Date(sale.createdAt).toLocaleDateString()} |{" "}
+                                {new Date(sale.createdAt).toLocaleTimeString()}
+                            </p>
                         </div>
                         {/* Vencimiento del Pago */}
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -130,6 +133,27 @@ export default async function SingleSalePage({ params }: PropsSale) {
                             <SingleSaleTable products={products} />
                         </div>
                     </div>
+                    {sale.Return && (
+                        <div className="bg-gradient-to-r from-red-50 to-red-50 dark:from-red-950/50 dark:to-red-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="grid grid-cols-1 gap-4">
+                                <div className="text-center">
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">
+                                        Esta venta fue anulada: {sale.Return.reason}
+                                    </p>
+                                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">
+                                        El día: {new Date(sale.Return.createdAt).toLocaleDateString()} a las:{" "}
+                                        {new Date(sale.Return.createdAt).toLocaleTimeString()}
+                                    </p>
+                                    <p className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                                        Observación: {sale.Return.additionalNotes}
+                                    </p>
+                                    <p className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                                        Gestionado por: {sale.Return.User.name}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="text-center">

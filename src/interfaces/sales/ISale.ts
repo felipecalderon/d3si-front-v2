@@ -1,6 +1,7 @@
 import { IProduct } from "../products/IProduct"
 import { IProductVariation } from "../products/IProductVariation"
 import { IStore } from "../stores/IStore"
+import { IUser } from "../users/IUser"
 
 // Para enviar una nueva venta desde el frontend
 export type PaymentType = "Efectivo" | "Debito" | "Credito"
@@ -38,4 +39,19 @@ export interface ISaleResponse {
     paymentType?: string
     Store: IStore
     SaleProducts: ISaleProduct[]
+    Return: ISaleReturn | null
+}
+
+export interface ISaleReturn {
+    returnID: string
+    saleID: string
+    clientEmail: string
+    reason: string
+    type: "DEVOLUCION" | "GARANTIA"
+    returnedQuantity: 1
+    processedBy: string
+    additionalNotes: string
+    createdAt: string
+    updatedAt: string
+    User: IUser
 }

@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, Suspense } from "react"
 import { toast } from "sonner"
 import { MotionItem } from "@/components/Animations/motionItem"
-import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
+import { CategoryProgress } from "../CategorySection/CategoryProgress"
 import InventoryPagination from "@/components/Inventory/TableSection/InventoryPagination"
 import {
     ColumnFilters,

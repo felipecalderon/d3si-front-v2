@@ -25,7 +25,7 @@ import {
     ChevronDown,
 } from "lucide-react"
 import type { ICategory } from "@/interfaces/categories/ICategory"
-import { CategoryManagementModal } from "@/components/Inventory/CategorySection/EditCategory/CategoryManagementModal"
+import { CategoryManagementModal } from "@/components/CategorySection/EditCategory/CategoryManagementModal"
 import { Brand, Genre } from "@/interfaces/products/IProduct"
 
 interface CategoryOption {
@@ -494,10 +494,10 @@ export default function CreateProductForm({ categories }: { categories: ICategor
         // Crear opciones combinadas para autocompletado
         const subcategories = categories.flatMap((c) => c.subcategories)
         const subCatOptions: CategoryOption[] = subcategories.map((cat) => ({
-            id: cat.categoryID ?? "",
-            childName: cat.name ?? "",
-            label: cat.name ?? "",
-            parentName: categories.find((c) => c.categoryID === cat.parentID)?.name ?? "",
+            id: cat?.categoryID ?? "",
+            childName: cat?.name ?? "",
+            label: cat?.name ?? "",
+            parentName: categories.find((c) => c.categoryID === cat?.parentID)?.name ?? "",
         }))
         setCategoryOptions(subCatOptions)
     }, [])
