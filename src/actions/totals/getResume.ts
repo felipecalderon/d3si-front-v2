@@ -1,3 +1,4 @@
+"use server"
 import { API_URL } from "@/lib/enviroments"
 import { fetcher } from "@/lib/fetcher"
 import { IResume } from "@/interfaces/sales/ISalesResume"

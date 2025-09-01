@@ -47,14 +47,10 @@ export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
         return totalSaleAndOrderMonth
     }
 
-    const getMetaAmount = () => {
-        return resume?.metaMensual?.meta || 0
-    }
-
     // Calculate progress percentage
     const getProgressPercentage = () => {
         const sales = getSalesAmount()
-        const meta = getMetaAmount()
+        const meta = resume.metaMensual.meta
         if (meta === 0) return 0
         return Math.min((sales / meta) * 100)
     }
@@ -139,11 +135,11 @@ export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
                 <p
                     className="text-sm text-gray-500 cursor-pointer hover:underline"
                     onClick={() => {
-                        setMetaInput(getMetaAmount().toString())
+                        setMetaInput(resume.metaMensual.meta.toString())
                         setEditingMeta(true)
                     }}
                 >
-                    Meta: ${toPrice(getMetaAmount())}
+                    Meta: ${toPrice(resume.metaMensual.meta)}
                 </p>
             )}
 
