@@ -13,7 +13,14 @@
  */
 
 export const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
-    const response = await fetch(url, { ...options, cache: "no-store", next: { revalidate: 0 } })
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        next: { revalidate: 0 },
+    })
 
     const data = await response.json()
     return data

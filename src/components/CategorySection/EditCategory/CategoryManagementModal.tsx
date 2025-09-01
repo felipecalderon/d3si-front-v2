@@ -15,7 +15,6 @@ import { updateSubCategory } from "@/actions/categories/updateSubCategory"
 import { deleteCategory } from "@/actions/categories/deleteCategory"
 import { Edit2, Trash2, Check } from "lucide-react"
 import { ICategory } from "@/interfaces/categories/ICategory"
-import { usePathname, useRouter } from "next/navigation"
 import { useCategories } from "@/stores/categories.store"
 import { toast } from "sonner"
 import { getAllCategories } from "@/actions/categories/getAllCategories"
@@ -31,11 +30,7 @@ interface NewSubcategory {
     parentID: string
 }
 
-export function CategoryManagementModal({
-    isOpen,
-    onClose,
-    categories: initialCategories, //deprecated: ya no se usa, viene de store zustand
-}: CategoryManagementModalProps) {
+export function CategoryManagementModal({ isOpen, onClose }: CategoryManagementModalProps) {
     const { categories, setCategories } = useCategories()
     const [saving, setSaving] = useState(false)
     const [newSubcategories, setNewSubcategories] = useState<NewSubcategory[]>([])
@@ -44,8 +39,6 @@ export function CategoryManagementModal({
     const [editingCategory, setEditingCategory] = useState<ICategory | null>(null)
     const [editingSubcategory, setEditingSubcategory] = useState<string | null>(null)
     const [editSubcategoryName, setEditSubcategoryName] = useState("")
-    const [deleting, setDeleting] = useState<string | null>(null)
-    const route = useRouter()
 
     const handleAddSubcategory = (parentID: string) => {
         setAddingSubcategoryFor(parentID)
@@ -110,24 +103,13 @@ export function CategoryManagementModal({
         if (!parentId) return
         try {
             await updateSubCategory(editSubcategoryName.trim(), subcategoryId, parentId)
-            // Actualizar el estado local
-            const updatedCategories = categories.map((cat) => ({
-                ...cat,
-                subcategories:
-                    cat.subcategories?.map((sub) =>
-                        sub.categoryID === subcategoryId ? { ...sub, name: editSubcategoryName.trim() } : sub
-                    ) || [],
-            }))
-            toast.success(`Subcategoría ${editSubcategoryName} actualizada con éxito`)
-
-            setCategories(updatedCategories)
+            const categories = await getAllCategories()
+            setCategories(categories)
             setEditingSubcategory(null)
             setEditSubcategoryName("")
+            toast.success("Categoría actualizada con éxito")
         } catch (error) {
             console.error("Error updating subcategory:", error)
-        } finally {
-            route.refresh()
-            onClose()
         }
     }
 
@@ -142,28 +124,10 @@ export function CategoryManagementModal({
             return
         }
 
-        setDeleting(categoryId)
-        try {
-            await deleteCategory(categoryId)
-
-            let updatedCategories: ICategory[]
-            if (isSubcategory) {
-                // Eliminar subcategoría del estado local
-                updatedCategories = categories.map((cat) => ({
-                    ...cat,
-                    subcategories: cat.subcategories?.filter((sub) => sub.categoryID !== categoryId) || [],
-                }))
-            } else {
-                // Eliminar categoría completa del estado local
-                updatedCategories = categories.filter((cat) => cat.categoryID !== categoryId)
-            }
-
-            setCategories(updatedCategories)
-        } catch (error) {
-            console.error("Error deleting category:", error)
-        } finally {
-            setDeleting(null)
-        }
+        await deleteCategory(categoryId)
+        const categories = await getAllCategories()
+        setCategories(categories)
+        toast.success("Categoría eliminada")
     }
 
     const handleCancelEdit = () => {
@@ -209,7 +173,7 @@ export function CategoryManagementModal({
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="Administrar Categorías" maxWidth="max-w-4xl">
-            <div className="p-6 space-y-6">
+            <div className="relative p-6 space-y-6">
                 {/* Categorías existentes */}
                 <div className="space-y-4">
                     <div className="flex items-center space-x-2 text-lg font-medium dark:text-white text-gray-700">
@@ -267,29 +231,22 @@ export function CategoryManagementModal({
                                                 )}
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                {!!editingCategory && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleEditCategory(category)}
-                                                            className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                        >
-                                                            <Edit2 className="h-3 w-3" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDeleteCategory(category.categoryID, false)
-                                                            }
-                                                            disabled={deleting === category.categoryID}
-                                                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </Button>
-                                                    </>
-                                                )}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleEditCategory(category)}
+                                                    className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteCategory(category.categoryID, false)}
+                                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
                                             </div>
                                         </CardTitle>
                                     </CardHeader>
@@ -341,37 +298,34 @@ export function CategoryManagementModal({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    {editingSubcategory !== subcategory.categoryID && (
-                                                        <div className="flex items-center space-x-1">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleEditSubcategory(
-                                                                        subcategory.categoryID,
-                                                                        subcategory.name
-                                                                    )
-                                                                }
-                                                                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                            >
-                                                                <Edit2 className="h-3 w-3" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    if (!subcategory) return
-                                                                    if (!subcategory.categoryID) return
+                                                    <div className="flex items-center space-x-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleEditSubcategory(
+                                                                    subcategory.categoryID,
+                                                                    subcategory.name
+                                                                )
+                                                            }
+                                                            className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                        >
+                                                            <Edit2 className="h-3 w-3" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                if (!subcategory) return
+                                                                if (!subcategory.categoryID) return
 
-                                                                    handleDeleteCategory(subcategory.categoryID, true)
-                                                                }}
-                                                                disabled={deleting === subcategory.categoryID}
-                                                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-                                                            >
-                                                                <Trash2 className="h-3 w-3" />
-                                                            </Button>
-                                                        </div>
-                                                    )}
+                                                                handleDeleteCategory(subcategory.categoryID, true)
+                                                            }}
+                                                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             ))}
 
@@ -462,11 +416,6 @@ export function CategoryManagementModal({
 
                 {/* Crear nueva categoría padre */}
                 <div className="space-y-4">
-                    <div className="flex items-center space-x-2 text-lg font-medium dark:text-white text-gray-700">
-                        <FolderPlus className="w-5 h-5" />
-                        <span>Crear Nueva Categoría</span>
-                    </div>
-
                     {editingCategory && (
                         <Card className="border-green-200 dark:border-green-700 dark:bg-slate-700">
                             <CardContent className="pt-6">
@@ -490,7 +439,7 @@ export function CategoryManagementModal({
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <div className="fixed bottom-0 left-0 pb-2 bg-black/25 w-full pr-10 flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <Button
                         variant="outline"
                         onClick={handleClose}
