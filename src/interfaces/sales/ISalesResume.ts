@@ -1,7 +1,7 @@
 interface IMetaMensual {
     id: number
     fecha: string
-    meta: number
+    meta: number | null
     createdAt: string
     updatedAt: string
 }
