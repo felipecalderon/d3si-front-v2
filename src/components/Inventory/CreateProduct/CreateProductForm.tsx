@@ -828,7 +828,6 @@ export default function CreateProductForm({ categories }: { categories: ICategor
                                         <CategoryManagementModal
                                             isOpen={showModal}
                                             onClose={() => setShowModal(false)}
-                                            categories={categories}
                                         />
                                     </div>
                                     <div
