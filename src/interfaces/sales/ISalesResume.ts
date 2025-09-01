@@ -1,7 +1,7 @@
 interface IMetaMensual {
     id: number
     fecha: string
-    meta: number | null
+    meta: number
     createdAt: string
     updatedAt: string
 }
@@ -12,7 +12,7 @@ interface ICountAmountResume {
 }
 
 export interface IResume {
-    metaMensual: IMetaMensual
+    metaMensual: IMetaMensual | null
     totales: {
         sales: {
             today: { total: ICountAmountResume; efectivo: ICountAmountResume; debitoCredito: ICountAmountResume }
