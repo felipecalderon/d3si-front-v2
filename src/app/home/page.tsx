@@ -7,7 +7,7 @@ import DailyResumeCards from "@/components/Caja/DailyResumeCards"
 import FilterStoreMonthYear from "@/components/Caja/FilterStoreMonthYear"
 import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 
-export const revalidate = 0
+export const dynamic = "force-dynamic"
 
 interface SearchParams {
     searchParams: Promise<{
