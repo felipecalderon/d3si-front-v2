@@ -37,52 +37,56 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 </div>
 
                 {/* Sección de estadísticas */}
-                <div>
-                    {/* Mobile: Stack vertically */}
-                    <div className="block lg:hidden space-y-6">
-                        {/* Gráfico primero en mobile */}
-                        <div className="flex justify-center">
-                            <div className="w-full max-w-[280px] mx-auto">
-                                <TotalSalesResumeGraph resume={resume} />
+                {resume && (
+                    <div>
+                        {/* Mobile: Stack vertically */}
+                        <div className="block lg:hidden space-y-6">
+                            {/* Gráfico primero en mobile */}
+                            <div className="flex justify-center">
+                                <div className="w-full max-w-[280px] mx-auto">
+                                    <TotalSalesResumeGraph resume={resume} />
+                                </div>
+                            </div>
+
+                            {/* Facturación */}
+                            <div>
+                                <ResumeLeftSideChart resume={resume} />
+                            </div>
+
+                            {/* Ventas */}
+                            <div>
+                                <ResumeRightSideChart resume={resume} />
                             </div>
                         </div>
 
-                        {/* Facturación */}
-                        <div>
-                            <ResumeLeftSideChart resume={resume} />
-                        </div>
+                        {/* Desktop: Grid layout con altura igual */}
+                        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                            {/* Facturación */}
+                            <div className="h-full flex flex-col justify-between gap-4">
+                                <ResumeLeftSideChart resume={resume} />
+                            </div>
 
-                        {/* Ventas */}
-                        <div>
-                            <ResumeRightSideChart resume={resume} />
-                        </div>
-                    </div>
+                            {/* Gráfico - Centrado verticalmente */}
+                            <div className="h-full flex justify-center items-center">
+                                <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
+                                    <TotalSalesResumeGraph resume={resume} />
+                                </div>
+                            </div>
 
-                    {/* Desktop: Grid layout con altura igual */}
-                    <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                        {/* Facturación */}
-                        <div className="h-full flex flex-col justify-between gap-4">
-                            <ResumeLeftSideChart resume={resume} />
-                        </div>
-
-                        {/* Gráfico - Centrado verticalmente */}
-                        <div className="h-full flex justify-center items-center">
-                            <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                                <TotalSalesResumeGraph resume={resume} />
+                            {/* Ventas */}
+                            <div className="h-full flex flex-col justify-between gap-4">
+                                <ResumeRightSideChart resume={resume} />
                             </div>
                         </div>
-
-                        {/* Ventas */}
-                        <div className="h-full flex flex-col justify-between gap-4">
-                            <ResumeRightSideChart resume={resume} />
-                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Tabla de ventas */}
-                <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                    <SalesTable sales={sales} />
-                </div>
+                {sales && (
+                    <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                        <SalesTable sales={sales} />
+                    </div>
+                )}
             </div>
         </>
     )
