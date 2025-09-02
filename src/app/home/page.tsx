@@ -18,7 +18,7 @@ interface SearchParams {
 const HomePage = async ({ searchParams }: SearchParams) => {
     const { storeID } = await searchParams
     if (!storeID) return null
-    const [sales, resume] = await Promise.all([getSales(storeID), getResume()])
+    const [sales, resume] = await Promise.all([getSales(storeID), getResume(storeID)])
 
     return (
         <>
@@ -34,7 +34,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
 
                     {/* Métodos de pago */}
                     <div className="lg:w-3/6">
-                        <DailyResumeCards />
+                        <DailyResumeCards resume={resume} />
                     </div>
                 </div>
 

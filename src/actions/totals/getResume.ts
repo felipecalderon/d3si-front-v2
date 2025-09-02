@@ -4,8 +4,8 @@ import { fetcher } from "@/lib/fetcher"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
 
-export const getResume = async (): Promise<IResume> => {
+export const getResume = async (storeID?: string): Promise<IResume> => {
     const date = new Date()
     const utcDate = formatDateToYYYYMMDD(date)
-    return await fetcher(`${API_URL}/home?date=${utcDate}`)
+    return await fetcher(`${API_URL}/home?date=${utcDate}&storeID=${storeID || ""}`)
 }

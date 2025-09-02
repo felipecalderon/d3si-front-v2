@@ -1,9 +1,8 @@
-import { getResume } from "@/actions/totals/getResume"
+import { IResume } from "@/interfaces/sales/ISalesResume"
 import { toPrice } from "@/utils/priceFormat"
 import { CreditCard, HandCoins } from "lucide-react"
 
-export default async function DailyResumeCards() {
-    const resume = await getResume()
+export default async function DailyResumeCards({ resume }: { resume: IResume }) {
     const { debitoCredito, efectivo } = resume.totales.sales.month
     return (
         <>
