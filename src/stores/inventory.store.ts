@@ -61,7 +61,7 @@ export const inventoryStore = create<InventoryContextWrapper>((set) => ({
                 ...state.columnFilters,
                 [field]: value,
             },
-        }));
+        }))
     },
     clearColumnFilters: () => {
         set({
@@ -76,6 +76,6 @@ export const inventoryStore = create<InventoryContextWrapper>((set) => ({
                 stock: "",
                 stockAgregado: "",
             },
-        });
+        })
     },
-}));
+}))
