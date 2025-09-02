@@ -18,8 +18,8 @@ import { API_URL } from "@/lib/enviroments"
 }
  */
 
-export async function updateMeta(fecha: string, monto: number) {
-    const store = await fetcher(`${API_URL}/home`, {
+export async function updateMeta(fecha: string, monto: number): Promise<boolean> {
+    const store = await fetcher<boolean>(`${API_URL}/home`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

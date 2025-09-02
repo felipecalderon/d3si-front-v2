@@ -8,9 +8,12 @@ export interface IStoreProduct {
     priceCostStore: string
     createdAt: string
     updatedAt: string
+    Store: IStore
 }
 
 export interface IProductVariation {
+    createdAt: string
+    updatedAt: string
     variationID: string
     productID: string
     sizeNumber: string

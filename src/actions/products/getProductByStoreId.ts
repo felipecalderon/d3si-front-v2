@@ -14,6 +14,7 @@ import { IProduct } from "@/interfaces/products/IProduct"
  */
 
 export const getProductByStoreId = async (id: string): Promise<IProduct[]> => {
-    const storeProduct: IProduct[] = await fetcher(`${API_URL}/store?storeID=${id}`)
+    // Corrige la URL para que use el endpoint correcto de productos por tienda
+    const storeProduct: IProduct[] = await fetcher(`${API_URL}/products/?storeId=${id}`)
     return storeProduct
 }

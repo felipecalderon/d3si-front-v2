@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import type React from "react"
@@ -17,11 +15,13 @@ import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { inventoryStore } from "@/stores/inventory.store"
 import Image from "next/image"
+import useQueryParams from "@/hooks/useQueryParams"
+import { getProductById } from "@/actions/products/getProductById"
+import { toPrice } from "@/utils/priceFormat"
 
 interface InventoryTableProps {
     currentItems: Array<{
         product: IProduct
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         variation: any
         isFirst: boolean
         totalStock: number
@@ -64,11 +64,15 @@ export function InventoryTable({
         setAddSizeModalProductID,
         addSizeModalProductID,
     } = inventoryStore()
+    const { searchParams } = useQueryParams()
+    const storeID = searchParams.get("storeID")
+    const products = currentItems.map((p) => p.product)
+
     const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
 
     return (
         <div className="flex-1 flex flex-col">
-            <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
+            <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded-t-none overflow-hidden">
                 <div className="overflow-x-auto h-full">
                     <Table>
                         <TableHeader className="sticky top-0 bg-gray-50 dark:bg-slate-800">
@@ -87,27 +91,27 @@ export function InventoryTable({
                                 </TableHead>
                                 {/* PRECIO COSTO solo si no es vendedor ni tercero */}
                                 {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        PRECIO COSTO
+                                    <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        COSTO NETO
                                     </TableHead>
                                 )}
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    OFERTAS
+                                <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK CENTRAL
-                                </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK AGREGADO
-                                </TableHead>
+                                {user?.role === Role.Admin && (
+                                    <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        STOCK AGREGADO
+                                    </TableHead>
+                                )}
                             </TableRow>
                         </TableHeader>
 
                         <TableBody>
                             {currentItems.map(({ product, variation, isFirst, totalStock }, index) => {
+                                const productData = getProductById([product], storeID!, variation.sku)
                                 // Stock agregado = suma de StoreProducts en sucursales (no admin)
                                 const stockAgregado =
                                     variation.StoreProducts?.filter(
@@ -190,20 +194,45 @@ export function InventoryTable({
                                                             className="w-12 h-12 object-cover rounded border"
                                                         />
                                                     ) : (
-                                                        "--"
+                                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
+                                                            <span className="text-xs text-gray-400">--</span>
+                                                        </div>
                                                     )}
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="font-medium text-sm block truncate">
-                                                            {product.name}
-                                                        </span>
-                                                        {/* SKU debajo de la imagen */}
-                                                        <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded mt-1 inline-block">
-                                                            {variation.sku}
-                                                        </span>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
-                                                                Stock: {totalStock}
+                                                    <div className="flex-1 min-w-0 space-y-2">
+                                                        <div>
+                                                            <span className="font-medium text-sm block truncate">
+                                                                {product.name}
+                                                            </span>
+                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium inline-block mt-1">
+                                                                {(() => {
+                                                                    // Determinar el storeID de la tienda seleccionada (o admin)
+                                                                    const storeID = searchParams.get("storeID")
+                                                                    // Sumar la cantidad (quantity) de todas las variaciones de la tienda correspondiente
+                                                                    const total = product.ProductVariations.reduce(
+                                                                        (sum, v) => {
+                                                                            if (!storeID) return sum
+                                                                            const storeProduct = v.StoreProducts?.find(
+                                                                                (sp) => sp.storeID === storeID
+                                                                            )
+                                                                            return (
+                                                                                sum +
+                                                                                (storeProduct
+                                                                                    ? storeProduct.quantity
+                                                                                    : 0)
+                                                                            )
+                                                                        },
+                                                                        0
+                                                                    )
+                                                                    return `Stock Total: ${total}`
+                                                                })()}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* SKU con mejor espaciado y alineación */}
+                                                        <div className="pl-1">
+                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                                {variation.sku}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -211,7 +240,18 @@ export function InventoryTable({
                                             </TableCell>
                                         )}
                                         {!isFirst && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
+                                            <TableCell className="py-2 text-left">
+                                                {/* SKU alineado para filas no-first con el mismo padding/margin que el de arriba */}
+                                                <div className="flex">
+                                                    {/* Espacio equivalente al botón + imagen para alinear */}
+                                                    <div className="w-16 flex-shrink-0"></div>
+                                                    <div>
+                                                        <span className="text-xs font-mono -ml-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                            {variation.sku}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
                                         )}
                                         {/* Columna MARCA */}
                                         <TableCell
@@ -274,12 +314,14 @@ export function InventoryTable({
                                                     />
                                                 </div>
                                             ) : (
-                                                <MotionItem
-                                                    key={`${product.productID}-${variation.variationID}`}
-                                                    delay={index + 3}
-                                                >
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <MotionItem
+                                                        key={`${product.productID}-${variation.variationID}`}
+                                                        delay={index + 3}
+                                                    >
+                                                        <span className="font-medium">{variation.sizeNumber}</span>
+                                                    </MotionItem>
+                                                </div>
                                             )}
                                         </TableCell>
 
@@ -301,7 +343,11 @@ export function InventoryTable({
                                                 editingField?.field === "priceCost" ? (
                                                     <div className="flex justify-center">
                                                         <Input
+                                                            type="number"
                                                             value={editValue}
+                                                            onWheel={(e) => {
+                                                                e.currentTarget.blur()
+                                                            }}
                                                             onChange={(e) => setEditValue(e.target.value)}
                                                             onBlur={() =>
                                                                 handleSaveEdit(product, variation.variationID)
@@ -312,7 +358,7 @@ export function InventoryTable({
                                                     </div>
                                                 ) : (
                                                     <span className="font-semibold text-sm">
-                                                        ${Number(variation.priceCost).toLocaleString("es-CL")}
+                                                        ${toPrice(variation.priceCost)}
                                                     </span>
                                                 )}
                                             </TableCell>
@@ -335,9 +381,13 @@ export function InventoryTable({
                                             editingField?.field === "priceList" ? (
                                                 <div className="flex justify-center">
                                                     <Input
+                                                        type="number"
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />
@@ -345,7 +395,7 @@ export function InventoryTable({
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1">
                                                     <span className="font-semibold text-sm">
-                                                        ${Number(variation.priceList).toLocaleString("es-CL")}
+                                                        ${toPrice(variation.priceList)}
                                                     </span>
                                                     <span
                                                         className={`text-xs ${
@@ -363,16 +413,15 @@ export function InventoryTable({
                                             )}
                                         </TableCell>
                                         {/* OFERTAS */}
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            {/* Aquí puedes mostrar el precio de oferta, porcentaje, o un botón, según tu lógica */}
+                                        {/* <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
                                             {variation.offerPrice ? (
                                                 <span className="font-semibold text-green-600">
-                                                    ${Number(variation.offerPrice).toLocaleString("es-CL")}
+                                                    ${formatCurrency(variation.offerPrice)}
                                                 </span>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
-                                        </TableCell>
+                                        </TableCell> */}
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
                                             className={`w-32 text-center py-3 transition-colors ${
@@ -390,9 +439,13 @@ export function InventoryTable({
                                             editingField?.field === "stockQuantity" ? (
                                                 <div className="flex justify-center">
                                                     <Input
+                                                        type="number"
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
                                                         onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        onWheel={(e) => {
+                                                            e.currentTarget.blur()
+                                                        }}
                                                         className="w-20 h-8 px-2 py-1 text-center text-xs"
                                                         autoFocus
                                                     />
@@ -402,21 +455,36 @@ export function InventoryTable({
                                                     variant={variation.stockQuantity < 20 ? "destructive" : "default"}
                                                     className="font-bold text-sm"
                                                 >
-                                                    {variation.stockQuantity}
+                                                    {user?.role === Role.Admin
+                                                        ? productData?.stockQuantity
+                                                        : productData?.quantity}
                                                 </Badge>
                                             )}
                                         </TableCell>
 
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem
-                                                key={`${product.productID}-${variation.variationID}`}
-                                                delay={index + 3}
-                                            >
-                                                <span className="font-medium text-blue-600 dark:text-blue-400">
-                                                    {stockAgregado}
-                                                </span>
-                                            </MotionItem>
-                                        </TableCell>
+                                        {user?.role === Role.Admin && (
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                                {/* <MotionItem
+                                                    key={`${product.productID}-${variation.variationID}`}
+                                                    delay={index + 3}
+                                                >
+                                                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                                                        {stockAgregado}
+                                                    </span>
+                                                </MotionItem> */}
+                                                <div className="flex flex-col">
+                                                    {productData?.StoreProducts.filter(
+                                                        (sp) => sp.Store.role === Role.Vendedor
+                                                    ).map((sp) => (
+                                                        <div className="flex" key={sp.storeProductID}>
+                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
+                                                                {sp.Store.location}: {sp.quantity}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 )
                             })}

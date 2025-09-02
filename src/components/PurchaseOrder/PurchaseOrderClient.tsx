@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import React, { useState, useMemo, useEffect } from "react"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,6 +15,9 @@ import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
 import { useProductFilter } from "@/stores/productsFilters"
+import { inventoryStore } from "@/stores/inventory.store"
+import { useAuth } from "@/stores/user.store"
+import { useTienda } from "@/stores/tienda.store"
 
 const ITEMS_PER_PAGE = 10
 
@@ -26,10 +27,12 @@ export default function PurchaseOrderClient({
     initialStores,
 }: PurchaseOrderClientProps) {
     const router = useRouter()
-
+    const { user } = useAuth()
     // Estados
     const [search, setSearch] = useState("")
     const [stores] = useState<IStore[]>(initialStores)
+    const { storeSelected } = useTienda()
+    // Si es admin, puede elegir tienda; si es store_manager, usa la global
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
@@ -47,16 +50,34 @@ export default function PurchaseOrderClient({
         clearFilters,
     } = useProductFilter()
 
+    const { setRawProducts } = inventoryStore()
+
+    // Filtrar productos por tienda seleccionada (admin ve todos)
+    const filteredByStore = useMemo(() => {
+        // Si es admin y no ha seleccionado tienda, ve todos
+        if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
+        // Si es store_manager, filtra por la tienda global
+        if (user?.role === "store_manager" && storeSelected?.storeID) {
+            return filteredAndSortedProducts.filter((product) =>
+                product.ProductVariations.some((variation) =>
+                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === storeSelected.storeID)
+                )
+            )
+        }
+        // Por defecto, retorna todos
+        return filteredAndSortedProducts
+    }, [filteredAndSortedProducts, selectedStoreID, user?.role, storeSelected?.storeID])
+
     // Filtrar productos según búsqueda
     const searchedProducts = useMemo(() => {
-        if (!search.trim()) return filteredAndSortedProducts
+        if (!search.trim()) return filteredByStore
         const lower = search.toLowerCase()
-        return filteredAndSortedProducts.filter(
+        return filteredByStore.filter(
             (product) =>
                 product.name.toLowerCase().includes(lower) ||
                 product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
         )
-    }, [search, filteredAndSortedProducts])
+    }, [search, filteredByStore])
 
     // Aplanar productos con variaciones para paginación
     const flattenedProducts = useMemo(() => {
@@ -79,15 +100,6 @@ export default function PurchaseOrderClient({
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
     const currentItems = flattenedProducts.slice(startIndex, endIndex)
-
-    // Resetear página cuando cambian filtros o búsqueda
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
-
-    const totalProductsInOrder = useMemo(() => {
-        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
-    }, [pedido])
 
     // Funciones para agregar o quitar productos a pedido
     const handleAgregarCalzados = () => {
@@ -136,6 +148,10 @@ export default function PurchaseOrderClient({
         }, 0)
     }, [pedido, initialProducts])
 
+    const totalProductsInOrder = useMemo(() => {
+        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
+    }, [pedido])
+
     // Función para obtener páginas visibles en paginación
     const getVisiblePages = () => {
         const pages = []
@@ -157,6 +173,15 @@ export default function PurchaseOrderClient({
 
         return pages
     }
+    // Resetear página cuando cambian filtros o búsqueda
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [search, selectedFilter, sortDirection, selectedGenre])
+
+    useEffect(() => {
+        setRawProducts(initialProducts)
+        setSelectedFilter("genre")
+    }, [])
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -195,18 +220,33 @@ export default function PurchaseOrderClient({
                                     <span className="text-sm font-semibold whitespace-nowrap">
                                         Orden de compra para:
                                     </span>
-                                    <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
-                                        <SelectTrigger className="w-[300px] h-11 border-2">
-                                            <SelectValue placeholder="Seleccionar tienda" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {stores.map((store) => (
-                                                <SelectItem key={store.storeID} value={store.storeID}>
-                                                    {store.name} - {store.city}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    {user?.role === "admin" ? (
+                                        <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Select value={storeSelected?.storeID || ""} disabled>
+                                            <SelectTrigger className="w-[300px] h-11 border-2">
+                                                <SelectValue placeholder="Seleccionar tienda" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {stores.map((store) => (
+                                                    <SelectItem key={store.storeID} value={store.storeID}>
+                                                        {store.name} - {store.city}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
@@ -327,7 +367,7 @@ export default function PurchaseOrderClient({
                         totalProductsInOrder={totalProductsInOrder}
                         subtotal={subtotal}
                         isLoading={false}
-                        selectedStoreID={selectedStoreID}
+                        selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
                         pedido={pedido}
                         rawProducts={initialProducts}
                         setPedido={setPedido}

@@ -2,9 +2,12 @@
 import { ICategory } from "../categories/ICategory"
 import { IProductVariation } from "./IProductVariation"
 
+export type Brand = "D3SI" | "Otro"
+export type Genre = "Hombre" | "Mujer" | "Unisex"
+
 export interface IProduct {
-    genre: "Hombre" | "Mujer" | "Unisex"
-    brand: "D3SI" | "Otro"
+    brand: Brand
+    genre: Genre
     productID: string
     name: string
     image: string

@@ -1,9 +1,12 @@
 export interface InventoryRow {
     Producto: string
-    "CÓDIGO EAN": string | null
-    TALLA: string | number | null
-    "PRECIO COSTO": string | number
-    "PRECIO PLAZA": string | number
-    "STOCK CENTRAL": number
-    "STOCK AGREGADO": number
+    Imagen: string
+    Género: string
+    Marca: string
+    Categoría: string
+    Talla: string | number | null
+    Cantidad: number
+    "Precio Costo Neto": string | number
+    "Precio Plaza": string | number
+    "Código EAN": string | null
 }

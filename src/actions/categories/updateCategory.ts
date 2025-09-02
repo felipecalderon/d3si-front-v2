@@ -1,5 +1,6 @@
 import { fetcher } from "@/lib/fetcher"
 import { API_URL } from "@/lib/enviroments"
+import { ICategory } from "@/interfaces/categories/ICategory"
 
 /**
  * Actualiza un IUser en la base de datos mediante una petición HTTP PUT.
@@ -18,13 +19,13 @@ import { API_URL } from "@/lib/enviroments"
 }
  */
 
-export async function updateCategory(name: string ,subCategoriaID: string) {
-    const store = await fetcher(`${API_URL}/categories/${subCategoriaID}`,{
+export async function updateCategory(category: ICategory) {
+    const store = await fetcher(`${API_URL}/categories/${category.categoryID}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({name: name }),
+        body: JSON.stringify({ name: category.name }),
     })
     return store
 }

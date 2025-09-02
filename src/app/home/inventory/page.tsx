@@ -12,6 +12,7 @@ export default async function InventoryPage() {
     ])
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
+            {/* <InventoryClientWrapper initialProducts={productsData} categories={categoriesData} stores={storesData} /> */}
             <InventoryClientWrapper initialProducts={productsData} categories={categoriesData} stores={storesData} />
         </main>
     )

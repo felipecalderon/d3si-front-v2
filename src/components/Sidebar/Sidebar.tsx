@@ -1,6 +1,6 @@
 "use client"
-import React, { useCallback, useEffect, useState } from "react"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import React, { useEffect, useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
 import { useTienda } from "@/stores/tienda.store"
 import { Collapsible } from "@/components/Animations/Collapsible"
@@ -13,14 +13,15 @@ import { motion } from "framer-motion"
 import { MotionItem } from "../Animations/motionItem"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
-import { toast } from "sonner"
+
 import useMobileScreen from "@/hooks/useMobileScreen"
 import useDarkMode from "@/hooks/useDarkMode"
+import useQueryParams from "@/hooks/useQueryParams"
 
 export default function Sidebar() {
     const router = useRouter()
     const pathname = usePathname()
-    const searchParams = useSearchParams()
+    const { searchParams, createQueryParam } = useQueryParams()
 
     const { user } = useAuth()
     const { storeSelected } = useTienda()
@@ -30,16 +31,6 @@ export default function Sidebar() {
 
     const [isCollapsed, setIsCollapsed] = useState(false)
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
-
-    const createQueryParam = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
-
-            return params.toString()
-        },
-        [searchParams]
-    )
 
     useEffect(() => {
         const storeID = searchParams.get("storeID")
@@ -56,7 +47,8 @@ export default function Sidebar() {
     }
 
     const handleNavClick = async (route: string) => {
-        router.push(route)
+        if (!storeSelected) return router.push(route)
+        router.push(`${route}?${createQueryParam("storeID", storeSelected.storeID)}`)
         // Close mobile menu after navigation
         if (isMobile) {
             setIsMobileOpen(false)
@@ -310,11 +302,11 @@ export default function Sidebar() {
                                     <TooltipTrigger asChild>
                                         <div className="flex items-center">
                                             <span className="flex-shrink-0">
-                                                {isDarkMode ? <FaMoon size={16} /> : <FaSun size={16} />}
+                                                {!!isDarkMode ? <FaMoon size={16} /> : <FaSun size={16} />}
                                             </span>
                                             {!shouldShowCollapsed && (
                                                 <span className="ml-3 text-sm lg:text-base">
-                                                    {isDarkMode ? "Modo Oscuro" : "Modo Claro"}
+                                                    {!!isDarkMode ? "Modo Oscuro" : "Modo Claro"}
                                                 </span>
                                             )}
                                         </div>
@@ -327,7 +319,7 @@ export default function Sidebar() {
                                 </Tooltip>
                                 {!shouldShowCollapsed && (
                                     <Switch
-                                        checked={isDarkMode}
+                                        checked={!!isDarkMode}
                                         onCheckedChange={() => setIsDarkMode(!isDarkMode)}
                                         className="bg-gray-300 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-slate-900 flex-shrink-0"
                                     />

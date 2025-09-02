@@ -52,6 +52,9 @@ export function ExpirationConfig({
                                             type="number"
                                             min={1}
                                             value={vencimientoCantidad}
+                                            onWheel={(e) => {
+                                                e.currentTarget.blur()
+                                            }}
                                             onChange={(e) => onCantidadChange(e.target.value)}
                                         />
                                         <Select

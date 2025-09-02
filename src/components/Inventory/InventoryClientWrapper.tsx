@@ -1,26 +1,24 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from "react"
+import React, { Suspense, useEffect } from "react"
 import { toast } from "sonner"
-import TableSkeleton from "@/components/ListTable/TableSkeleton"
 import { MotionItem } from "@/components/Animations/motionItem"
-import { CategoryProgress } from "@/components/Inventory/CategorySection/CategoryProgress"
-import { InventoryTable } from "@/components/Inventory/TableSection/InventoryTable"
-import InventoryHeader from "@/components/Inventory/HeaderSetion/InventoryHeader"
+import { CategoryProgress } from "../CategorySection/CategoryProgress"
 import InventoryPagination from "@/components/Inventory/TableSection/InventoryPagination"
+import { ColumnFilters } from "@/components/Inventory/TableSection/ColumnFilters"
 import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
 import { deleteProduct } from "@/actions/products/deleteProduct"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import type { ICategory } from "@/interfaces/categories/ICategory"
 import type { IStore } from "@/interfaces/stores/IStore"
-import { FlattenedItem } from "@/interfaces/products/IFlatternProduct"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
 import { inventoryStore } from "@/stores/inventory.store"
-import { useProductFilter } from "@/stores/productsFilters"
-
-const ITEMS_PER_PAGE = 10
+import { useCategories } from "@/stores/categories.store"
+import { InventoryTable } from "./TableSection/InventoryTable"
+import InventoryHeader from "./HeaderSetion/InventoryHeader"
+import { useInventory } from "@/hooks/useInventory"
 
 interface Props {
     initialProducts: IProduct[]
@@ -28,89 +26,35 @@ interface Props {
     stores: IStore[]
 }
 
-export default function InventoryClientWrapper({ initialProducts, categories, stores }: Props) {
+export default function UnifiedInventoryClientWrapper({ initialProducts, categories: cats, stores }: Props) {
     const { user } = useAuth()
+    const { categories, setCategories } = useCategories()
     const {
-        currentPage,
-        editValue,
-        editingField,
         rawProducts,
-        search,
-        setCurrentPage,
-        setEditingField,
         setRawProducts,
+        columnFilters,
+        handleFilterChange,
+        clearColumnFilters,
+        setEditingField,
+        editValue,
     } = inventoryStore()
 
     const {
-        clearFilters,
-        filteredAndSortedProducts,
-        selectedFilter,
-        setSelectedFilter,
-        setSelectedGenre,
-        setSortDirection,
-        sortDirection,
-        selectedGenre,
-    } = useProductFilter()
-
-    const adminStoreIDs = useMemo(() => stores.filter((s) => s.isAdminStore).map((s) => s.storeID), [stores])
-
-    const totalStockCentral = useMemo(
-        () =>
-            rawProducts.reduce(
-                (total, product) => total + product.ProductVariations.reduce((sum, v) => sum + v.stockQuantity, 0),
-                0
-            ),
-        [rawProducts]
-    )
-
-    const searchedProducts = useMemo(() => {
-        if (!search.trim()) return filteredAndSortedProducts
-        const lower = search.toLowerCase()
-
-        return filteredAndSortedProducts.filter((product) => {
-            const nameMatch = product.name.toLowerCase().includes(lower)
-            const skuMatch = product.ProductVariations.some((v) => v.sku?.toLowerCase().includes(lower))
-            const sizeMatch = product.ProductVariations.some((v) => v.sizeNumber?.toLowerCase().includes(lower))
-
-            const categoryName = product.Category?.name?.toLowerCase() || ""
-            const categoryMatch = categoryName.includes(lower)
-
-            return nameMatch || skuMatch || sizeMatch || categoryMatch
-        })
-    }, [search, filteredAndSortedProducts])
-
-    const flattenedProducts = useMemo<FlattenedItem[]>(() => {
-        const flattened: FlattenedItem[] = []
-        searchedProducts.forEach((product) => {
-            const totalStockQuantity = product.ProductVariations.reduce((total, v) => total + v.stockQuantity, 0)
-            const variationCount = product.ProductVariations.length
-            product.ProductVariations.forEach((variation, index) => {
-                flattened.push({
-                    product,
-                    variation,
-                    isFirst: index === 0,
-                    totalStock: totalStockQuantity,
-                    rowSpan: variationCount,
-                })
-            })
-        })
-        return flattened
-    }, [searchedProducts])
-
-    const totalPages = Math.ceil(flattenedProducts.length / ITEMS_PER_PAGE)
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const currentItems = flattenedProducts.slice(startIndex, endIndex)
-
-    const uniqueProductsInCurrentPage = useMemo(() => {
-        const uniqueProductIds = new Set()
-        currentItems.forEach(({ product }) => uniqueProductIds.add(product.productID))
-        return uniqueProductIds.size
-    }, [currentItems])
+        currentItems,
+        totalPages,
+        currentPage,
+        uniqueProductsInCurrentPage,
+        totalStockShown,
+        filteredProducts,
+        flattenedProducts,
+        adminStoreIDs,
+        getVisiblePages,
+        setCurrentPage,
+    } = useInventory(initialProducts, stores)
 
     useEffect(() => {
-        setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
+        setCategories(cats)
+    }, [])
 
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
@@ -129,10 +73,9 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
     }
 
     async function handleSaveEdit(product: IProduct, variationID?: string) {
+        const editingField = inventoryStore.getState().editingField
         if (!editingField) return
-
         const { field } = editingField
-
         const isEditingBrand = field === "brand"
         const isProductBrand = product.brand === "D3SI" || product.brand === "Otro"
         const isEmptyCategory = product.categoryID === ""
@@ -163,11 +106,9 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
                 },
                 error: "Error al actualizar",
             })
-
             return
         }
 
-        // Si es un campo de una talla/variation
         const variation = product.ProductVariations.find((v) => v.variationID === variationID)
         if (!variation) return
         const updated = {
@@ -214,66 +155,51 @@ export default function InventoryClientWrapper({ initialProducts, categories, st
         })
     }
 
-    const getVisiblePages = () => {
-        const pages: (number | "...")[] = []
-        const maxVisiblePages = 5
-
-        if (totalPages <= maxVisiblePages) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i)
-            }
-        } else {
-            if (currentPage <= 3) {
-                pages.push(1, 2, 3, 4, "...", totalPages)
-            } else if (currentPage >= totalPages - 2) {
-                pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
-            } else {
-                pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages)
-            }
-        }
-        return pages
-    }
-
-    useEffect(() => {
-        setRawProducts(initialProducts)
-        setSelectedGenre()
-    }, [])
-
     return (
         <main className="lg:p-6 flex-1 flex flex-col h-screen">
-            {/* Category Progress, no se muestra si es store manager */}
             {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
                 <MotionItem delay={1}>
-                    <CategoryProgress products={searchedProducts} categories={categories} />
+                    <CategoryProgress products={filteredProducts} categories={categories} />
                 </MotionItem>
             )}
 
-            {/* Header Section */}
             <MotionItem delay={0}>
                 <InventoryHeader
-                    totalStockCentral={totalStockCentral}
+                    totalStockCentral={totalStockShown}
                     uniqueProductsInCurrentPage={uniqueProductsInCurrentPage}
-                    searchedProductsLength={searchedProducts.length}
+                    searchedProductsLength={filteredProducts.length}
                 />
                 <div className="flex justify-between lg:mt-0 mt-6 lg:flex-row flex-col lg:items-center">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Página {currentPage} de {totalPages} - {searchedProducts.length} productos (
+                        Página {currentPage} de {totalPages} - {filteredProducts.length} productos (
                         {flattenedProducts.length} variaciones)
                     </p>
                 </div>
             </MotionItem>
 
-            {/* Table Section */}
             <div className="flex-1 flex flex-col">
                 <MotionItem delay={2} className="flex-1">
-                    <InventoryTable
-                        currentItems={currentItems}
-                        handleSaveEdit={handleSaveEdit}
-                        handleDeleteProduct={handleDeleteProduct}
-                        adminStoreIDs={adminStoreIDs}
-                        categories={[]}
-                    />
+                    <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
+                        <ColumnFilters
+                            filters={columnFilters}
+                            onFilterChange={handleFilterChange}
+                            onClearFilters={clearColumnFilters}
+                            showPrecioCosto={user?.role !== Role.Vendedor && user?.role !== Role.Tercero}
+                            showStockAgregado={user?.role === Role.Admin}
+                        />
+
+                        <Suspense fallback={"cargando..."}>
+                            <InventoryTable
+                                currentItems={currentItems}
+                                handleSaveEdit={handleSaveEdit}
+                                handleDeleteProduct={handleDeleteProduct}
+                                adminStoreIDs={adminStoreIDs}
+                                categories={categories}
+                            />
+                        </Suspense>
+                    </div>
                 </MotionItem>
+
                 {totalPages > 1 && (
                     <MotionItem delay={currentItems.length + 3}>
                         <InventoryPagination
