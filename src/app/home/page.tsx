@@ -1,5 +1,7 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
+import { getWooCommerceOrders } from "@/actions/woocommerce/getWooCommerceOrders"
+import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
 import SalesTable from "@/components/Caja/SalesTable"
 import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
 import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
@@ -18,7 +20,14 @@ interface SearchParams {
 const HomePage = async ({ searchParams }: SearchParams) => {
     const { storeID } = await searchParams
     if (!storeID) return null
+
     const [sales, resume] = await Promise.all([getSales(storeID), getResume(storeID)])
+    // Traemos ventas de WooCommerce
+    const wooOrders = await getWooCommerceOrders()
+    const wooSales = wooOrders.map(mapWooOrderToSale)
+
+    // Combinamos todas las ventas
+    const allSales = [...sales, ...wooSales]
 
     return (
         <>
@@ -84,9 +93,9 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 )}
 
                 {/* Tabla de ventas */}
-                {sales && (
+                {allSales.length > 0 && (
                     <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                        <SalesTable sales={sales} />
+                        <SalesTable sales={allSales} />
                     </div>
                 )}
             </div>

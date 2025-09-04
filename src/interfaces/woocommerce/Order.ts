@@ -16,5 +16,8 @@ export interface WooCommerceOrder {
         product_id: number
         quantity: number
         price: string
+        variation_id?: number // ⚠ agregado
+        sku?: string // ⚠ opcional
+        image?: { src: string } // ⚠ opcional
     }[]
 }

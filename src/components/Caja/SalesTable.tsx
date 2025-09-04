@@ -60,9 +60,13 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                         {productsDescription}
                                     </TableCell>
                                     <TableCell
-                                        className={`${
-                                            sale.status === "Pagado" ? "text-green-600" : "text-rose-700"
-                                        } font-medium`}
+                                        className={`font-medium ${
+                                            sale.status === "Pagado"
+                                                ? "text-green-600"
+                                                : sale.status === "Pendiente"
+                                                ? "text-yellow-500"
+                                                : "text-rose-700"
+                                        }`}
                                     >
                                         {sale.status}
                                     </TableCell>
