@@ -1,7 +1,7 @@
 import { getWooCommerceOrders } from "@/actions/woocommerce/getWooCommerceOrders"
 import { OrdersTable } from "@/components/WooCommerce/OrdersTable"
 
-const WooCommerceOrdersPage = async () => {
+export default async function WooCommerceOrdersPage() {
     const orders = await getWooCommerceOrders()
 
     return (
@@ -11,5 +11,3 @@ const WooCommerceOrdersPage = async () => {
         </section>
     )
 }
-
-export default WooCommerceOrdersPage

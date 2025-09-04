@@ -1,21 +1,7 @@
 import { WOO_KEY, WOO_SECRET, WOO_URL } from "./enviroments"
 
 /**
- * Crea la cabecera de autenticación Basic para la API de WooCommerce.
- * @returns {string} Las credenciales codificadas en Base64.
- */
-const createAuthHeader = (): string => {
-    if (!WOO_KEY || !WOO_SECRET) {
-        throw new Error("La Key o el Secret de la API de WooCommerce no están definidos.")
-    }
-    // El objeto Buffer está disponible globalmente en el entorno de Node.js (Server Components)
-    const buffer = Buffer.from(`${WOO_KEY}:${WOO_SECRET}`)
-    console.log({ WOO_KEY, WOO_SECRET, base64: buffer.toString("base64") })
-    return `Basic ${buffer.toString("base64")}`
-}
-
-/**
- * Función utilitaria para realizar peticiones a la API de WooCommerce usando Basic Auth.
+ * Función utilitaria para realizar peticiones a la API de WooCommerce usando query params.
  *
  * @template T - Tipo de dato esperado en la respuesta.
  * @param {string} endpoint - El endpoint de la API de WooCommerce (ej. 'orders').
@@ -24,14 +10,20 @@ const createAuthHeader = (): string => {
  * @throws {Error} - Lanza un error si la respuesta no es exitosa.
  */
 export const wooFetcher = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-    const url = `${WOO_URL}/wp-json/wc/v3/${endpoint}`
-    const authHeader = createAuthHeader()
+    if (!WOO_URL || !WOO_KEY || !WOO_SECRET) {
+        throw new Error("Las credenciales o la URL de WooCommerce no están definidas.")
+    }
 
-    const response = await fetch(url, {
+    // Construir la URL y agregar los parámetros de autenticación de forma segura.
+    // Esto evita problemas si el endpoint ya contiene parámetros de consulta.
+    const url = new URL(`${WOO_URL}/wp-json/wc/v3/${endpoint}`)
+    url.searchParams.append("consumer_key", WOO_KEY)
+    url.searchParams.append("consumer_secret", WOO_SECRET)
+
+    const response = await fetch(url.toString(), {
         ...options,
         headers: {
             "Content-Type": "application/json",
-            Authorization: authHeader,
             ...options.headers,
         },
         cache: "no-store",
