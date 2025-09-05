@@ -12,3 +12,13 @@ export const getWooCommerceOrders = async (): Promise<WooCommerceOrder[]> => {
         return []
     }
 }
+
+export const getWooSingleOrder = async (saleID: string): Promise<WooCommerceOrder | null> => {
+    try {
+        const order = await wooFetcher<WooCommerceOrder>(`orders/${saleID}`)
+        return order
+    } catch (error) {
+        console.error(error)
+        return null
+    }
+}

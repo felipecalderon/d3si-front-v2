@@ -25,7 +25,6 @@ const HomePage = async ({ searchParams }: SearchParams) => {
     // Traemos ventas de WooCommerce
     const wooOrders = await getWooCommerceOrders()
     const wooSales = wooOrders.map(mapWooOrderToSale)
-
     // Combinamos todas las ventas
     const allSales = [...sales, ...wooSales]
 

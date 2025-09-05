@@ -13,12 +13,20 @@ interface Props {
 
 export const SalesTable: React.FC<Props> = ({ sales }) => {
     const { push } = useRouter()
+    const urlRedirectToSingleSale = (sale: ISaleResponse) => {
+        console.log(sale)
+        if (sale.storeID === "web") {
+            push(`/home/ventaweb/${sale.saleID}?storeID=${sale.storeID}`)
+        } else {
+            push(`/home/${sale.saleID}?storeID=${sale.storeID}`)
+        }
+    }
     return (
         <div className="dark:bg-gray-800 bg-white rounded shadow overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead align="center">Sucursal</TableHead>
+                        <TableHead align="center">Origen</TableHead>
                         <TableHead align="center">Fecha</TableHead>
                         <TableHead align="center">Monto</TableHead>
                         <TableHead align="center">Productos</TableHead>
@@ -47,7 +55,7 @@ export const SalesTable: React.FC<Props> = ({ sales }) => {
                                 <TableRow
                                     key={sale.saleID}
                                     className="cursor-pointer"
-                                    onClick={() => push(`/home/${sale.saleID}?storeID=${sale.storeID}`)}
+                                    onClick={() => urlRedirectToSingleSale(sale)}
                                 >
                                     <TableCell align="left">{storeName}</TableCell>
                                     <TableCell align="left">

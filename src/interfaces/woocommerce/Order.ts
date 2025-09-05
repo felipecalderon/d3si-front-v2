@@ -4,6 +4,7 @@ export interface WooCommerceOrder {
     status: string
     date_created: string
     total: string
+    payment_method_title: string
     billing: {
         first_name: string
         last_name: string
