@@ -1,7 +1,9 @@
 import { getWooSingleOrder } from "@/actions/woocommerce/getWooCommerceOrders"
 import AnularVentaControl from "@/components/Caja/AnularVentaControl"
 import PrintSaleButton from "@/components/Caja/PrintSaleButton"
+import SingleSaleTable from "@/components/Caja/SingleSaleTable"
 import { mapOrderToSaleBasic } from "@/utils/mappers/orderWooToSale"
+import { toPrice } from "@/utils/priceFormat"
 import { MapPin, Phone, Receipt, ShoppingBag, Store } from "lucide-react"
 import Link from "next/link"
 
@@ -95,7 +97,7 @@ export default async function WebSalePage({ params }: PropsSaleWoo) {
                                 </span>
                             </div>
                             <p className="text-lg font-semibold">
-                                {/* {products.reduce((acc, act) => act.quantitySold + acc, 0)} */}
+                                {mappedSale.SaleProducts.reduce((acc, act) => act.quantitySold + acc, 0)}
                             </p>
                         </div>
                         {/* Fecha de emisión */}
@@ -132,7 +134,9 @@ export default async function WebSalePage({ params }: PropsSaleWoo) {
                                 Productos
                             </h3>
                         </div>
-                        <div className="overflow-x-auto">{/* <SingleSaleTable products={products} /> */}</div>
+                        <div className="overflow-x-auto">
+                            <SingleSaleTable products={mappedSale.SaleProducts} />
+                        </div>
                     </div>
                     {mappedSale.Return && (
                         <div className="bg-gradient-to-r from-red-50 to-red-50 dark:from-red-950/50 dark:to-red-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -162,29 +166,29 @@ export default async function WebSalePage({ params }: PropsSaleWoo) {
                         </div>
                     )}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-                        {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
                                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                    {toPrice(total / 1.19)}
+                                    {toPrice(mappedSale.total / 1.19)}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
                                 <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                    {toPrice(total * 0.19)}
+                                    {toPrice(mappedSale.total * 0.19)}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
                                 <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                    {toPrice(total)}
+                                    {toPrice(mappedSale.total)}
                                 </p>
                             </div>
-                        </div> */}
+                        </div>
                     </div>
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
-                        {/* <PrintSaleButton sale={mappedSale} /> */}
+                        <PrintSaleButton sale={mappedSale} />
                         <AnularVentaControl saleId={mappedSale.saleID} status={mappedSale.status} />
                     </div>
                 </div>
