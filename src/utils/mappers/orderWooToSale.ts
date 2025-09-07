@@ -2,6 +2,7 @@ import { ISaleResponse, PaymentStatus } from "@/interfaces/sales/ISale"
 import { IStore } from "@/interfaces/stores/IStore"
 import { WooCommerceOrder } from "@/interfaces/woocommerce/Order"
 import { mapWooStatusToPaymentStatus } from "./orderStatusWoo"
+import { mapWooLineItemToISaleProduct } from "./mapWooLineItemToIProduct"
 
 export const mapOrderToSaleBasic = (order: WooCommerceOrder): ISaleResponse => {
     const status: PaymentStatus = mapWooStatusToPaymentStatus(order.status)
@@ -25,6 +26,7 @@ export const mapOrderToSaleBasic = (order: WooCommerceOrder): ISaleResponse => {
         Users: [],
     }
 
+    const saleProducts = order.line_items.map((item) => mapWooLineItemToISaleProduct(item, order.date_created))
     return {
         saleID: String(order.id),
         storeID: store.storeID,
@@ -34,6 +36,6 @@ export const mapOrderToSaleBasic = (order: WooCommerceOrder): ISaleResponse => {
         paymentType: order.payment_method_title || "N/A",
         Store: store,
         Return: null,
-        SaleProducts: [], // SaleProducts: mapper de Woo a IProduct
+        SaleProducts: saleProducts,
     }
 }
