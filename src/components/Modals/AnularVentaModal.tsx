@@ -67,7 +67,6 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
             saleID: saleId,
             nullNote: { ...formState, processedBy, returnedQuantity },
         }
-        console.log(submissionData)
         startTransition(async () => {
             try {
                 const data = await anularSale(submissionData)

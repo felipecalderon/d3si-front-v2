@@ -32,7 +32,6 @@ export const wooFetcher = async <T>(endpoint: string, options: RequestInit = {})
 
     if (!response.ok) {
         const error = await response.json()
-        // console.log(error)
         throw new Error(error.message || "Error en la petición a WooCommerce")
     }
 

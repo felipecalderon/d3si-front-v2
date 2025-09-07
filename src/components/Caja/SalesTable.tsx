@@ -14,7 +14,6 @@ interface Props {
 export const SalesTable: React.FC<Props> = ({ sales }) => {
     const { push } = useRouter()
     const urlRedirectToSingleSale = (sale: ISaleResponse) => {
-        console.log(sale)
         if (sale.storeID === "web") {
             push(`/home/ventaweb/${sale.saleID}?storeID=${sale.storeID}`)
         } else {

@@ -11,7 +11,6 @@ interface AnularVentaControlProps {
 
 export default function AnularVentaControl({ saleId, status }: AnularVentaControlProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
-    console.log(status)
     return (
         <>
             <Button variant="destructive" onClick={() => setIsModalOpen(true)} disabled={status === "Anulado"}>
