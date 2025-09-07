@@ -1,5 +1,5 @@
-import { getWooSingleOrder } from "@/actions/woocommerce/getWooCommerceOrders"
-import AnularVentaControl from "@/components/Caja/AnularVentaControl"
+import { getWooSingleOrder } from "@/actions/woocommerce/getWooOrder"
+import AnularVentaWebControl from "@/components/Caja/AnularVentaWebControl"
 import PrintSaleButton from "@/components/Caja/PrintSaleButton"
 import SingleSaleTable from "@/components/Caja/SingleSaleTable"
 import { mapOrderToSaleBasic } from "@/utils/mappers/orderWooToSale"
@@ -53,7 +53,7 @@ export default async function WebSalePage({ params }: PropsSaleWoo) {
                                     <Store className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Nombre</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Origen</p>
                                     <p className="font-medium">{mappedSale.Store.name || "N/A"}</p>
                                 </div>
                             </div>
@@ -189,7 +189,7 @@ export default async function WebSalePage({ params }: PropsSaleWoo) {
                     </div>
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <PrintSaleButton sale={mappedSale} />
-                        <AnularVentaControl saleId={mappedSale.saleID} status={mappedSale.status} />
+                        <AnularVentaWebControl sale={sale} />
                     </div>
                 </div>
             </div>

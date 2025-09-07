@@ -1,6 +1,6 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
-import { getWooCommerceOrders } from "@/actions/woocommerce/getWooCommerceOrders"
+import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
 import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
 import SalesTable from "@/components/Caja/SalesTable"
 import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"

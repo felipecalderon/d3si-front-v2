@@ -1,7 +1,17 @@
+export type SaleStatus =
+    | "pending"
+    | "processing"
+    | "on-hold"
+    | "completed"
+    | "cancelled"
+    | "refunded"
+    | "failed"
+    | "trash"
+    | "shipping-progress"
 export interface WooCommerceOrder {
     id: number
     number: string
-    status: string
+    status: SaleStatus
     date_created: string
     total: string
     payment_method_title: string
