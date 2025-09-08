@@ -8,6 +8,18 @@ export type SaleStatus =
     | "failed"
     | "trash"
     | "shipping-progress"
+
+export interface WooProduct {
+    id: number
+    name: string
+    product_id: number
+    quantity: number
+    price: string
+    variation_id?: number // ⚠ agregado
+    sku?: string // ⚠ opcional
+    image?: { src: string } // ⚠ opcional
+}
+
 export interface WooCommerceOrder {
     id: number
     number: string
@@ -21,14 +33,5 @@ export interface WooCommerceOrder {
         email: string
         phone: string
     }
-    line_items: {
-        id: number
-        name: string
-        product_id: number
-        quantity: number
-        price: string
-        variation_id?: number // ⚠ agregado
-        sku?: string // ⚠ opcional
-        image?: { src: string } // ⚠ opcional
-    }[]
+    line_items: WooProduct[]
 }
