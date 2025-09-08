@@ -2,12 +2,13 @@ import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
 import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
 import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
-import SalesTable from "@/components/Caja/SalesTable"
+//import SalesTable from "@/components/Caja/SalesTable"
 import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
 import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
 import DailyResumeCards from "@/components/Caja/DailyResumeCards"
-import FilterStoreMonthYear from "@/components/Caja/FilterStoreMonthYear"
 import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
+import FilterControls from "@/components/Caja/FilterControls"
+import SalesSectionClient from "@/components/Caja/SalesSectionClient"
 
 export const dynamic = "force-dynamic"
 
@@ -36,7 +37,8 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                     {/* Filtros + botón vender */}
                     <div className="lg:w-3/6">
                         <div className="sm:w-auto">
-                            <FilterStoreMonthYear />
+                            {/*Aqui es donde quiero los botones de los filtros con la logica creada*/}
+                            <FilterControls />
                         </div>
                     </div>
 
@@ -92,11 +94,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 )}
 
                 {/* Tabla de ventas */}
-                {allSales.length > 0 && (
-                    <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                        <SalesTable sales={allSales} />
-                    </div>
-                )}
+                {allSales.length > 0 && <SalesSectionClient allSales={allSales} />}
             </div>
         </>
     )
