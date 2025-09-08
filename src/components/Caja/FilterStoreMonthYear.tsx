@@ -1,11 +1,25 @@
 "use client"
+import { useState } from "react"
 import { useTienda } from "@/stores/tienda.store"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export default function FilterStoreMonthYear() {
+type Filters = {
+    storeID?: string
+    month?: string
+    year?: string
+}
+
+export default function FilterStoreMonthYear({ onChange }: { onChange?: (filters: Filters) => void }) {
     const { stores, storeSelected } = useTienda()
+    const [storeFilter, setStoreFilter] = useState<string | undefined>(undefined)
+    const [monthFilter, setMonthFilter] = useState<string | undefined>(undefined)
+    const [yearFilter, setYearFilter] = useState<string | undefined>(undefined)
+
+    const emitChange = (next: Filters) => {
+        onChange?.(next)
+    }
 
     return (
         <div className="w-full">
@@ -24,7 +38,14 @@ export default function FilterStoreMonthYear() {
                 <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 w-full lg:flex-1">
                     {/* Tiendas */}
                     <div className="w-full sm:w-1/3 lg:w-auto lg:min-w-[160px]">
-                        <Select>
+                        <Select
+                            value={storeFilter}
+                            onValueChange={(val: string) => {
+                                const v = val || undefined
+                                setStoreFilter(v)
+                                emitChange({ storeID: v, month: monthFilter, year: yearFilter })
+                            }}
+                        >
                             <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg w-full">
                                 <SelectValue placeholder="Filtrar tienda" />
                             </SelectTrigger>
@@ -40,7 +61,14 @@ export default function FilterStoreMonthYear() {
 
                     {/* Meses */}
                     <div className="w-full sm:w-1/3 lg:w-auto lg:min-w-[140px]">
-                        <Select>
+                        <Select
+                            value={monthFilter}
+                            onValueChange={(val: string) => {
+                                const v = val || undefined
+                                setMonthFilter(v)
+                                emitChange({ storeID: storeFilter, month: v, year: yearFilter })
+                            }}
+                        >
                             <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg w-full">
                                 <SelectValue placeholder="Filtrar mes" />
                             </SelectTrigger>
@@ -69,7 +97,14 @@ export default function FilterStoreMonthYear() {
 
                     {/* Años */}
                     <div className="w-full sm:w-1/3 lg:w-auto lg:min-w-[140px]">
-                        <Select>
+                        <Select
+                            value={yearFilter}
+                            onValueChange={(val: string) => {
+                                const v = val || undefined
+                                setYearFilter(v)
+                                emitChange({ storeID: storeFilter, month: monthFilter, year: v })
+                            }}
+                        >
                             <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg w-full">
                                 <SelectValue placeholder="Filtrar por año" />
                             </SelectTrigger>
@@ -81,6 +116,22 @@ export default function FilterStoreMonthYear() {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    {/* Botón limpiar filtros */}
+                    <div className="w-full sm:w-auto lg:w-auto lg:min-w-[140px] flex items-center">
+                        <Button
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={() => {
+                                setStoreFilter(undefined)
+                                setMonthFilter(undefined)
+                                setYearFilter(undefined)
+                                emitChange({})
+                            }}
+                        >
+                            Limpiar filtros ✨
+                        </Button>
                     </div>
                 </div>
             </div>
