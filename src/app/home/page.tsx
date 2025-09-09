@@ -5,10 +5,11 @@ import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
 //import SalesTable from "@/components/Caja/SalesTable"
 import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
 import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
-import DailyResumeCards from "@/components/Caja/DailyResumeCards"
+import ResumeDebitCreditPayment from "@/components/Caja/DailyResumeCards"
 import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 import FilterControls from "@/components/Caja/FilterControls"
 import SalesSectionClient from "@/components/Caja/SalesSectionClient"
+import SellButton from "@/components/ui/sell-button"
 
 export const dynamic = "force-dynamic"
 
@@ -33,19 +34,10 @@ const HomePage = async ({ searchParams }: SearchParams) => {
         <>
             <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Seccion superior */}
-                <div className="w-full flex  lg:flex-row flex-col">
-                    {/* Filtros + botón vender */}
-                    <div className="lg:w-3/6">
-                        <div className="sm:w-auto">
-                            {/*Aqui es donde quiero los botones de los filtros con la logica creada*/}
-                            <FilterControls />
-                        </div>
-                    </div>
-
-                    {/* Métodos de pago */}
-                    <div className="lg:w-3/6">
-                        <DailyResumeCards resume={resume} />
-                    </div>
+                <div className="flex flex-row flex-wrap items-start justify-between gap-2">
+                    <SellButton />
+                    <FilterControls />
+                    <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
                 {/* Sección de estadísticas */}

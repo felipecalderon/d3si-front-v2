@@ -6,7 +6,7 @@ export default async function DailyResumeCards({ resume }: { resume: IResume }) 
     const { debitoCredito, efectivo } = resume.totales.sales.month
     return (
         <>
-            <div className="flex lg:flex-row flex-col lg:justify-around lg:gap-0 gap-4 lg:mt-0 mt-4 lg:ml-4">
+            <div className="flex lg:flex-row flex-col lg:justify-around gap-2">
                 <div className="dark:bg-gray-800 flex lg:gap-x-7 bg-white p-3 sm:p-4 shadow rounded-lg text-center">
                     <CreditCard className="mx-auto my-auto  text-blue-600 w-6 h-6 sm:w-8 sm:h-8" />
                     <div className="text-start w-44">

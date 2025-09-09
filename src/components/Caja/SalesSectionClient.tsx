@@ -7,7 +7,7 @@ import { parseISO } from "date-fns"
 import { useSalesFilters } from "@/stores/salesFilters.store"
 
 export default function SalesSectionClient({ allSales }: { allSales: ISaleResponse[] }) {
-    const filters = useSalesFilters((s) => s.filters)
+    const { filters } = useSalesFilters()
 
     const filtered = useMemo(() => {
         if (!filters) return allSales
