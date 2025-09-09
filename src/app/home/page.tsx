@@ -2,13 +2,9 @@ import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
 import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
 import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
-//import SalesTable from "@/components/Caja/SalesTable"
-import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
-import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
 import ResumeDebitCreditPayment from "@/components/Caja/DailyResumeCards"
-import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 import FilterControls from "@/components/Caja/FilterControls"
-import SalesSectionClient from "@/components/Caja/SalesSectionClient"
+import SalesAndResumeSectionClient from "@/components/Caja/SalesAndResumeSectionClient"
 import SellButton from "@/components/ui/sell-button"
 
 export const dynamic = "force-dynamic"
@@ -40,53 +36,8 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                     <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
-                {/* Sección de estadísticas */}
-                {resume && (
-                    <div>
-                        {/* Mobile: Stack vertically */}
-                        <div className="block lg:hidden space-y-6">
-                            {/* Gráfico primero en mobile */}
-                            <div className="flex justify-center">
-                                <div className="w-full max-w-[280px] mx-auto">
-                                    <TotalSalesResumeGraph resume={resume} />
-                                </div>
-                            </div>
-
-                            {/* Facturación */}
-                            <div>
-                                <ResumeLeftSideChart resume={resume} />
-                            </div>
-
-                            {/* Ventas */}
-                            <div>
-                                <ResumeRightSideChart resume={resume} />
-                            </div>
-                        </div>
-
-                        {/* Desktop: Grid layout con altura igual */}
-                        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                            {/* Facturación */}
-                            <div className="h-full flex flex-col justify-between gap-4">
-                                <ResumeLeftSideChart resume={resume} />
-                            </div>
-
-                            {/* Gráfico - Centrado verticalmente */}
-                            <div className="h-full flex justify-center items-center">
-                                <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                                    <TotalSalesResumeGraph resume={resume} />
-                                </div>
-                            </div>
-
-                            {/* Ventas */}
-                            <div className="h-full flex flex-col justify-between gap-4">
-                                <ResumeRightSideChart resume={resume} />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tabla de ventas */}
-                {allSales.length > 0 && <SalesSectionClient allSales={allSales} />}
+                {/* Sección de estadísticas + tabla (se sincroniza con filtros) */}
+                <SalesAndResumeSectionClient allSales={allSales} serverResume={resume} />
             </div>
         </>
     )
