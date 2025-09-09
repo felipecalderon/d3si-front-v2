@@ -1,11 +1,15 @@
 import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
-import SalesTable from "@/components/Caja/SalesTable"
+import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
+import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
+//import SalesTable from "@/components/Caja/SalesTable"
 import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
 import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
-import DailyResumeCards from "@/components/Caja/DailyResumeCards"
-import FilterStoreMonthYear from "@/components/Caja/FilterStoreMonthYear"
+import ResumeDebitCreditPayment from "@/components/Caja/DailyResumeCards"
 import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
+import FilterControls from "@/components/Caja/FilterControls"
+import SalesSectionClient from "@/components/Caja/SalesSectionClient"
+import SellButton from "@/components/ui/sell-button"
 
 export const dynamic = "force-dynamic"
 
@@ -18,24 +22,22 @@ interface SearchParams {
 const HomePage = async ({ searchParams }: SearchParams) => {
     const { storeID } = await searchParams
     if (!storeID) return null
+
     const [sales, resume] = await Promise.all([getSales(storeID), getResume(storeID)])
+    // Traemos ventas de WooCommerce
+    const wooOrders = await getWooCommerceOrders()
+    const wooSales = wooOrders.map(mapWooOrderToSale)
+    // Combinamos todas las ventas
+    const allSales = [...sales, ...wooSales]
 
     return (
         <>
             <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Seccion superior */}
-                <div className="w-full flex  lg:flex-row flex-col">
-                    {/* Filtros + botón vender */}
-                    <div className="lg:w-3/6">
-                        <div className="sm:w-auto">
-                            <FilterStoreMonthYear />
-                        </div>
-                    </div>
-
-                    {/* Métodos de pago */}
-                    <div className="lg:w-3/6">
-                        <DailyResumeCards resume={resume} />
-                    </div>
+                <div className="flex flex-row flex-wrap items-start justify-between gap-2">
+                    <SellButton />
+                    <FilterControls />
+                    <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
                 {/* Sección de estadísticas */}
@@ -84,11 +86,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 )}
 
                 {/* Tabla de ventas */}
-                {sales && (
-                    <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                        <SalesTable sales={sales} />
-                    </div>
-                )}
+                {allSales.length > 0 && <SalesSectionClient allSales={allSales} />}
             </div>
         </>
     )

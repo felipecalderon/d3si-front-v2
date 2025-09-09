@@ -15,7 +15,6 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (user) {
-            console.log(storeSelected)
             if (storeSelected) {
                 toast("Sesión guardada, redirgiendo...")
                 router.push(`/home?storeID=${storeSelected.storeID}`)
