@@ -33,7 +33,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 <div className="flex flex-row flex-wrap items-start justify-between gap-2">
                     <SellButton />
                     <FilterControls />
-                    <ResumeDebitCreditPayment resume={resume} />
+                    <ResumeDebitCreditPayment serverResume={resume} allSales={allSales} />
                 </div>
 
                 {/* Sección de estadísticas + tabla (se sincroniza con filtros) */}

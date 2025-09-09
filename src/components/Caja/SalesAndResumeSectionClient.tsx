@@ -71,12 +71,13 @@ function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume[
         monthCount += 1
         monthAmount += amount
         if (isPaid(sale)) {
-            if (sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo")) {
-                monthEfectivoCount += 1
-                monthEfectivoAmount += amount
-            } else {
+            // Todas las ventas 'web' son en tarjeta (débito/crédito)
+            if (sale.storeID === "Web" || !(sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo"))) {
                 monthDebitoCount += 1
                 monthDebitoAmount += amount
+            } else {
+                monthEfectivoCount += 1
+                monthEfectivoAmount += amount
             }
         }
 
@@ -85,12 +86,15 @@ function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume[
             totales.sales.today.total.count += 1
             totales.sales.today.total.amount += amount
             if (isPaid(sale)) {
-                if (sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo")) {
-                    totales.sales.today.efectivo.count += 1
-                    totales.sales.today.efectivo.amount += amount
-                } else {
+                if (
+                    sale.storeID === "Web" ||
+                    !(sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo"))
+                ) {
                     totales.sales.today.debitoCredito.count += 1
                     totales.sales.today.debitoCredito.amount += amount
+                } else {
+                    totales.sales.today.efectivo.count += 1
+                    totales.sales.today.efectivo.amount += amount
                 }
             }
         }
@@ -100,12 +104,15 @@ function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume[
             totales.sales.yesterday.total.count += 1
             totales.sales.yesterday.total.amount += amount
             if (isPaid(sale)) {
-                if (sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo")) {
-                    totales.sales.yesterday.efectivo.count += 1
-                    totales.sales.yesterday.efectivo.amount += amount
-                } else {
+                if (
+                    sale.storeID === "web" ||
+                    !(sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo"))
+                ) {
                     totales.sales.yesterday.debitoCredito.count += 1
                     totales.sales.yesterday.debitoCredito.amount += amount
+                } else {
+                    totales.sales.yesterday.efectivo.count += 1
+                    totales.sales.yesterday.efectivo.amount += amount
                 }
             }
         }
@@ -115,12 +122,15 @@ function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume[
             totales.sales.last7.total.count += 1
             totales.sales.last7.total.amount += amount
             if (isPaid(sale)) {
-                if (sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo")) {
-                    totales.sales.last7.efectivo.count += 1
-                    totales.sales.last7.efectivo.amount += amount
-                } else {
+                if (
+                    sale.storeID === "web" ||
+                    !(sale.paymentType && sale.paymentType.toLowerCase().includes("efectivo"))
+                ) {
                     totales.sales.last7.debitoCredito.count += 1
                     totales.sales.last7.debitoCredito.amount += amount
+                } else {
+                    totales.sales.last7.efectivo.count += 1
+                    totales.sales.last7.efectivo.amount += amount
                 }
             }
         }
