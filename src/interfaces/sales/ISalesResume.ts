@@ -1,4 +1,4 @@
-interface IMetaMensual {
+export interface IMetaMensual {
     id: number
     fecha: string
     meta: number
@@ -6,7 +6,7 @@ interface IMetaMensual {
     updatedAt: string
 }
 
-interface ICountAmountResume {
+export interface ICountAmountResume {
     count: number
     amount: number
 }

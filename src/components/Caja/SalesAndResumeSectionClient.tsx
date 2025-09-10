@@ -7,14 +7,15 @@ import SalesTable from "./SalesTable"
 import ResumeLeftSideChart from "./ResumeLeftSideChart"
 import ResumeRightSideChart from "./ResumeRightSideChart"
 import TotalSalesResumeGraph from "./TotalSalesResumeGraph"
-import { IResume } from "@/interfaces/sales/ISalesResume"
+import { IMetaMensual, IResume } from "@/interfaces/sales/ISalesResume"
 import { parseISO, isSameDay, subDays } from "date-fns"
+import { monthNames } from "./constants.caja"
 
 function buildEmptyCountAmount() {
     return { count: 0, amount: 0 }
 }
 
-function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume["metaMensual"] | null): IResume {
+function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IMetaMensual | null): IResume {
     // Inicializar estructura
     const totales = {
         sales: {
@@ -147,8 +148,6 @@ function computeResumeFromSales(allSales: ISaleResponse[], metaMensual: IResume[
     return { metaMensual: metaMensual ?? null, totales }
 }
 
-type Filters = { storeID?: string; month?: string; year?: string }
-
 export default function SalesAndResumeSectionClient({
     allSales,
     serverResume,
@@ -166,20 +165,6 @@ export default function SalesAndResumeSectionClient({
             if (month || year) {
                 const date = sale.createdAt ? parseISO(sale.createdAt as unknown as string) : null
                 if (!date) return false
-                const monthNames = [
-                    "Enero",
-                    "Febrero",
-                    "Marzo",
-                    "Abril",
-                    "Mayo",
-                    "Junio",
-                    "Julio",
-                    "Agosto",
-                    "Septiembre",
-                    "Octubre",
-                    "Noviembre",
-                    "Diciembre",
-                ]
                 if (month) {
                     const mName = monthNames[date.getMonth()]
                     if (mName !== month) return false
