@@ -1,12 +1,12 @@
 import { ISaleProduct } from "@/interfaces/sales/ISale"
-import { WooProduct } from "@/interfaces/woocommerce/Order"
+import { WooProductOrder } from "@/interfaces/woocommerce/Order"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
 // Mapper: convierte ISaleProduct[] -> WooProduct[] (mantener para compatibilidad)
 //A mi punto de vista no tiene caso porque no queremos registrar en Woo un pedido que se hizo en D3SI
 // Pero si quieren hacerlo se puede con esto
-export const mapSaleProductsToWooProducts = (products: ISaleProduct[]): WooProduct[] => {
+export const mapSaleProductsToWooProducts = (products: ISaleProduct[]): WooProductOrder[] => {
     return products.map((product) => {
         const variation = product.StoreProduct.ProductVariation
         return {
@@ -52,7 +52,7 @@ export interface PreparedWooSync {
         variations: WooCreateVariationPayload[]
         localProductID: string
     }[]
-    lineItems: WooProduct[] // items listos para incluir en una orden (si se requiere)
+    lineItems: WooProductOrder[] // items listos para incluir en una orden (si se requiere)
 }
 
 // Transforma tus IProduct (del sistema d3si) a payloads para crear productos/variaciones en Woo y a line_items.
@@ -78,7 +78,7 @@ export const prepareProductsForWoo = (products: IProduct[]): PreparedWooSync => 
         return { product: productPayload, variations, localProductID: p.productID }
     })
 
-    const lineItems: WooProduct[] = products.flatMap((p) =>
+    const lineItems: WooProductOrder[] = products.flatMap((p) =>
         p.ProductVariations.map((v) => ({
             id: Number(p.productID) || 0,
             name: p.name,

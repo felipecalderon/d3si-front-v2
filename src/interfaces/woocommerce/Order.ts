@@ -9,7 +9,7 @@ export type SaleStatus =
     | "trash"
     | "shipping-progress"
 
-export interface WooProduct {
+export interface WooProductOrder {
     id: number
     name: string
     product_id: number
@@ -33,5 +33,5 @@ export interface WooCommerceOrder {
         email: string
         phone: string
     }
-    line_items: WooProduct[]
+    line_items: WooProductOrder[]
 }
