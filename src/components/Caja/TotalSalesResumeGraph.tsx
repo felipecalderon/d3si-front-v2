@@ -74,44 +74,24 @@ export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
         ]
     }
 
-    // if (loading) {
-    //     return (
-    //         <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
-    //             <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">
-    //                 Ventas totales del presente mes / Meta
-    //             </h3>
-    //             <div className="space-y-2">
-    //                 <div className="flex justify-center">
-    //                     <Skeleton className="h-[200px] w-[200px] rounded-full" />
-    //                 </div>
-    //                 <Skeleton className="h-6 w-40 mx-auto" />
-    //                 <Skeleton className="h-4 w-24 mx-auto" />
-    //             </div>
-    //         </div>
-    //     )
-    // }
-
     return (
-        <div className="dark:bg-gray-800 bg-white p-4 py-5 shadow rounded text-center">
+        <div className="flex flex-col items-center dark:bg-gray-800 bg-white p-4 py-5 rounded">
             <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">Ventas totales del presente mes / Meta</h3>
-
-            <div className="flex justify-center">
-                <RadialBarChart
-                    width={200}
-                    height={200}
-                    cx={100}
-                    cy={100}
-                    innerRadius={60}
-                    outerRadius={80}
-                    barSize={20}
-                    data={getChartData()}
-                    startAngle={180}
-                    endAngle={0}
-                >
-                    <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                    <RadialBar background dataKey="value" suppressHydrationWarning />
-                </RadialBarChart>
-            </div>
+            <RadialBarChart
+                width={200}
+                height={200}
+                cx={100}
+                cy={100}
+                innerRadius={60}
+                outerRadius={80}
+                barSize={20}
+                data={getChartData()}
+                startAngle={180}
+                endAngle={0}
+            >
+                <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                <RadialBar background dataKey="value" suppressHydrationWarning />
+            </RadialBarChart>
 
             <p className="text-xl -mt-6 dark:text-white font-bold">${toPrice(getSalesAmount())}</p>
             {editingMeta ? (

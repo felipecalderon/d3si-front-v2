@@ -186,36 +186,12 @@ export default function SalesAndResumeSectionClient({
 
     return (
         <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            {/* (Los filtros están en la parte superior por medio de FilterControls; se leen desde useSalesFilters) */}
-
             {/* Resúmenes y gráfico */}
             <div>
-                <div className="block lg:hidden space-y-6">
-                    <div className="flex justify-center">
-                        <div className="w-full max-w-[280px] mx-auto">
-                            <TotalSalesResumeGraph resume={clientResume} />
-                        </div>
-                    </div>
-                    <div>
-                        <ResumeLeftSideChart resume={clientResume} />
-                    </div>
-                    <div>
-                        <ResumeRightSideChart resume={clientResume} />
-                    </div>
-                </div>
-
-                <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                    <div className="h-full flex flex-col justify-between gap-4">
-                        <ResumeLeftSideChart resume={clientResume} />
-                    </div>
-                    <div className="h-full flex justify-center items-center">
-                        <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                            <TotalSalesResumeGraph resume={clientResume} />
-                        </div>
-                    </div>
-                    <div className="h-full flex flex-col justify-between gap-4">
-                        <ResumeRightSideChart resume={clientResume} />
-                    </div>
+                <div className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                    <ResumeLeftSideChart resume={clientResume} />
+                    <TotalSalesResumeGraph resume={clientResume} />
+                    <ResumeRightSideChart resume={clientResume} />
                 </div>
             </div>
 

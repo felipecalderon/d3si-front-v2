@@ -30,7 +30,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
         <>
             <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Seccion superior */}
-                <div className="flex flex-row flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-col sm:flex-row flex-wrap item-center sm:items-start justify-between gap-2">
                     <SellButton />
                     <FilterControls />
                     <ResumeDebitCreditPayment serverResume={resume} allSales={allSales} />
