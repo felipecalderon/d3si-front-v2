@@ -4,25 +4,37 @@ import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
 import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
 import ResumeDebitCreditPayment from "@/components/Caja/DailyResumeCards"
 import FilterControls from "@/components/Caja/FilterControls"
-import SalesAndResumeSectionClient from "@/components/Caja/SalesAndResumeSectionClient"
 import SellButton from "@/components/ui/sell-button"
+import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
+import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
+import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
+import SalesTable from "@/components/Caja/SalesTable"
+import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
+import { salesToResume } from "@/utils/saleToResume"
 
 export const dynamic = "force-dynamic"
 
 interface SearchParams {
     searchParams: Promise<{
         storeID: string
+        date: string
     }>
 }
 
 const HomePage = async ({ searchParams }: SearchParams) => {
-    const { storeID } = await searchParams
-    if (!storeID) return null
+    const { storeID = "", date = "" } = await searchParams
+    const [year, month, day] = date.split("-").map(Number)
+    const newDate = day ? new Date(year, month - 1, day) : new Date()
+    const yyyyDate = formatDateToYYYYMMDD(newDate)
 
-    const [sales, resume] = await Promise.all([getSales(storeID), getResume(storeID)])
-    // Traemos ventas de WooCommerce
-    const wooOrders = await getWooCommerceOrders()
+    const [sales, resume, wooOrders] = await Promise.all([
+        getSales(storeID, yyyyDate),
+        getResume(storeID),
+        getWooCommerceOrders(newDate),
+    ])
+
     const wooSales = wooOrders.map(mapWooOrderToSale)
+    const aaa = salesToResume(wooSales, newDate)
     // Combinamos todas las ventas
     const allSales = [...sales, ...wooSales]
 
@@ -33,11 +45,27 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 <div className="flex flex-col sm:flex-row flex-wrap item-center sm:items-start justify-between gap-2">
                     <SellButton />
                     <FilterControls />
-                    <ResumeDebitCreditPayment serverResume={resume} allSales={allSales} />
+                    <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
                 {/* Sección de estadísticas + tabla (se sincroniza con filtros) */}
-                <SalesAndResumeSectionClient allSales={allSales} serverResume={resume} />
+                <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+                    {/* Resúmenes y gráfico */}
+                    <div>
+                        <div className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                            <ResumeLeftSideChart resume={resume} />
+                            <TotalSalesResumeGraph resume={resume} />
+                            <ResumeRightSideChart resume={resume} />
+                        </div>
+                    </div>
+
+                    {/* Tabla */}
+                    <div>
+                        <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                            <SalesTable sales={allSales} />
+                        </div>
+                    </div>
+                </div>
             </div>
         </>
     )
