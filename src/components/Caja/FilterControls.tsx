@@ -11,11 +11,14 @@ import { es } from "react-day-picker/locale"
 
 const FilterControls = () => {
     const { stores } = useTienda()
+
     const path = usePathname()
     const params = useSearchParams()
     const router = useRouter()
+
     const dateParam = params.get("date")
     const storeIDParam = params.get("storeID")
+
     const [year, month, day] = dateParam
         ? dateParam.split("-").map(Number)
         : [new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()]
@@ -30,6 +33,7 @@ const FilterControls = () => {
         router.push(`${path}?${params.toString()}`)
         setDate(date ? date : new Date())
     }
+
     return (
         <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 lg:flex-1">
             <Select
@@ -69,6 +73,9 @@ const FilterControls = () => {
             <Button
                 variant="outline"
                 onClick={() => {
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    handleDateChange(today)
                     setStoreFilter(undefined)
                 }}
             >

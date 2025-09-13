@@ -1,9 +1,9 @@
+"use client"
 import { DollarSign } from "lucide-react"
-import { IResume } from "@/interfaces/sales/ISalesResume"
+import { ISalesResume } from "@/interfaces/sales/ISalesResume"
 import { toPrice } from "@/utils/priceFormat"
 
-export default function ResumeRightSideChart({ resume }: { resume: IResume }) {
-    const { sales } = resume.totales
+export default function ResumeRightSideChart({ sales }: { sales: ISalesResume }) {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex dark:bg-gray-800 bg-white shadow rounded p-4 items-center">
@@ -11,7 +11,7 @@ export default function ResumeRightSideChart({ resume }: { resume: IResume }) {
                     <DollarSign />
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Ventas del día {sales.today.total.count}</p>
+                    <p className="text-sm text-gray-500">Ventas de hoy: {sales.today.total.count}</p>
                     <p className={`text-xl dark:text-white font-bold`}>${toPrice(sales.today.total.amount)}</p>
                 </div>
             </div>
@@ -20,7 +20,7 @@ export default function ResumeRightSideChart({ resume }: { resume: IResume }) {
                     <DollarSign />
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Ventas de ayer {sales.yesterday.total.count}</p>
+                    <p className="text-sm text-gray-500">Ventas de ayer: {sales.yesterday.total.count}</p>
                     <p className={`text-sm dark:text-white font-bold`}>
                         Efectivo $<span className="text-xl">{toPrice(sales.yesterday.efectivo.amount)}</span>
                     </p>
@@ -34,7 +34,7 @@ export default function ResumeRightSideChart({ resume }: { resume: IResume }) {
                     <DollarSign />
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">Ventas Mensuales {sales.month.total.count}</p>
+                    <p className="text-sm text-gray-500">Ventas del mes: {sales.month.total.count}</p>
                     <p className={`text-xl dark:text-white font-bold`}>${toPrice(sales.month.total.amount)}</p>
                 </div>
             </div>

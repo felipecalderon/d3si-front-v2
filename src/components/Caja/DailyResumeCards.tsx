@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { use } from "react"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 import { toPrice } from "@/utils/priceFormat"
 import { CreditCard, HandCoins } from "lucide-react"

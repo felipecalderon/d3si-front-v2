@@ -1,35 +1,27 @@
 import { ISaleResponse } from "@/interfaces/sales/ISale"
-import { ITotals } from "@/interfaces/sales/ISalesResume"
+import { ISalesResume, ITotals } from "@/interfaces/sales/ISalesResume"
 
-export const salesToResume = (sales: ISaleResponse[], ref: Date): Partial<ITotals> => {
-    const resume: ITotals = {
-        sales: {
-            today: {
-                total: { count: 0, amount: 0 },
-                efectivo: { count: 0, amount: 0 },
-                debitoCredito: { count: 0, amount: 0 },
-            },
-            yesterday: {
-                total: { count: 0, amount: 0 },
-                efectivo: { count: 0, amount: 0 },
-                debitoCredito: { count: 0, amount: 0 },
-            },
-            last7: {
-                total: { count: 0, amount: 0 },
-                efectivo: { count: 0, amount: 0 },
-                debitoCredito: { count: 0, amount: 0 },
-            },
-            month: {
-                total: { count: 0, amount: 0 },
-                efectivo: { count: 0, amount: 0 },
-                debitoCredito: { count: 0, amount: 0 },
-            },
+export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume => {
+    const resume: ISalesResume = {
+        today: {
+            total: { count: 0, amount: 0 },
+            efectivo: { count: 0, amount: 0 },
+            debitoCredito: { count: 0, amount: 0 },
         },
-        orders: {
-            today: { count: 0, amount: 0 },
-            yesterday: { count: 0, amount: 0 },
-            last7: { count: 0, amount: 0 },
-            month: { count: 0, amount: 0 },
+        yesterday: {
+            total: { count: 0, amount: 0 },
+            efectivo: { count: 0, amount: 0 },
+            debitoCredito: { count: 0, amount: 0 },
+        },
+        last7: {
+            total: { count: 0, amount: 0 },
+            efectivo: { count: 0, amount: 0 },
+            debitoCredito: { count: 0, amount: 0 },
+        },
+        month: {
+            total: { count: 0, amount: 0 },
+            efectivo: { count: 0, amount: 0 },
+            debitoCredito: { count: 0, amount: 0 },
         },
     }
 
@@ -53,10 +45,10 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): Partial<ITotal
         const amount = sale.total
 
         const addSale = (period: keyof ITotals["sales"]) => {
-            resume.sales[period].debitoCredito.count += 1
-            resume.sales[period].debitoCredito.amount += amount
-            resume.sales[period].total.count += 1
-            resume.sales[period].total.amount += amount
+            resume[period].debitoCredito.count += 1
+            resume[period].debitoCredito.amount += amount
+            resume[period].total.count += 1
+            resume[period].total.amount += amount
         }
 
         if (saleDate >= todayStart && saleDate <= todayEnd) addSale("today")
