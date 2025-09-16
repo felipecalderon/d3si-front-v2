@@ -1,4 +1,4 @@
-export type SaleStatus =
+export type WooSaleStatus =
     | "pending"
     | "processing"
     | "on-hold"
@@ -9,7 +9,7 @@ export type SaleStatus =
     | "trash"
     | "shipping-progress"
 
-export interface WooProduct {
+export interface WooProductOrder {
     id: number
     name: string
     product_id: number
@@ -23,7 +23,7 @@ export interface WooProduct {
 export interface WooCommerceOrder {
     id: number
     number: string
-    status: SaleStatus
+    status: WooSaleStatus
     date_created: string
     total: string
     payment_method_title: string
@@ -33,5 +33,5 @@ export interface WooCommerceOrder {
         email: string
         phone: string
     }
-    line_items: WooProduct[]
+    line_items: WooProductOrder[]
 }

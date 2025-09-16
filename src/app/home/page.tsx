@@ -2,91 +2,74 @@ import { getSales } from "@/actions/sales/getSales"
 import { getResume } from "@/actions/totals/getResume"
 import { getWooCommerceOrders } from "@/actions/woocommerce/getWooOrder"
 import { mapWooOrderToSale } from "@/utils/mappers/woocommerceToSale"
-//import SalesTable from "@/components/Caja/SalesTable"
-import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
-import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
 import ResumeDebitCreditPayment from "@/components/Caja/DailyResumeCards"
-import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
 import FilterControls from "@/components/Caja/FilterControls"
-import SalesSectionClient from "@/components/Caja/SalesSectionClient"
 import SellButton from "@/components/ui/sell-button"
+import ResumeLeftSideChart from "@/components/Caja/ResumeLeftSideChart"
+import TotalSalesResumeGraph from "@/components/Caja/TotalSalesResumeGraph"
+import ResumeRightSideChart from "@/components/Caja/ResumeRightSideChart"
+import SalesTable from "@/components/Caja/SalesTable"
+import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
+import { salesToResume } from "@/utils/saleToResume"
+import { Suspense } from "react"
+import SalesAndResumeSkeleton from "@/components/skeletons/SalesAndResume"
+import { totalDebitoCredito } from "@/utils/totalsDebitoCredito"
 
 export const dynamic = "force-dynamic"
 
 interface SearchParams {
     searchParams: Promise<{
         storeID: string
+        date: string
     }>
 }
 
 const HomePage = async ({ searchParams }: SearchParams) => {
-    const { storeID } = await searchParams
-    if (!storeID) return null
+    const { storeID = "", date = "" } = await searchParams
+    const [year, month, day] = date.split("-").map(Number)
+    const newDate = day ? new Date(year, month - 1, day) : new Date()
+    const yyyyDate = formatDateToYYYYMMDD(newDate)
 
-    const [sales, resume] = await Promise.all([getSales(storeID), getResume(storeID)])
-    // Traemos ventas de WooCommerce
-    const wooOrders = await getWooCommerceOrders()
+    const [sales, wooOrders, resume] = await Promise.all([
+        getSales(storeID, yyyyDate),
+        getWooCommerceOrders(newDate),
+        getResume(storeID, yyyyDate),
+    ])
     const wooSales = wooOrders.map(mapWooOrderToSale)
-    // Combinamos todas las ventas
     const allSales = [...sales, ...wooSales]
+
+    const wooResume = salesToResume(wooSales, newDate)
+    const allSalesResume = totalDebitoCredito([resume.totales.sales, wooResume])
 
     return (
         <>
             <div className="space-y-6 sm:space-y-8 lg:space-y-10 px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                 {/* Seccion superior */}
-                <div className="flex flex-row flex-wrap items-start justify-between gap-2">
+
+                <div className="flex flex-col sm:flex-row flex-wrap item-center sm:items-start justify-between gap-2">
                     <SellButton />
                     <FilterControls />
                     <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
-                {/* Sección de estadísticas */}
-                {resume && (
-                    <div>
-                        {/* Mobile: Stack vertically */}
-                        <div className="block lg:hidden space-y-6">
-                            {/* Gráfico primero en mobile */}
-                            <div className="flex justify-center">
-                                <div className="w-full max-w-[280px] mx-auto">
-                                    <TotalSalesResumeGraph resume={resume} />
-                                </div>
-                            </div>
-
-                            {/* Facturación */}
-                            <div>
-                                <ResumeLeftSideChart resume={resume} />
-                            </div>
-
-                            {/* Ventas */}
-                            <div>
-                                <ResumeRightSideChart resume={resume} />
-                            </div>
+                {/* Sección de estadísticas + tabla (se sincroniza con filtros) */}
+                <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+                    {/* Resúmenes y gráfico */}
+                    <Suspense fallback={<SalesAndResumeSkeleton />}>
+                        <div className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                            <ResumeLeftSideChart resume={resume} />
+                            <TotalSalesResumeGraph resume={resume} />
+                            <ResumeRightSideChart sales={allSalesResume} />
                         </div>
+                    </Suspense>
 
-                        {/* Desktop: Grid layout con altura igual */}
-                        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                            {/* Facturación */}
-                            <div className="h-full flex flex-col justify-between gap-4">
-                                <ResumeLeftSideChart resume={resume} />
-                            </div>
-
-                            {/* Gráfico - Centrado verticalmente */}
-                            <div className="h-full flex justify-center items-center">
-                                <div className="w-full max-w-[300px] h-full xl:max-w-[320px] mx-auto">
-                                    <TotalSalesResumeGraph resume={resume} />
-                                </div>
-                            </div>
-
-                            {/* Ventas */}
-                            <div className="h-full flex flex-col justify-between gap-4">
-                                <ResumeRightSideChart resume={resume} />
-                            </div>
+                    {/* Tabla */}
+                    <div>
+                        <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                            <SalesTable sales={allSales} />
                         </div>
                     </div>
-                )}
-
-                {/* Tabla de ventas */}
-                {allSales.length > 0 && <SalesSectionClient allSales={allSales} />}
+                </div>
             </div>
         </>
     )

@@ -12,6 +12,8 @@
  * const user = await fetcher<User>(`${API_URL}/users/123`);
  */
 
+import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
+
 export const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
     const response = await fetch(url, {
         ...options,

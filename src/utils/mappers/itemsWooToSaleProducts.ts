@@ -1,8 +1,8 @@
 import { ISaleProduct } from "@/interfaces/sales/ISale"
-import { WooProduct } from "@/interfaces/woocommerce/Order"
+import { WooProductOrder } from "@/interfaces/woocommerce/Order"
 
-// map (products: ISaleProduct[]): WooProduct[]) ..
-export const mapLineItemsToSaleProducts = (lineItems: WooProduct[]): ISaleProduct[] => {
+// map (products: ISaleProduct[]): WooProductOrder[]) ..
+export const mapLineItemsToSaleProducts = (lineItems: WooProductOrder[]): ISaleProduct[] => {
     return lineItems.map((item) => ({
         SaleProductID: String(item.id),
         storeProductID: String(item.product_id),

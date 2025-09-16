@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { SaleStatus, WooCommerceOrder } from "@/interfaces/woocommerce/Order"
+import { WooSaleStatus, WooCommerceOrder } from "@/interfaces/woocommerce/Order"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select"
 import { Button } from "../ui/button"
 import { updateWooOrder } from "@/actions/woocommerce/updateWooOrder"
@@ -13,11 +13,11 @@ interface AnularVentaControlProps {
 }
 
 export default function AnularVentaWebControl({ sale }: AnularVentaControlProps) {
-    const [localStatus, setLocalStatus] = useState<SaleStatus>(sale.status)
+    const [localStatus, setLocalStatus] = useState<WooSaleStatus>(sale.status)
     const [isLoading, startTransition] = useTransition()
     const router = useRouter()
 
-    const options: SaleStatus[] = [
+    const options: WooSaleStatus[] = [
         "shipping-progress",
         "cancelled",
         "completed",
@@ -29,7 +29,7 @@ export default function AnularVentaWebControl({ sale }: AnularVentaControlProps)
         "trash",
     ]
 
-    const statusDictionary: Record<SaleStatus, string> = {
+    const statusDictionary: Record<WooSaleStatus, string> = {
         "shipping-progress": "En proceso de envío",
         "on-hold": "En espera",
         cancelled: "Cancelado",
@@ -57,7 +57,7 @@ export default function AnularVentaWebControl({ sale }: AnularVentaControlProps)
         })
     }
 
-    const onValueChange = (value: SaleStatus) => {
+    const onValueChange = (value: WooSaleStatus) => {
         setLocalStatus(value)
     }
 

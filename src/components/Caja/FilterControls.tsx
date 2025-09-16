@@ -1,110 +1,86 @@
 "use client"
 
 import { useTienda } from "@/stores/tienda.store"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { useSalesFilters } from "@/stores/salesFilters.store"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { es } from "react-day-picker/locale"
 
 const FilterControls = () => {
     const { stores } = useTienda()
-    const { setFilters } = useSalesFilters()
+
+    const path = usePathname()
+    const params = useSearchParams()
+    const router = useRouter()
+
+    const dateParam = params.get("date")
+    const storeIDParam = params.get("storeID")
+
+    const [year, month, day] = dateParam
+        ? dateParam.split("-").map(Number)
+        : [new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()]
+
+    const dateObj = new Date(year, month - 1, day, 23, 59, 59, 999)
+    const [date, setDate] = useState<Date>(dateObj)
     const [storeIDFil, setStoreFilter] = useState<string | undefined>(undefined)
-    const [monthFil, setMonthFilter] = useState<string | undefined>(undefined)
-    const [yearFil, setYearFilter] = useState<string | undefined>(undefined)
 
-    useEffect(() => {
-        setFilters({ month: monthFil, storeID: storeIDFil, year: yearFil })
-    }, [storeIDFil, monthFil, yearFil])
+    const handleDateChange = (date: Date | undefined) => {
+        const newDate = date ?? new Date()
+        const params = new URLSearchParams({ storeID: storeIDParam ?? "", date: format(newDate, "yyyy-MM-dd") })
+        router.push(`${path}?${params.toString()}`)
+        setDate(date ? date : new Date())
+    }
+
     return (
-        <div className="flex flex-col lg:flex-row gap-3 lg:gap-1">
-            {/* Contenedor de selectores */}
-            <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 lg:flex-1">
-                {/* Tiendas */}
-                <Select
-                    value={storeIDFil}
-                    onValueChange={(val: string) => {
-                        setStoreFilter(val)
-                    }}
-                >
-                    <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg">
-                        <SelectValue placeholder="Tienda" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {stores.map((store) => (
-                            <SelectItem key={store.storeID} value={store.storeID}>
-                                {store.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                {/* Meses */}
-                <Select
-                    value={monthFil}
-                    onValueChange={(val: string) => {
-                        setMonthFilter(val)
-                    }}
-                >
-                    <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg">
-                        <SelectValue placeholder="Mes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {[
-                            "Enero",
-                            "Febrero",
-                            "Marzo",
-                            "Abril",
-                            "Mayo",
-                            "Junio",
-                            "Julio",
-                            "Agosto",
-                            "Septiembre",
-                            "Octubre",
-                            "Noviembre",
-                            "Diciembre",
-                        ].map((mes) => (
-                            <SelectItem key={mes} value={mes}>
-                                {mes}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                {/* Años */}
-                <Select
-                    value={yearFil}
-                    onValueChange={(val: string) => {
-                        setYearFilter(val)
-                    }}
-                >
-                    <SelectTrigger className="dark:bg-slate-900 bg-white shadow-lg">
-                        <SelectValue placeholder="Año" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {["2025", "2024", "2023"].map((año) => (
-                            <SelectItem key={año} value={año}>
-                                {año}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                {/* Botón limpiar filtros */}
-                <div className="w-full sm:w-auto lg:w-auto lg:min-w-[140px] flex items-center">
-                    <Button
-                        variant="outline"
-                        className="w-full sm:w-auto"
-                        onClick={() => {
-                            setStoreFilter(undefined)
-                            setMonthFilter(undefined)
-                            setYearFilter(undefined)
-                        }}
-                    >
-                        Limpiar filtros ✨
-                    </Button>
-                </div>
-            </div>
+        <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 lg:flex-1">
+            <Select
+                value={storeIDFil}
+                onValueChange={(val: string) => {
+                    setStoreFilter(val)
+                }}
+            >
+                <SelectTrigger className="dark:bg-slate-900 bg-white">
+                    <SelectValue placeholder="Tienda" />
+                </SelectTrigger>
+                <SelectContent>
+                    {stores.map((store) => (
+                        <SelectItem key={store.storeID} value={store.storeID}>
+                            {store.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select>
+                <SelectTrigger>
+                    <SelectValue placeholder={format(date, "dd-MM-yyyy")}>
+                        {date ? format(date, "dd-MM-yyyy") : ""}
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="p-2">
+                    <Calendar
+                        mode="single"
+                        locale={es}
+                        selected={date}
+                        onSelect={handleDateChange}
+                        className="rounded-md"
+                        captionLayout="dropdown"
+                    />
+                </SelectContent>
+            </Select>
+            <Button
+                variant="outline"
+                onClick={() => {
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    handleDateChange(today)
+                    setStoreFilter(undefined)
+                }}
+            >
+                Limpiar filtros ✨
+            </Button>
         </div>
     )
 }
