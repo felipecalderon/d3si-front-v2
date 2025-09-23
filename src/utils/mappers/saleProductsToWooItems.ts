@@ -27,7 +27,9 @@ export function mapToWooParentProducts(products: IProduct[]): WooCreateProductPa
         description: p.description || "",
         images: p.image ? [{ src: p.image }] : [],
         categories: p.Category ? [{ name: p.Category.name }] : [],
-        sku: p.sku || undefined,
+        // sku: p.sku || undefined,
+        // sku viene de p.ProductVariations[0].sku en caso de productos simples
+        // si es variable el sku del padre será un string vacío ""
     }))
 }
 

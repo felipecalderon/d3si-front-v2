@@ -133,28 +133,25 @@ export function QuotesClient({ products }: QuotesClientProps) {
         if (!product) return
 
         // Obtener modelos disponibles del producto (filtrar valores vacíos y duplicados)
-        const availableModels = product.ProductVariations
-            ?.map(v => v.sizeNumber)
-            .filter(size => size && size.trim() !== "")
-            .filter((size, index, arr) => arr.indexOf(size) === index) // Eliminar duplicados
-            .join(", ") || ""
-        
+        const availableModels =
+            product.ProductVariations?.map((v) => v.sizeNumber)
+                .filter((size) => size && size.trim() !== "")
+                .filter((size, index, arr) => arr.indexOf(size) === index) // Eliminar duplicados
+                .join(", ") || ""
+
         // Calcular precio promedio o usar el primer precio disponible
         const variations = product.ProductVariations || []
-        const validPrices = variations
-            .map(v => Number(v.priceList || 0))
-            .filter(price => price > 0)
-        
-        const avgPrice = validPrices.length > 0 
-            ? validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length
-            : 0
+        const validPrices = variations.map((v) => Number(v.priceList || 0)).filter((price) => price > 0)
+
+        const avgPrice =
+            validPrices.length > 0 ? validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length : 0
 
         const newSelectedProduct: SelectedProduct = {
             product,
             quantity: 1,
             availableModels,
             unitPrice: Math.round(avgPrice), // Redondear al entero más cercano
-            isCustomProduct: customProducts.some(cp => cp.productID === productId)
+            isCustomProduct: customProducts.some((cp) => cp.productID === productId),
         }
 
         setSelectedProducts([...selectedProducts, newSelectedProduct])
@@ -175,15 +172,17 @@ export function QuotesClient({ products }: QuotesClientProps) {
             stock: 0, // Agregar la propiedad stock requerida
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            Category: undefined
+            Category: undefined,
+            description: "",
+            wooID: null,
         }
 
         // Agregarlo a la lista de productos personalizados
-        setCustomProducts(prev => [...prev, newProduct])
+        setCustomProducts((prev) => [...prev, newProduct])
 
         // Agregarlo también a la imagen si tiene una
         if (productData.image) {
-            setProductsImage(prev => [...prev, { id: newProductId, image: productData.image || "" }])
+            setProductsImage((prev) => [...prev, { id: newProductId, image: productData.image || "" }])
         }
 
         // Seleccionarlo automáticamente
@@ -192,7 +191,7 @@ export function QuotesClient({ products }: QuotesClientProps) {
             quantity: 1,
             availableModels: "",
             unitPrice: 0,
-            isCustomProduct: true
+            isCustomProduct: true,
         }
 
         setSelectedProducts([...selectedProducts, newSelectedProduct])
@@ -200,36 +199,30 @@ export function QuotesClient({ products }: QuotesClientProps) {
 
     const handleQuantityChange = (productId: string, quantity: number) => {
         setSelectedProducts(
-            selectedProducts.map((sp) => 
-                sp.product.productID === productId ? { ...sp, quantity } : sp
-            )
+            selectedProducts.map((sp) => (sp.product.productID === productId ? { ...sp, quantity } : sp))
         )
     }
 
     const handleModelsChange = (productId: string, models: string) => {
         setSelectedProducts(
-            selectedProducts.map((sp) => 
-                sp.product.productID === productId ? { ...sp, availableModels: models } : sp
-            )
+            selectedProducts.map((sp) => (sp.product.productID === productId ? { ...sp, availableModels: models } : sp))
         )
     }
 
     const handleUnitPriceChange = (productId: string, price: number) => {
         setSelectedProducts(
-            selectedProducts.map((sp) => 
-                sp.product.productID === productId ? { ...sp, unitPrice: price } : sp
-            )
+            selectedProducts.map((sp) => (sp.product.productID === productId ? { ...sp, unitPrice: price } : sp))
         )
     }
 
     const handleRemoveProduct = (productId: string) => {
         setSelectedProducts(selectedProducts.filter((sp) => sp.product.productID !== productId))
-        
+
         // Si es un producto personalizado y no se usa en ningún lado más, eliminarlo
-        const isCustomProduct = customProducts.some(cp => cp.productID === productId)
+        const isCustomProduct = customProducts.some((cp) => cp.productID === productId)
         if (isCustomProduct) {
-            setCustomProducts(prev => prev.filter(cp => cp.productID !== productId))
-            setProductsImage(prev => prev.filter(pi => pi.id !== productId))
+            setCustomProducts((prev) => prev.filter((cp) => cp.productID !== productId))
+            setProductsImage((prev) => prev.filter((pi) => pi.id !== productId))
         }
     }
 
@@ -273,7 +266,7 @@ export function QuotesClient({ products }: QuotesClientProps) {
                 description: discount.description,
                 typeAndDescription: `[${discount.type.toUpperCase()}] ${discount.description}`,
                 percentage: Math.round(calculatedPercentage * 100) / 100,
-                amount: calculatedAmount
+                amount: calculatedAmount,
             }
         })
     }, [discounts, montoNeto])
@@ -289,16 +282,16 @@ export function QuotesClient({ products }: QuotesClientProps) {
             sku: "",
             stockQuantity: 0,
             StoreProducts: [],
-            Stores: []
+            Stores: [],
         } as unknown as IProductVariation
     }
 
     const handleGeneratePDF = async () => {
         // Convertir selectedProducts al formato esperado por el PDF
-        const pdfSelectedProducts = selectedProducts.map(sp => ({
+        const pdfSelectedProducts = selectedProducts.map((sp) => ({
             product: sp.product,
             variation: sp.variation || createMockVariation(sp.product.productID, sp.availableModels, sp.unitPrice),
-            quantity: sp.quantity
+            quantity: sp.quantity,
         }))
 
         const blob = await pdf(
