@@ -1,9 +1,14 @@
+"use client"
 import { FileText } from "lucide-react"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 import { toPrice } from "@/utils/priceFormat"
+import { useAuth } from "@/stores/user.store"
 
 export default function ResumeLeftSideChart({ resume }: { resume: IResume }) {
     const { orders, sales } = resume.totales
+    const { user } = useAuth()
+
+    if (user?.role !== "admin") return null
     return (
         <div className="flex flex-col gap-9">
             <div className="flex dark:bg-gray-800 bg-white shadow rounded p-4 items-center">

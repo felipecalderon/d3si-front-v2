@@ -8,11 +8,13 @@ import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts"
 import { toPrice } from "@/utils/priceFormat"
 import { IResume } from "@/interfaces/sales/ISalesResume"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/stores/user.store"
 
 export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
     const [editingMeta, setEditingMeta] = useState(false)
     const [metaInput, setMetaInput] = useState("")
     const route = useRouter()
+    const { user } = useAuth()
 
     const handleMetaSave = async () => {
         const metaNumber = Number(metaInput)
@@ -73,7 +75,7 @@ export default function TotalSalesResumeGraph({ resume }: { resume: IResume }) {
             },
         ]
     }
-
+    if (user?.role !== "admin") return null
     return (
         <div className="flex flex-col items-center dark:bg-gray-800 bg-white p-4 py-5 rounded">
             <h3 className="text-sm dark:text-gray-500 text-gray-600 mb-2">Ventas totales del presente mes / Meta</h3>
