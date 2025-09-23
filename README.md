@@ -63,7 +63,7 @@ Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno de desarr
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación en funcionamiento.
 
-## 📜 Scripts Disponibles (puedes usar PNPM o NPM)
+## 📜 Scripts Disponibles usando PNPM
 
 -   `pnpm dev`: Inicia la aplicación en modo de desarrollo.
 -   `pnpm build`: Compila la aplicación para producción.
