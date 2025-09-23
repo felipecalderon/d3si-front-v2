@@ -30,6 +30,8 @@ const HomePage = async ({ searchParams }: SearchParams) => {
     const newDate = day ? new Date(year, month - 1, day) : new Date()
     const yyyyDate = formatDateToYYYYMMDD(newDate)
 
+    if (!storeID) return null
+
     const [sales, wooOrders, resume] = await Promise.all([
         getSales(storeID, yyyyDate),
         getWooCommerceOrders(newDate),
