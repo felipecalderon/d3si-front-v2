@@ -9,17 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { IProduct } from "@/interfaces/products/IProduct"
 import { toPrice } from "@/utils/priceFormat"
 import { Button } from "../ui/button"
+import { useTienda } from "@/stores/tienda.store"
 
 export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) => {
     const router = useRouter()
     const { cartItems, total, paymentMethod, loading, actions } = useSaleStore()
     const { setPaymentMethod, submitSale, clearCart } = actions
-
+    const { storeSelected } = useTienda()
     const handleSubmit = async () => {
         const res = await submitSale()
         if (res) {
             router.refresh()
-            router.push("/home")
+            router.push(`/home?storeID=${storeSelected?.storeID}`)
         }
     }
 
