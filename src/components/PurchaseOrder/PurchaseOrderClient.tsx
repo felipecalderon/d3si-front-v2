@@ -248,6 +248,7 @@ export default function PurchaseOrderClient({
                                         </Select>
                                     )}
                                 </div>
+                                {/*
                                 <div className="flex gap-2">
                                     <Button
                                         onClick={handleAgregarCalzados}
@@ -261,6 +262,7 @@ export default function PurchaseOrderClient({
                                         Quitar -1
                                     </Button>
                                 </div>
+                                */}
                             </div>
                         </div>
 
@@ -306,6 +308,7 @@ export default function PurchaseOrderClient({
                             pedido={pedido}
                             adminStoreIDs={[]}
                             setPedido={setPedido}
+                            selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
                         />
                     </MotionItem>
                 </div>
