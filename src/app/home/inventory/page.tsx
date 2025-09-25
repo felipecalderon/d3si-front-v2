@@ -3,6 +3,7 @@ import { getAllCategories } from "@/actions/categories/getAllCategories"
 import { getAllStores } from "@/actions/stores/getAllStores"
 import InventoryClientWrapper from "@/components/Inventory/InventoryClientWrapper"
 import { mapToWooParentProducts, mapToWooVariations } from "@/utils/mappers/saleProductsToWooItems"
+import { createWooParentProducts } from "@/actions/woocommerce/createWooProducts"
 
 export default async function InventoryPage() {
     // Lógica de obtención en servidor
@@ -28,7 +29,9 @@ export default async function InventoryPage() {
         wp-json/wc/v3/products/[wooID]/variations/[wooID] <- variaciones
      */
 
-    console.log(mapToWooParentProducts(productsData))
+    const parentProducts = mapToWooParentProducts(productsData)
+    console.log(createWooParentProducts(parentProducts))
+
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
             {/* <InventoryClientWrapper initialProducts={productsData} categories={categoriesData} stores={storesData} /> */}
