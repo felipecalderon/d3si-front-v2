@@ -188,6 +188,7 @@ export default function PurchaseOrderClient({
             setIsLargeScreen(window.innerWidth >= 1024)
         }
     }, [])
+    const selectedID = user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""
     return (
         <>
             <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
@@ -307,9 +308,8 @@ export default function PurchaseOrderClient({
                         <PurchaseOrderTable
                             currentItems={currentItems}
                             pedido={pedido}
-                            adminStoreIDs={[]}
                             setPedido={setPedido}
-                            selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
+                            selectedStoreID={selectedID}
                         />
                     </MotionItem>
                 </div>

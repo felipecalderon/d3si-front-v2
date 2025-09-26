@@ -3,7 +3,6 @@
 import React from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
-import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -18,18 +17,11 @@ interface PurchaseOrderTableProps {
         isFirst: boolean
     }>
     pedido: Record<string, number>
-    adminStoreIDs: string[]
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     selectedStoreID: string
 }
 
-export function PurchaseOrderTable({
-    currentItems,
-    pedido,
-    adminStoreIDs,
-    setPedido,
-    selectedStoreID,
-}: PurchaseOrderTableProps) {
+export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedStoreID }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
     //const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")

@@ -29,6 +29,7 @@ export const mapLineItemsToSaleProducts = (lineItems: WooProductOrder[]): ISaleP
                     productID: String(item.product_id),
                     name: item.name,
                     image: "",
+                    wooID: null,
                     description: "",
                     category: "",
                     brand: "Otro", // valor por defecto

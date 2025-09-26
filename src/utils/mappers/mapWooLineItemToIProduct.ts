@@ -20,6 +20,8 @@ export const mapWooLineItemToISaleProduct = (
         categoryID: null,
         stock: lineItem.quantity,
         ProductVariations: [],
+        description: "",
+        wooID: null,
     }
 
     const variation: IProductVariation = {
