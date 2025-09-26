@@ -3,7 +3,6 @@
 import React from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
-import { useTienda } from "@/stores/tienda.store"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -18,14 +17,14 @@ interface PurchaseOrderTableProps {
         isFirst: boolean
     }>
     pedido: Record<string, number>
-    adminStoreIDs: string[]
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
+    selectedStoreID: string
 }
 
-export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPedido }: PurchaseOrderTableProps) {
+export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedStoreID }: PurchaseOrderTableProps) {
     const { user } = useAuth()
-    const { storeSelected } = useTienda()
-    const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")
+    const isAdmin = user?.role === Role.Admin
+    //const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -43,9 +42,9 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                     TALLA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    {isSpecialRole ? "PRECIO PLAZA" : "COSTO NETO"}
+                                    {isAdmin ? "COSTO NETO" : "PRECIO PLAZA"}
                                 </TableHead>
-                                {!isSpecialRole && (
+                                {isAdmin && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                         STOCK CENTRAL
                                     </TableHead>
@@ -66,15 +65,15 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                             {currentItems.map(({ product, variation, isFirst }, index) => {
                                 // Stock de la tienda seleccionada
                                 let stockTienda = 0
-                                if (storeSelected) {
+                                if (selectedStoreID) {
                                     const storeProduct = variation.StoreProducts?.find(
-                                        (sp: any) => sp.storeID === storeSelected.storeID
+                                        (sp: any) => sp.storeID === selectedStoreID
                                     )
                                     stockTienda = storeProduct ? storeProduct.quantity : 0
                                 }
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
-                                const subtotalVariation = isSpecialRole
+                                const subtotalVariation = isAdmin
                                     ? pedidoQuantity * (variation.priceCost ?? 0)
                                     : pedidoQuantity * (variation.priceList ?? 0)
 
@@ -143,19 +142,19 @@ export function PurchaseOrderTable({ currentItems, pedido, adminStoreIDs, setPed
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
-                                                    {isSpecialRole
+                                                    {isAdmin
                                                         ? `$${Math.round(Number(variation.priceCost)).toLocaleString(
-                                                              "es-CL"
+                                                              "es-CO"
                                                           )}`
                                                         : `$${Math.round(Number(variation.priceList)).toLocaleString(
-                                                              "es-CL"
+                                                              "es-CO"
                                                           )}`}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>
 
                                         {/* Columna STOCK CENTRAL (solo si no es consignado, tercero o vendedor) */}
-                                        {!isSpecialRole && (
+                                        {isAdmin && (
                                             <TableCell className="w-32 text-center py-3 transition-colors">
                                                 <MotionItem key={`central-${variation.variationID}`} delay={index + 2}>
                                                     <Badge
