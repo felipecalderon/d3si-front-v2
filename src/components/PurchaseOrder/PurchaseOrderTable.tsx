@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
@@ -25,15 +25,31 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
 
-    // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stockQuantity de mayor a menor
+    // Estado para alternar orden secundario
+    const [orderByMarkup, setOrderByMarkup] = useState(false)
+
+    // Función para calcular markup
+    const calculateMarkup = (priceCost: number, priceList: number): number => {
+        if (!priceCost) return 0
+        return priceList / priceCost
+    }
+
+    // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stock o markup de mayor a menor
     const sortedItems = [...currentItems].sort((a, b) => {
         // Marca primero
         if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
         if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
-        // Dentro de la misma marca, stock de mayor a menor
-        const stockA = a.variation.stockQuantity ?? 0
-        const stockB = b.variation.stockQuantity ?? 0
-        return stockB - stockA
+        if (orderByMarkup) {
+            // Ordenar por markup de mayor a menor
+            const markupA = calculateMarkup(Number(a.variation.priceCost), Number(a.variation.priceList))
+            const markupB = calculateMarkup(Number(b.variation.priceCost), Number(b.variation.priceList))
+            return markupB - markupA
+        } else {
+            // Ordenar por stock de mayor a menor
+            const stockA = a.variation.stockQuantity ?? 0
+            const stockB = b.variation.stockQuantity ?? 0
+            return stockB - stockA
+        }
     })
 
     return (
@@ -53,7 +69,21 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                     TALLA
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    {isAdmin ? "COSTO NETO" : "PRECIO PLAZA"}
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span>{isAdmin ? "COSTO NETO" : "PRECIO PLAZA"}</span>
+                                        <button
+                                            type="button"
+                                            className={`text-xs px-2 py-1 rounded transition-colors border font-semibold ${
+                                                orderByMarkup
+                                                    ? "bg-blue-600 text-white border-blue-700"
+                                                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-400"
+                                            }`}
+                                            onClick={() => setOrderByMarkup((prev) => !prev)}
+                                            title="Ordenar por markup"
+                                        >
+                                            Ordenar por markup
+                                        </button>
+                                    </div>
                                 </TableHead>
                                 {isAdmin && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
