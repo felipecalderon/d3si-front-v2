@@ -14,6 +14,8 @@ import { salesToResume } from "@/utils/saleToResume"
 import { Suspense } from "react"
 import SalesAndResumeSkeleton from "@/components/skeletons/SalesAndResume"
 import { totalDebitoCredito } from "@/utils/totalsDebitoCredito"
+import { getAllOrders } from "@/actions/orders/getAllOrders"
+import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 
 export const dynamic = "force-dynamic"
 
@@ -32,13 +34,32 @@ const HomePage = async ({ searchParams }: SearchParams) => {
 
     if (!storeID) return null
 
-    const [sales, wooOrders, resume] = await Promise.all([
+    // Calcular inicio y fin de mes actual
+    const startOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1)
+    const endOfMonth = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0, 23, 59, 59, 999)
+
+    const [sales, wooOrders, resume, allOrders] = await Promise.all([
         getSales(storeID, yyyyDate),
         getWooCommerceOrders(newDate),
         getResume(storeID, yyyyDate),
+        getAllOrders(),
     ])
     const wooSales = wooOrders.map(mapWooOrderToSale)
     const allSales = [...sales, ...wooSales]
+
+    // Filtrar órdenes de compra del mes corriente, que no sean OCC y que sean de la tienda actual
+    const purchaseOrders: (IOrderWithStore & { isOrder: true })[] = allOrders
+        .filter(
+            (order: any) =>
+                order.storeID === storeID &&
+                order.type !== "OCC" &&
+                new Date(order.createdAt) >= startOfMonth &&
+                new Date(order.createdAt) <= endOfMonth
+        )
+        .map((order: any) => ({ ...order, isOrder: true }))
+
+    // Combinar ventas y órdenes
+    const items = [...allSales, ...purchaseOrders]
 
     const wooResume = salesToResume(wooSales, newDate)
     const allSalesResume = totalDebitoCredito([resume.totales.sales, wooResume])
@@ -68,7 +89,7 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                     {/* Tabla */}
                     <div>
                         <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                            <SalesTable sales={allSales} />
+                            <SalesTable items={items} />
                         </div>
                     </div>
                 </div>
