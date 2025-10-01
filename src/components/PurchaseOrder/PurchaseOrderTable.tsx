@@ -24,7 +24,18 @@ interface PurchaseOrderTableProps {
 export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedStoreID }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
-    //const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user?.role ?? "")
+
+    // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stockQuantity de mayor a menor
+    const sortedItems = [...currentItems].sort((a, b) => {
+        // Marca primero
+        if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
+        if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
+        // Dentro de la misma marca, stock de mayor a menor
+        const stockA = a.variation.stockQuantity ?? 0
+        const stockB = b.variation.stockQuantity ?? 0
+        return stockB - stockA
+    })
+
     return (
         <div className="flex-1 flex flex-col">
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
@@ -62,7 +73,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                         </TableHeader>
 
                         <TableBody>
-                            {currentItems.map(({ product, variation, isFirst }, index) => {
+                            {sortedItems.map(({ product, variation, isFirst }, index) => {
                                 // Stock de la tienda seleccionada
                                 let stockTienda = 0
                                 if (selectedStoreID) {
