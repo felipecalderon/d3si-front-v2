@@ -24,6 +24,7 @@ interface PurchaseOrderTableProps {
 export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedStoreID }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
+    const isTercero = user?.role === Role.Tercero
 
     // Estado para alternar orden secundario
     const [orderByMarkup, setOrderByMarkup] = useState(false)
@@ -34,13 +35,21 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
         return priceList / priceCost
     }
 
+    // Filtrar productos por markup si es tercero
+    let filteredItems = [...currentItems]
+    if (isTercero) {
+        filteredItems = filteredItems.filter(({ variation }) => {
+            const markup = calculateMarkup(Number(variation.priceCost), Number(variation.priceList))
+            return markup >= 1.5 && markup <= 3.0
+        })
+    }
     // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stock o markup de mayor a menor
-    const sortedItems = [...currentItems].sort((a, b) => {
+    const sortedItems = filteredItems.sort((a, b) => {
         // Marca primero
         if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
         if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
-        if (orderByMarkup) {
-            // Ordenar por markup de mayor a menor
+        if (isTercero && orderByMarkup) {
+            // Ordenar por markup de mayor a menor solo para tercero
             const markupA = calculateMarkup(Number(a.variation.priceCost), Number(a.variation.priceList))
             const markupB = calculateMarkup(Number(b.variation.priceCost), Number(b.variation.priceList))
             return markupB - markupA
@@ -71,23 +80,30 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     <div className="flex flex-col items-center gap-1">
                                         <span>{isAdmin ? "COSTO NETO" : "PRECIO PLAZA"}</span>
-                                        <button
-                                            type="button"
-                                            className={`text-xs px-2 py-1 rounded transition-colors border font-semibold ${
-                                                orderByMarkup
-                                                    ? "bg-blue-600 text-white border-blue-700"
-                                                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-400"
-                                            }`}
-                                            onClick={() => setOrderByMarkup((prev) => !prev)}
-                                            title="Ordenar por markup"
-                                        >
-                                            Ordenar por markup
-                                        </button>
+                                        {isTercero && (
+                                            <button
+                                                type="button"
+                                                className={`text-xs px-2 py-1 rounded transition-colors border font-semibold ${
+                                                    orderByMarkup
+                                                        ? "bg-blue-600 text-white border-blue-700"
+                                                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-400"
+                                                }`}
+                                                onClick={() => setOrderByMarkup((prev) => !prev)}
+                                                title="Ordenar por markup"
+                                            >
+                                                Ordenar por markup
+                                            </button>
+                                        )}
                                     </div>
                                 </TableHead>
                                 {isAdmin && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                         STOCK CENTRAL
+                                    </TableHead>
+                                )}
+                                {isTercero && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        MARKUP
                                     </TableHead>
                                 )}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
@@ -206,6 +222,20 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                                     >
                                                         {variation.stockQuantity}
                                                     </Badge>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
+
+                                        {/* Columna MARKUP solo para tercero */}
+                                        {isTercero && (
+                                            <TableCell className="text-center py-2">
+                                                <MotionItem key={`markup-${variation.variationID}`} delay={index + 2}>
+                                                    <span className="font-semibold text-xs">
+                                                        {calculateMarkup(
+                                                            Number(variation.priceCost),
+                                                            Number(variation.priceList)
+                                                        ).toFixed(2)}
+                                                    </span>
                                                 </MotionItem>
                                             </TableCell>
                                         )}
