@@ -68,10 +68,14 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
     let filteredItems = [...currentItems]
     if (isTercero) {
         filteredItems = filteredItems.filter(({ variation }) => {
-            const markup = calculateMarkup(Number(variation.priceCost), Number(variation.priceList))
-            return markup >= 1.5 && markup <= 3.0
+            const third = calculateThirdPartyPrice(Number(variation.priceList))
+            if (!third) return false
+            // Redondeamos para evitar errores de flotante
+            const markupRounded = parseFloat(third.markupTercero.toFixed(2))
+            return markupRounded >= 1.5 && markupRounded <= 3.0
         })
     }
+
     // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stock o markup de mayor a menor
     const sortedItems = filteredItems.sort((a, b) => {
         // Marca primero
