@@ -35,6 +35,35 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
         return priceList / priceCost
     }
 
+    const IVA = 1.19
+
+    const calculateThirdPartyPrice = (
+        priceList: number,
+        markupTerceroMin = 1.5,
+        markupTerceroMax = 3.0,
+        step = 0.01
+    ) => {
+        for (
+            let markupFlotante = markupTerceroMin * IVA;
+            markupFlotante <= markupTerceroMax * IVA;
+            markupFlotante += step
+        ) {
+            const costoNetoTercero = priceList / markupFlotante
+            const brutoCompra = costoNetoTercero * IVA
+            const markupTercero = priceList / brutoCompra
+
+            if (markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax) {
+                return {
+                    markupFlotante: parseFloat(markupFlotante.toFixed(3)),
+                    costoNetoTercero: parseFloat(costoNetoTercero.toFixed(2)),
+                    brutoCompra: parseFloat(brutoCompra.toFixed(2)),
+                    markupTercero: parseFloat(markupTercero.toFixed(2)),
+                }
+            }
+        }
+        return null
+    }
+
     // Filtrar productos por markup si es tercero
     let filteredItems = [...currentItems]
     if (isTercero) {
@@ -79,7 +108,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     <div className="flex flex-col items-center gap-1">
-                                        <span>{isAdmin ? "COSTO NETO" : "PRECIO PLAZA"}</span>
+                                        <span>{isAdmin ? "COSTO NETO" : "PRECIO COSTO CON IVA"}</span>
                                         {isTercero && (
                                             <button
                                                 type="button"
@@ -130,9 +159,33 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 }
 
                                 const pedidoQuantity = pedido[variation.sku] || 0
-                                const subtotalVariation = isAdmin
-                                    ? pedidoQuantity * (variation.priceCost ?? 0)
-                                    : pedidoQuantity * (variation.priceList ?? 0)
+                                let priceToShow = 0
+                                let markupToShow = 0
+
+                                if (isAdmin) {
+                                    priceToShow = variation.priceCost ?? 0
+                                    markupToShow = calculateMarkup(priceToShow, Number(variation.priceList))
+                                } else if (isTercero) {
+                                    const third = calculateThirdPartyPrice(Number(variation.priceList))
+                                    if (third) {
+                                        priceToShow = third.brutoCompra // lo que paga el tercero (con IVA)
+                                        markupToShow = third.markupTercero
+                                    } else {
+                                        priceToShow = Number(variation.priceList)
+                                        markupToShow = calculateMarkup(
+                                            Number(variation.priceCost),
+                                            Number(variation.priceList)
+                                        )
+                                    }
+                                } else {
+                                    priceToShow = Number(variation.priceList)
+                                    markupToShow = calculateMarkup(
+                                        Number(variation.priceCost),
+                                        Number(variation.priceList)
+                                    )
+                                }
+
+                                const subtotalVariation = pedidoQuantity * priceToShow
 
                                 return (
                                     <TableRow
@@ -199,13 +252,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
                                                 <span className="font-semibold text-sm">
-                                                    {isAdmin
-                                                        ? `$${Math.round(Number(variation.priceCost)).toLocaleString(
-                                                              "es-CO"
-                                                          )}`
-                                                        : `$${Math.round(Number(variation.priceList)).toLocaleString(
-                                                              "es-CO"
-                                                          )}`}
+                                                    ${Math.round(priceToShow).toLocaleString("es-CO")}
                                                 </span>
                                             </MotionItem>
                                         </TableCell>
@@ -231,10 +278,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                             <TableCell className="text-center py-2">
                                                 <MotionItem key={`markup-${variation.variationID}`} delay={index + 2}>
                                                     <span className="font-semibold text-xs">
-                                                        {calculateMarkup(
-                                                            Number(variation.priceCost),
-                                                            Number(variation.priceList)
-                                                        ).toFixed(2)}
+                                                        {markupToShow.toFixed(2)}
                                                     </span>
                                                 </MotionItem>
                                             </TableCell>
