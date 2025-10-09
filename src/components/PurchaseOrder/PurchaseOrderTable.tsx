@@ -39,7 +39,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
 
     const calculateThirdPartyPrice = (
         priceList: number,
-        markupTerceroMin = 1.5,
+        markupTerceroMin = 1.7,
         markupTerceroMax = 3.0,
         step = 0.01
     ) => {
@@ -68,11 +68,22 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
     let filteredItems = [...currentItems]
     if (isTercero) {
         filteredItems = filteredItems.filter(({ variation }) => {
-            const third = calculateThirdPartyPrice(Number(variation.priceList))
-            if (!third) return false
-            // Redondeamos para evitar errores de flotante
-            const markupRounded = parseFloat(third.markupTercero.toFixed(2))
-            return markupRounded >= 1.5 && markupRounded <= 3.0
+            const priceList = Number(variation.priceList)
+            const priceCost = Number(variation.priceCost)
+            const third = calculateThirdPartyPrice(priceList)
+
+            if (!third || !priceCost) return false
+
+            // Markup flotante: cuánto sube el brutoCompra respecto al costo origen ===
+            const markupFlotante = third.brutoCompra / priceCost
+
+            // Markup del tercero: relación entre precio de lista y su costo con IVA ===
+            const markupTercero = priceList / third.brutoCompra
+
+            // Cumple ambas condiciones:
+            // - markupTercero entre 1.7 y 3.0
+            // - markupFlotante >= 1.4
+            return markupTercero >= 1.7 && markupTercero <= 3.0 && markupFlotante >= 1.4
         })
     }
 
