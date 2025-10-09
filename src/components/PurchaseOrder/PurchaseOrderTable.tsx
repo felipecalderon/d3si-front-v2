@@ -29,42 +29,60 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
     // Estado para alternar orden secundario
     const [orderByMarkup, setOrderByMarkup] = useState(false)
 
-    // Función para calcular markup
+    const IVA = 1.19
+
+    // === Función para calcular markup general ===
     const calculateMarkup = (priceCost: number, priceList: number): number => {
         if (!priceCost) return 0
         return priceList / priceCost
     }
 
-    const IVA = 1.19
-
+    // === NUEVA versión optimizada ===
+    // Busca el mejor precio bruto posible para el tercero
     const calculateThirdPartyPrice = (
         priceList: number,
         markupTerceroMin = 1.7,
         markupTerceroMax = 3.0,
-        step = 0.01
+        minMarkupFlotante = 1.4,
+        step = 0.001
     ) => {
-        for (
-            let markupFlotante = markupTerceroMin * IVA;
-            markupFlotante <= markupTerceroMax * IVA;
-            markupFlotante += step
-        ) {
+        let bestOption: {
+            markupFlotante: number
+            costoNetoTercero: number
+            brutoCompra: number
+            markupTercero: number
+        } | null = null
+
+        // Recorremos desde markupFlotante mínimo permitido hasta un valor máximo razonable
+        for (let markupFlotante = minMarkupFlotante; markupFlotante <= markupTerceroMax * IVA; markupFlotante += step) {
+            // 1️⃣ Calcular costo neto y bruto
             const costoNetoTercero = priceList / markupFlotante
             const brutoCompra = costoNetoTercero * IVA
+
+            // 2️⃣ Calcular markup real del tercero
             const markupTercero = priceList / brutoCompra
 
-            if (markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax) {
-                return {
-                    markupFlotante: parseFloat(markupFlotante.toFixed(3)),
-                    costoNetoTercero: parseFloat(costoNetoTercero.toFixed(2)),
-                    brutoCompra: parseFloat(brutoCompra.toFixed(2)),
-                    markupTercero: parseFloat(markupTercero.toFixed(2)),
+            // 3️⃣ Verificar condiciones de rango
+            const cumpleTercero = markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax
+            const cumpleFlotante = markupFlotante >= minMarkupFlotante
+
+            if (cumpleTercero && cumpleFlotante) {
+                // ✅ Guardamos el que tenga mayor brutoCompra (mayor ganancia)
+                if (!bestOption || brutoCompra > bestOption.brutoCompra) {
+                    bestOption = {
+                        markupFlotante: parseFloat(markupFlotante.toFixed(3)),
+                        costoNetoTercero: parseFloat(costoNetoTercero.toFixed(2)),
+                        brutoCompra: parseFloat(brutoCompra.toFixed(2)),
+                        markupTercero: parseFloat(markupTercero.toFixed(2)),
+                    }
                 }
             }
         }
-        return null
+
+        return bestOption
     }
 
-    // Filtrar productos por markup si es tercero
+    // === Filtrado para terceros ===
     let filteredItems = [...currentItems]
     if (isTercero) {
         filteredItems = filteredItems.filter(({ variation }) => {
@@ -74,10 +92,10 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
 
             if (!third || !priceCost) return false
 
-            // Markup flotante: cuánto sube el brutoCompra respecto al costo origen ===
+            // Markup flotante: cuánto sube el brutoCompra respecto al costo de origen
             const markupFlotante = third.brutoCompra / priceCost
 
-            // Markup del tercero: relación entre precio de lista y su costo con IVA ===
+            // Markup del tercero: relación entre precio de lista y su costo con IVA
             const markupTercero = priceList / third.brutoCompra
 
             // Cumple ambas condiciones:
@@ -87,18 +105,19 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
         })
     }
 
-    // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stock o markup de mayor a menor
+    // === Ordenamiento ===
     const sortedItems = filteredItems.sort((a, b) => {
         // Marca primero
         if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
         if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
+
         if (isTercero && orderByMarkup) {
-            // Ordenar por markup de mayor a menor solo para tercero
+            // Ordenar por markup (mayor beneficio primero)
             const markupA = calculateMarkup(Number(a.variation.priceCost), Number(a.variation.priceList))
             const markupB = calculateMarkup(Number(b.variation.priceCost), Number(b.variation.priceList))
             return markupB - markupA
         } else {
-            // Ordenar por stock de mayor a menor
+            // Ordenar por stock
             const stockA = a.variation.stockQuantity ?? 0
             const stockB = b.variation.stockQuantity ?? 0
             return stockB - stockA
