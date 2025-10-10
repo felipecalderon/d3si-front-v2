@@ -7,9 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Minus, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
+import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { ListFilters } from "@/components/ListTable/ListFilters"
+import { useTerceroProducts } from "@/hooks/useTerceroProducts"
+import { useProductSorting } from "@/hooks/useProductSorting"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
@@ -30,15 +34,15 @@ export default function PurchaseOrderClient({
     const { user } = useAuth()
     // Estados
     const [search, setSearch] = useState("")
+    const [barcodeSku, setBarcodeSku] = useState("")
     const [stores] = useState<IStore[]>(initialStores)
     const { storeSelected } = useTienda()
-    // Si es admin, puede elegir tienda; si es store_manager, usa la global
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
     const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
-    const [isLargeScreen, setIsLargeScreen] = useState(false)
+    const [isTercero, setIsTercero] = useState(false)
 
-    // Hook para filtros personalizados
+    // Hook para filtros de Zustand
     const {
         selectedFilter,
         sortDirection,
@@ -52,11 +56,9 @@ export default function PurchaseOrderClient({
 
     const { setRawProducts } = inventoryStore()
 
-    // Filtrar productos por tienda seleccionada (admin ve todos)
+    // 1. Filtrar productos por tienda seleccionada
     const filteredByStore = useMemo(() => {
-        // Si es admin y no ha seleccionado tienda, ve todos
         if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
-        // Si es store_manager, filtra por la tienda global
         if (user?.role === "store_manager" && storeSelected?.storeID) {
             return filteredAndSortedProducts.filter((product) =>
                 product.ProductVariations.some((variation) =>
@@ -64,11 +66,10 @@ export default function PurchaseOrderClient({
                 )
             )
         }
-        // Por defecto, retorna todos
         return filteredAndSortedProducts
     }, [filteredAndSortedProducts, selectedStoreID, user?.role, storeSelected?.storeID])
 
-    // Filtrar productos según búsqueda
+    // 2. Filtrar productos por búsqueda
     const searchedProducts = useMemo(() => {
         if (!search.trim()) return filteredByStore
         const lower = search.toLowerCase()
@@ -79,53 +80,60 @@ export default function PurchaseOrderClient({
         )
     }, [search, filteredByStore])
 
-    // Aplanar productos con variaciones para paginación
+    // 3. Aplanar productos con variaciones
     const flattenedProducts = useMemo(() => {
         const flattened: Array<{ product: IProduct; variation: any; isFirst: boolean }> = []
-
         searchedProducts.forEach((product) => {
             product.ProductVariations.forEach((variation, index) => {
-                flattened.push({
-                    product,
-                    variation,
-                    isFirst: index === 0,
-                })
+                flattened.push({ product, variation, isFirst: index === 0 })
             })
         })
-
         return flattened
     }, [searchedProducts])
 
-    const totalPages = Math.ceil(flattenedProducts.length / ITEMS_PER_PAGE)
+    // 4. Hook para filtrar productos de tercero
+    const { filteredItems: terceroFilteredItems } = useTerceroProducts(flattenedProducts)
+
+    // 5. Determinar qué lista de productos usar (normal o tercero)
+    const productsToDisplay = useMemo(() => {
+        return isTercero ? terceroFilteredItems : flattenedProducts
+    }, [isTercero, terceroFilteredItems, flattenedProducts])
+
+    // 6. Hook para ordenamiento avanzado
+    const { sortedItems, orderByMarkup, setOrderByMarkup } = useProductSorting(productsToDisplay, isTercero)
+
+    // 7. Paginación sobre la lista final ordenada
+    const totalPages = Math.ceil(sortedItems.length / ITEMS_PER_PAGE)
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
-    const currentItems = flattenedProducts.slice(startIndex, endIndex)
+    const currentItems = sortedItems.slice(startIndex, endIndex)
 
-    // Funciones para agregar o quitar productos a pedido
-    const handleAgregarCalzados = () => {
-        setPedido((prev) => {
-            const nuevoPedido = { ...prev }
-            searchedProducts.forEach((product) => {
-                product.ProductVariations.forEach((variation) => {
-                    const sku = variation.sku
-                    nuevoPedido[sku] = (nuevoPedido[sku] || 0) + 1
-                })
-            })
-            return nuevoPedido
-        })
-    }
+    // --- Fin de la lógica de filtrado y ordenamiento ---
 
-    const handleQuitarCalzados = () => {
-        setPedido((prev) => {
-            const nuevoPedido = { ...prev }
-            searchedProducts.forEach((product) => {
-                product.ProductVariations.forEach((variation) => {
-                    const sku = variation.sku
-                    nuevoPedido[sku] = Math.max((nuevoPedido[sku] || 0) - 1, 0)
-                })
-            })
-            return nuevoPedido
-        })
+    const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault()
+            const sku = barcodeSku.trim()
+            if (!sku) return
+
+            // Buscar el producto en la lista inicial para asegurar que lo encontramos
+            let found = false
+            for (const product of initialProducts) {
+                for (const variation of product.ProductVariations) {
+                    if (variation.sku === sku) {
+                        setPedido((prev) => ({
+                            ...prev,
+                            [sku]: (prev[sku] || 0) + 1,
+                        }))
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+
+            setBarcodeSku("") // Limpiar el input después de procesar
+        }
     }
 
     // Calcular productos únicos en la página actual
@@ -135,7 +143,7 @@ export default function PurchaseOrderClient({
         return uniqueProductIds.size
     }, [currentItems])
 
-    // Calcular subtotal de pedido
+    // Calcular subtotal y total de productos en el pedido
     const subtotal = useMemo(() => {
         return initialProducts.reduce((total, product) => {
             return (
@@ -156,46 +164,35 @@ export default function PurchaseOrderClient({
     const getVisiblePages = () => {
         const pages = []
         const maxVisiblePages = 5
-
         if (totalPages <= maxVisiblePages) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i)
-            }
+            for (let i = 1; i <= totalPages; i++) pages.push(i)
+        } else if (currentPage <= 3) {
+            pages.push(1, 2, 3, 4, "...", totalPages)
+        } else if (currentPage >= totalPages - 2) {
+            pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
         } else {
-            if (currentPage <= 3) {
-                pages.push(1, 2, 3, 4, "...", totalPages)
-            } else if (currentPage >= totalPages - 2) {
-                pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
-            } else {
-                pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages)
-            }
+            pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages)
         }
-
         return pages
     }
-    // Resetear página cuando cambian filtros o búsqueda
+
+    // Efectos
     useEffect(() => {
         setCurrentPage(1)
-    }, [search, selectedFilter, sortDirection, selectedGenre])
+    }, [search, selectedFilter, sortDirection, selectedGenre, isTercero, orderByMarkup])
 
     useEffect(() => {
         setRawProducts(initialProducts)
         setSelectedFilter("genre")
     }, [])
 
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            setIsLargeScreen(window.innerWidth >= 1024)
-        }
-    }, [])
     const selectedID = user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""
+
     return (
         <>
             <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
-                {/* Header Section */}
                 <MotionItem delay={0}>
                     <div className="flex flex-col gap-4 mb-6">
-                        {/* Filtros */}
                         <ListFilters
                             products={filteredAndSortedProducts}
                             selectedFilter={selectedFilter}
@@ -239,22 +236,21 @@ export default function PurchaseOrderClient({
                                             </SelectContent>
                                         </Select>
                                     )}
+                                    <div className="flex items-center space-x-2">
+                                        <Switch id="tercero-mode" checked={isTercero} onCheckedChange={setIsTercero} />
+                                        <Label htmlFor="tercero-mode">Tercero</Label>
+                                    </div>
+                                    {isTercero && (
+                                        <div className="flex items-center space-x-2">
+                                            <Switch
+                                                id="markup-sort-mode"
+                                                checked={orderByMarkup}
+                                                onCheckedChange={setOrderByMarkup}
+                                            />
+                                            <Label htmlFor="markup-sort-mode">Ordenar por Markup</Label>
+                                        </div>
+                                    )}
                                 </div>
-                                {/*
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={handleAgregarCalzados}
-                                        className="h-11 bg-green-600 hover:bg-green-700"
-                                    >
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Agregar +1
-                                    </Button>
-                                    <Button variant="destructive" onClick={handleQuitarCalzados} className="h-11">
-                                        <Minus className="w-4 h-4 mr-2" />
-                                        Quitar -1
-                                    </Button>
-                                </div>
-                                */}
                             </div>
                         </div>
 
@@ -279,20 +275,17 @@ export default function PurchaseOrderClient({
                                             {uniqueProductsInCurrentPage}
                                         </span>
                                     </div>
-                                    {/*Aqui debe ir los botones de agregar o quitar */}
-
-                                    <span className="ml-1">de {searchedProducts.length} productos</span>
+                                    <span className="ml-1">de {sortedItems.length} productos</span>
                                 </Badge>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Página {currentPage} de {totalPages} - {searchedProducts.length} productos (
-                                {flattenedProducts.length} variaciones)
+                                Página {currentPage} de {totalPages} - {sortedItems.length} productos (
+                                {sortedItems.length} variaciones)
                             </p>
                         </div>
                     </div>
                 </MotionItem>
 
-                {/* Barra de búsqueda y tabla */}
                 <div className="flex lg:flex-row flex-col items-center gap-4 mb-4">
                     <Input
                         type="text"
@@ -301,8 +294,15 @@ export default function PurchaseOrderClient({
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
+                    <Input
+                        type="text"
+                        placeholder="Escanear con pistola de códigos de barra..."
+                        className="flex-1 h-11 border-2 dark:bg-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        value={barcodeSku}
+                        onChange={(e) => setBarcodeSku(e.target.value)}
+                        onKeyDown={handleBarcodeScan}
+                    />
                 </div>
-                {/* Tabla de productos */}
                 <div className="flex-1 overflow-y-auto flex flex-col">
                     <MotionItem delay={1} className="flex-1">
                         <PurchaseOrderTable
@@ -314,7 +314,6 @@ export default function PurchaseOrderClient({
                     </MotionItem>
                 </div>
 
-                {/* Paginación */}
                 {totalPages > 1 && (
                     <MotionItem delay={currentItems.length + 2}>
                         <div className="flex items-center justify-center gap-2 mt-6 pb-4">
@@ -364,7 +363,6 @@ export default function PurchaseOrderClient({
                     </MotionItem>
                 )}
             </main>
-            {/*Barra de resumen del total estatica*/}
             <MotionItem>
                 <div className=" fixed left-0 right-0 bottom-0 z-50 dark:bg-slate-900 bg-slate-200 shadow-[4px_-4px_8px_rgba(0,0,0,0.1)] dark:shadow-slate-950 shadow-slate-400 border-t px-8 py-1 transition-all duration-300 w-full lg:ml-[260px] lg:w-[calc(100%-250px)]">
                     <PurchaseOrderSummary
