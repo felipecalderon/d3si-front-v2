@@ -9,11 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
+import { IProductVariation } from "@/interfaces/products/IProductVariation"
+import { toPrice } from "@/utils/priceFormat"
 
 interface PurchaseOrderTableProps {
     currentItems: Array<{
         product: IProduct
-        variation: any
+        variation: IProductVariation
         isFirst: boolean
     }>
     pedido: Record<string, number>
@@ -28,6 +30,9 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
 
     // Estado para alternar orden secundario
     const [orderByMarkup, setOrderByMarkup] = useState(false)
+    const [markupTerceroMin, setMarkupTerceroMin] = useState(1.7)
+    const [markupTerceroMax, setMarkupTerceroMax] = useState(3.0)
+    const [markupFlotanteMin, setMarkupFlotanteMin] = useState(1.4)
 
     const IVA = 1.19
 
@@ -101,7 +106,11 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
             // Cumple ambas condiciones:
             // - markupTercero entre 1.7 y 3.0
             // - markupFlotante >= 1.4
-            return markupTercero >= 1.7 && markupTercero <= 3.0 && markupFlotante >= 1.4
+            return (
+                markupTercero >= markupTerceroMin &&
+                markupTercero <= markupTerceroMax &&
+                markupFlotante >= markupFlotanteMin
+            )
         })
     }
 
@@ -126,6 +135,60 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
 
     return (
         <div className="flex-1 flex flex-col">
+            {isTercero && (
+                <div className="flex gap-4 mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg shadow w-1/2">
+                    <div className="flex-1">
+                        <label
+                            htmlFor="markupMin"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Markup Min Tercero
+                        </label>
+                        <Input
+                            id="markupMin"
+                            type="number"
+                            value={markupTerceroMin}
+                            min={1}
+                            onChange={(e) => setMarkupTerceroMin(parseFloat(e.target.value) || 0)}
+                            className="w-full"
+                            step="0.1"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label
+                            htmlFor="markupMax"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Markup Max Tercero
+                        </label>
+                        <Input
+                            id="markupMax"
+                            type="number"
+                            value={markupTerceroMax}
+                            onChange={(e) => setMarkupTerceroMax(parseFloat(e.target.value) || 0)}
+                            className="w-full"
+                            step="0.1"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label
+                            htmlFor="MarkupFlotMin"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Markup Min Flotante
+                        </label>
+                        <Input
+                            id="MarkupFlotMin"
+                            type="number"
+                            min={1}
+                            value={markupFlotanteMin}
+                            onChange={(e) => setMarkupFlotanteMin(parseFloat(e.target.value) || 0)}
+                            className="w-full"
+                            step="0.1"
+                        />
+                    </div>
+                </div>
+            )}
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
                 <div className="overflow-x-auto h-full">
                     <Table>
@@ -142,8 +205,8 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     <div className="flex flex-col items-center gap-1">
-                                        <span>{isAdmin ? "COSTO NETO" : "PRECIO COSTO CON IVA"}</span>
-                                        {isTercero && (
+                                        <span>{isAdmin ? "COSTO NETO" : "COSTO NETO + IVA"}</span>
+                                        {/* {isTercero && (
                                             <button
                                                 type="button"
                                                 className={`text-xs px-2 py-1 rounded transition-colors border font-semibold ${
@@ -156,8 +219,11 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                             >
                                                 Ordenar por markup
                                             </button>
-                                        )}
+                                        )} */}
                                     </div>
+                                </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    {isTercero ? "PRECIO PLAZA SUGERIDO" : "PRECIO PLAZA"}
                                 </TableHead>
                                 {isAdmin && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
@@ -306,6 +372,15 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                                 </MotionItem>
                                             </TableCell>
                                         )}
+
+                                        {/* Columna PRECIO LISTA solo para tercero */}
+                                        <TableCell className="text-center py-2">
+                                            <MotionItem key={`markup-${variation.variationID}`} delay={index + 2}>
+                                                <span className="font-semibold text-sm">
+                                                    ${toPrice(variation.priceList)}
+                                                </span>
+                                            </MotionItem>
+                                        </TableCell>
 
                                         {/* Columna MARKUP solo para tercero */}
                                         {isTercero && (

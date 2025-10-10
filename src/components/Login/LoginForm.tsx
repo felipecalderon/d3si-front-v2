@@ -47,11 +47,8 @@ export default function LoginForm() {
             setStoreSelected(storesFromUser[0])
             const storeID = storesFromUser[0].storeID
             toast.success("Inicio de sesión exitoso")
-            if (data.cleanUsr.role === Role.Consignado) {
+            if (data.cleanUsr.role === Role.Consignado || data.cleanUsr.role === Role.Tercero) {
                 return router.push(`/home/purchaseOrder?storeID=${storeID}`)
-            }
-            if (data.cleanUsr.role === Role.Tercero) {
-                return router.push(`/home/inventory?storeID=${storeID}`)
             }
             router.push(`/home?storeID=${storeID}`)
         } catch (err) {
