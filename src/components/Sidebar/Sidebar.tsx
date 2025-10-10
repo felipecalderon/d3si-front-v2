@@ -72,7 +72,18 @@ export default function Sidebar() {
                     item.label !== "Estado de Resultados"
             )
         } else if (user.role === Role.Tercero) {
-            return navItems.filter((item) => item.label === "Inventario" || item.label === "Facturación")
+            const mutatedNavItems = navItems.map((item) => {
+                if (item.label === "Facturación" && item.subItems) {
+                    return {
+                        ...item,
+                        subItems: item.subItems.map((sub) =>
+                            sub.label === "Crear OC" ? { ...sub, label: "Comprar" } : sub
+                        ),
+                    }
+                }
+                return item
+            })
+            return mutatedNavItems.filter((item) => item.label === "Inventario" || item.label === "Facturación")
         }
         return navItems
     }, [user])
