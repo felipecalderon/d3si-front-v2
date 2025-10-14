@@ -200,12 +200,15 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     SKU
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    TALLA
-                                </TableHead>
+                                {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
+                                {!isTercero && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        TALLA
+                                    </TableHead>
+                                )}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     <div className="flex flex-col items-center gap-1">
-                                        <span>{isAdmin ? "COSTO NETO" : "COSTO NETO + IVA"}</span>
+                                        <span>COSTO NETO</span>
                                         {/* {isTercero && (
                                             <button
                                                 type="button"
@@ -236,8 +239,13 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                         STOCK TIENDA
                                     </TableHead>
                                 )}
+                                {isTercero && (
+                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                        TALLA
+                                    </TableHead>
+                                )}
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    CANTIDAD PEDIDO
+                                    PEDIDO
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     SUBTOTAL
@@ -339,12 +347,14 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Columna TALLA */}
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
-                                                <span className="font-medium">{variation.sizeNumber}</span>
-                                            </MotionItem>
-                                        </TableCell>
+                                        {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
+                                        {!isTercero && (
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
+                                                    <span className="font-medium">{variation.sizeNumber}</span>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
 
                                         {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
@@ -402,6 +412,13 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                             </TableCell>
                                         )}
 
+                                        {isTercero && (
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
+                                                    <span className="font-medium">{variation.sizeNumber}</span>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
                                         {/* Columna CANTIDAD PEDIDO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`order-${variation.variationID}`} delay={index + 2}>
