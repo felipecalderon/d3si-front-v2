@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
@@ -21,93 +21,42 @@ interface PurchaseOrderTableProps {
     pedido: Record<string, number>
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     selectedStoreID: string
+    tercero: {
+        calculateThirdPartyPrice: (priceList: number) => { brutoCompra: number; markupTercero: number } | null
+        markupTerceroMin: number
+        setMarkupTerceroMin: (value: number) => void
+        markupTerceroMax: number
+        setMarkupTerceroMax: (value: number) => void
+        markupFlotanteMin: number
+        setMarkupFlotanteMin: (value: number) => void
+    }
 }
 
-export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedStoreID }: PurchaseOrderTableProps) {
+export function PurchaseOrderTable({
+    currentItems,
+    pedido,
+    setPedido,
+    selectedStoreID,
+    tercero,
+}: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
     const isTercero = user?.role === Role.Tercero
 
-    // Estado para alternar orden secundario
-    const [orderByMarkup, setOrderByMarkup] = useState(false)
-    const [markupTerceroMin, setMarkupTerceroMin] = useState(1.7)
-    const [markupTerceroMax, setMarkupTerceroMax] = useState(3.0)
-    const [markupFlotanteMin, setMarkupFlotanteMin] = useState(1.4)
+    const {
+        calculateThirdPartyPrice,
+        markupTerceroMin,
+        setMarkupTerceroMin,
+        markupTerceroMax,
+        setMarkupTerceroMax,
+        markupFlotanteMin,
+        setMarkupFlotanteMin,
+    } = tercero
 
-    // Función para calcular markup
     const calculateMarkup = (priceCost: number, priceList: number): number => {
         if (!priceCost) return 0
         return priceList / priceCost
     }
-
-    const IVA = 1.19
-
-    const calculateThirdPartyPrice = (priceList: number, step = 0.01) => {
-        for (
-            let markupFlotante = markupTerceroMin * IVA;
-            markupFlotante <= markupTerceroMax * IVA;
-            markupFlotante += step
-        ) {
-            const costoNetoTercero = priceList / markupFlotante
-            const brutoCompra = costoNetoTercero * IVA
-            const markupTercero = priceList / brutoCompra
-
-            if (markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax) {
-                return {
-                    markupFlotante: parseFloat(markupFlotante.toFixed(3)),
-                    costoNetoTercero: parseFloat(costoNetoTercero.toFixed(2)),
-                    brutoCompra: parseFloat(brutoCompra.toFixed(2)),
-                    markupTercero: parseFloat(markupTercero.toFixed(2)),
-                }
-            }
-        }
-        return null
-    }
-
-    // Filtrar productos por markup si es tercero
-    let filteredItems = [...currentItems]
-    if (isTercero) {
-        filteredItems = filteredItems.filter(({ variation }) => {
-            const priceList = Number(variation.priceList)
-            const priceCost = Number(variation.priceCost)
-            const third = calculateThirdPartyPrice(priceList)
-
-            if (!third || !priceCost) return false
-
-            // Markup flotante: cuánto sube el brutoCompra respecto al costo origen ===
-            const markupFlotante = third.brutoCompra / priceCost
-
-            // Markup del tercero: relación entre precio de lista y su costo con IVA ===
-            const markupTercero = priceList / third.brutoCompra
-
-            // Cumple ambas condiciones:
-            // - markupTercero entre 1.7 y 3.0
-            // - markupFlotante >= 1.4
-            return (
-                markupTercero >= markupTerceroMin &&
-                markupTercero <= markupTerceroMax &&
-                markupFlotante >= markupFlotanteMin
-            )
-        })
-    }
-
-    // Ordenar: primero D3SI, luego Otro; dentro de cada grupo, stock o markup de mayor a menor
-    const sortedItems = filteredItems.sort((a, b) => {
-        // Marca primero
-        if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
-        if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
-        if (isTercero && orderByMarkup) {
-            // Ordenar por markup de mayor a menor solo para tercero
-            const markupA = calculateMarkup(Number(a.variation.priceCost), Number(a.variation.priceList))
-            const markupB = calculateMarkup(Number(b.variation.priceCost), Number(b.variation.priceList))
-            return markupB - markupA
-        } else {
-            // Ordenar por stock de mayor a menor
-            const stockA = a.variation.stockQuantity ?? 0
-            const stockB = b.variation.stockQuantity ?? 0
-            return stockB - stockA
-        }
-    })
 
     return (
         <div className="flex-1 flex flex-col">
@@ -182,20 +131,6 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     <div className="flex flex-col items-center gap-1">
                                         <span>{isAdmin ? "COSTO NETO" : "COSTO NETO + IVA"}</span>
-                                        {/* {isTercero && (
-                                            <button
-                                                type="button"
-                                                className={`text-xs px-2 py-1 rounded transition-colors border font-semibold ${
-                                                    orderByMarkup
-                                                        ? "bg-blue-600 text-white border-blue-700"
-                                                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-400"
-                                                }`}
-                                                onClick={() => setOrderByMarkup((prev) => !prev)}
-                                                title="Ordenar por markup"
-                                            >
-                                                Ordenar por markup
-                                            </button>
-                                        )} */}
                                     </div>
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
@@ -224,7 +159,7 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                         </TableHeader>
 
                         <TableBody>
-                            {sortedItems.map(({ product, variation, isFirst }, index) => {
+                            {currentItems.map(({ product, variation, isFirst }, index) => {
                                 // Stock de la tienda seleccionada
                                 let stockTienda = 0
                                 if (selectedStoreID) {
