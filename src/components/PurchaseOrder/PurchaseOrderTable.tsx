@@ -230,14 +230,12 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                         STOCK CENTRAL
                                     </TableHead>
                                 )}
-                                {isTercero && (
+                                {/* Columna MARKUP eliminada, ahora se muestra debajo del precio plaza */}
+                                {!isTercero && (
                                     <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        MARKUP
+                                        STOCK TIENDA
                                     </TableHead>
                                 )}
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    STOCK TIENDA
-                                </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     CANTIDAD PEDIDO
                                 </TableHead>
@@ -373,34 +371,36 @@ export function PurchaseOrderTable({ currentItems, pedido, setPedido, selectedSt
                                             </TableCell>
                                         )}
 
-                                        {/* Columna PRECIO LISTA solo para tercero */}
+                                        {/* Columna PRECIO LISTA solo para tercero, muestra markup debajo */}
                                         <TableCell className="text-center py-2">
                                             <MotionItem key={`markup-${variation.variationID}`} delay={index + 2}>
-                                                <span className="font-semibold text-sm">
-                                                    ${toPrice(variation.priceList)}
-                                                </span>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="font-semibold text-sm">
+                                                        ${toPrice(variation.priceList)}
+                                                    </span>
+                                                    {isTercero && (
+                                                        <span
+                                                            className={`font-semibold text-xs ${
+                                                                markupToShow >= 1.7 ? "text-green-600" : "text-red-600"
+                                                            }`}
+                                                        >
+                                                            {markupToShow.toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Columna MARKUP solo para tercero */}
-                                        {isTercero && (
-                                            <TableCell className="text-center py-2">
-                                                <MotionItem key={`markup-${variation.variationID}`} delay={index + 2}>
-                                                    <span className="font-semibold text-xs">
-                                                        {markupToShow.toFixed(2)}
+                                        {/* Columna STOCK TIENDA (oculta para tercero) */}
+                                        {!isTercero && (
+                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                                <MotionItem key={`store-${variation.variationID}`} delay={index + 2}>
+                                                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                                                        {stockTienda}
                                                     </span>
                                                 </MotionItem>
                                             </TableCell>
                                         )}
-
-                                        {/* Columna STOCK TIENDA */}
-                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            <MotionItem key={`store-${variation.variationID}`} delay={index + 2}>
-                                                <span className="font-medium text-blue-600 dark:text-blue-400">
-                                                    {stockTienda}
-                                                </span>
-                                            </MotionItem>
-                                        </TableCell>
 
                                         {/* Columna CANTIDAD PEDIDO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
