@@ -48,10 +48,11 @@ export interface ISaleReturn {
     clientEmail: string
     reason: string
     type: "DEVOLUCION" | "GARANTIA"
-    returnedQuantity: 1
     processedBy: string
     additionalNotes: string
     createdAt: string
     updatedAt: string
     User: IUser
 }
+
+export type ISendSaleReturn = Omit<ISaleReturn, "returnID" | "createdAt" | "updatedAt" | "User">

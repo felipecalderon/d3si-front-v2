@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { anularSale, AnularSale } from "@/actions/sales/anularSale"
+import { AnularSale, anularSale } from "@/actions/sales/anularSale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
+import { ISendSaleReturn } from "@/interfaces/sales/ISale"
 
 interface AnularVentaModalProps {
     isOpen: boolean
@@ -27,10 +28,10 @@ interface AnularVentaModalProps {
 }
 
 const initialState: AnularSale["nullNote"] = {
+    saleID: "",
     clientEmail: "",
     reason: "",
     type: "DEVOLUCION",
-    returnedQuantity: 1,
     processedBy: "",
     additionalNotes: "",
 }
@@ -56,16 +57,10 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
         setError(null)
 
         const processedBy = user?.userID || "Usuario Desconocido"
-        const returnedQuantity = Number(formState.returnedQuantity)
-
-        if (isNaN(returnedQuantity) || returnedQuantity <= 0) {
-            setError("La cantidad devuelta debe ser un número mayor a cero.")
-            return
-        }
 
         const submissionData: AnularSale = {
             saleID: saleId,
-            nullNote: { ...formState, processedBy, returnedQuantity },
+            nullNote: { ...formState, processedBy },
         }
         startTransition(async () => {
             try {
@@ -128,13 +123,12 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                             />
                         </div>
                         <div className="hidden">
-                            <Label htmlFor="returnedQuantity">Cantidad Devuelta</Label>
+                            <Label htmlFor="returnedQuantity">Cantidad Devuelta DEPRECATED</Label>
                             <Input
                                 id="returnedQuantity"
                                 type="hidden"
                                 min="1"
                                 placeholder="0"
-                                value={formState.returnedQuantity}
                                 onChange={handleInputChange}
                                 required
                             />
