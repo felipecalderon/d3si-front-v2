@@ -55,4 +55,9 @@ export interface ISaleReturn {
     User: IUser
 }
 
-export type ISendSaleReturn = Omit<ISaleReturn, "returnID" | "createdAt" | "updatedAt" | "User">
+export type ISendSaleReturn = Omit<ISaleReturn, "returnID" | "createdAt" | "updatedAt" | "User" | "saleID"> & {
+    returnedProducts?: {
+        storeProductID: string
+        quantity: number
+    }[]
+}

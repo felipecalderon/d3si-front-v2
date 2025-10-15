@@ -4,6 +4,11 @@ import { API_URL } from "@/lib/enviroments"
 export interface AnularSale {
     saleID: string
     nullNote: ISendSaleReturn
+    // Opcional: información del producto específico a devolver/anular
+    productToReturn?: {
+        storeProductID: string
+        quantity: number
+    }
 }
 
 export const anularSale = async (details: AnularSale) => {
