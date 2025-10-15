@@ -196,10 +196,11 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                                         const key = p.SaleProductID || p.storeProductID
                                         const qty = p.quantitySold || p.quantity || 1
                                         const name =
-                                            p.StoreProduct?.Product?.name ||
-                                            p.StoreProduct?.Product?.title ||
-                                            p.StoreProduct?.Product?.productName ||
-                                            `Producto ${key}`
+                                            p.StoreProduct?.ProductVariation?.Product?.name ||
+                                            p.StoreProduct?.ProductVariation?.Product?.title ||
+                                            p.StoreProduct?.ProductVariation?.Product?.productName ||
+                                            `Producto sin nombre (${key})`
+
                                         const selected = selectedProducts[key] !== undefined
                                         return (
                                             <div key={key} className="flex items-center justify-between gap-2 py-1">
@@ -218,15 +219,26 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                                                 <div className="w-28">
                                                     <input
                                                         aria-label={`Cantidad a anular para ${name}`}
-                                                        className="w-full rounded border px-2 py-1 text-sm"
+                                                        className="w-full rounded-md border px-2 py-1 text-sm bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         type="number"
                                                         min={1}
                                                         max={qty}
-                                                        value={selected ? selectedProducts[key] : 1}
+                                                        value={selected ? selectedProducts[key] : ""}
                                                         onChange={(e) => {
-                                                            const v = Number(e.target.value || 1)
-                                                            const valid = isNaN(v) ? 1 : Math.max(1, Math.min(v, qty))
-                                                            handleProductQuantityChange(key, valid)
+                                                            const raw = e.target.value
+                                                            // Permitimos escribir vacío o números parciales (ej. "2" mientras teclea)
+                                                            if (raw === "") {
+                                                                handleProductQuantityChange(key, 1)
+                                                            } else {
+                                                                const v = Number(raw)
+                                                                handleProductQuantityChange(key, isNaN(v) ? 1 : v)
+                                                            }
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            // Al salir del input, sí validamos límites (1 a qty)
+                                                            const v = Number(e.target.value)
+                                                            const clamped = Math.max(1, Math.min(v, qty))
+                                                            handleProductQuantityChange(key, clamped)
                                                         }}
                                                         disabled={!selected}
                                                     />
