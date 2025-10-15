@@ -41,9 +41,8 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
     const { user } = useAuth()
     const [formState, setFormState] = useState(initialState)
     const [saleProducts, setSaleProducts] = useState<any[] | null>(null)
-    const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
-    const [returnedQuantity, setReturnedQuantity] = useState<number>(1)
-    const [selectedProductLabel, setSelectedProductLabel] = useState<string | null>(null)
+    // selectedProducts maps product id -> quantity to return
+    const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
     const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
     const router = useRouter()
@@ -57,18 +56,28 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
         setFormState((prev) => ({ ...prev, type: value }))
     }
 
-    const handleProductChange = (value: string) => {
-        setSelectedProduct(value)
-        // set default returned quantity to 1 (but will be constrained by max in the input)
-        setReturnedQuantity(1)
-        // also set a friendly label for the selected product (if available)
-        const prod = saleProducts?.find((p: any) => p.SaleProductID === value || p.storeProductID === value)
-        const name =
-            prod?.StoreProduct?.Product?.name ||
-            prod?.StoreProduct?.Product?.title ||
-            prod?.StoreProduct?.Product?.productName ||
-            `Producto ${prod?.SaleProductID || prod?.storeProductID}`
-        setSelectedProductLabel(name || null)
+    const handleToggleProduct = (id: string) => {
+        setSelectedProducts((prev) => {
+            const next = { ...prev }
+            if (next[id] !== undefined) {
+                delete next[id]
+            } else {
+                next[id] = 1
+            }
+            return next
+        })
+    }
+
+    const handleProductQuantityChange = (id: string, quantity: number) => {
+        setSelectedProducts((prev) => {
+            const next = { ...prev }
+            if (quantity <= 0) {
+                delete next[id]
+            } else {
+                next[id] = quantity
+            }
+            return next
+        })
     }
 
     useEffect(() => {
@@ -93,25 +102,27 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
 
         const nullNoteData = { ...formState }
 
-        let returnedProducts: { storeProductID: string; quantity: number }[] = []
-        if (selectedProduct && saleProducts) {
-            const prod = saleProducts.find(
-                (p: any) => p.SaleProductID === selectedProduct || p.storeProductID === selectedProduct
-            )
-            if (prod) {
-                const storeProductID =
-                    prod.storeProductID ||
-                    prod.StoreProduct?.Product?.id ||
-                    prod.StoreProduct?.Product?.productID ||
-                    prod.SaleProductID ||
-                    selectedProduct
+        // Build returnedProducts array from selectedProducts map
+        const returnedProducts: { storeProductID: string; quantity: number }[] = []
+        if (saleProducts) {
+            for (const [key, qty] of Object.entries(selectedProducts)) {
+                const prod = saleProducts.find((p: any) => p.SaleProductID === key || p.storeProductID === key)
+                if (prod) {
+                    const storeProductID =
+                        prod.storeProductID ||
+                        prod.StoreProduct?.Product?.id ||
+                        prod.StoreProduct?.Product?.productID ||
+                        prod.SaleProductID ||
+                        key
 
-                returnedProducts = [
-                    {
+                    returnedProducts.push({
                         storeProductID,
-                        quantity: returnedQuantity || prod.quantitySold || prod.quantity || 1,
-                    },
-                ]
+                        quantity: qty || prod.quantitySold || prod.quantity || 1,
+                    })
+                } else {
+                    // fallback: push key as id with its quantity
+                    returnedProducts.push({ storeProductID: key, quantity: qty })
+                }
             }
         }
 
@@ -176,101 +187,60 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                                 </SelectContent>
                             </Select>
                         </div>
-                        {/* Select de productos de la venta origen */}
+                        {/* Lista de productos: permitir seleccionar múltiples con checkbox y cantidad por producto */}
                         <div className="col-span-2 grid w-full gap-1.5">
-                            <Label htmlFor="productToReturn">Producto a anular</Label>
-                            <Select
-                                onValueChange={(val) => handleProductChange(val)}
-                                value={selectedProduct || undefined}
-                                defaultValue={undefined}
-                            >
-                                <SelectTrigger id="productToReturn" className="w-full">
-                                    <SelectValue
-                                        placeholder={
-                                            saleProducts && saleProducts.length
-                                                ? "Selecciona un producto"
-                                                : "No hay productos"
-                                        }
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {saleProducts && saleProducts.length ? (
-                                        saleProducts.map((p: any) => {
-                                            const qty = p.quantitySold || p.quantity || 1
-                                            const name =
-                                                p.StoreProduct?.Product?.name ||
-                                                p.StoreProduct?.Product?.title ||
-                                                p.StoreProduct?.Product?.productName ||
-                                                `Producto ${p.SaleProductID || p.storeProductID}`
-                                            return (
-                                                <SelectItem
-                                                    key={p.SaleProductID || p.storeProductID}
-                                                    value={p.SaleProductID || p.storeProductID}
-                                                >
-                                                    {`${name} — Cant: ${qty}`}
-                                                </SelectItem>
-                                            )
-                                        })
-                                    ) : (
-                                        <SelectItem value="__none__" disabled>
-                                            No hay productos
-                                        </SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
+                            <Label>Productos a anular</Label>
+                            <div className="max-h-56 overflow-auto border rounded-md p-2">
+                                {saleProducts && saleProducts.length ? (
+                                    saleProducts.map((p: any) => {
+                                        const key = p.SaleProductID || p.storeProductID
+                                        const qty = p.quantitySold || p.quantity || 1
+                                        const name =
+                                            p.StoreProduct?.Product?.name ||
+                                            p.StoreProduct?.Product?.title ||
+                                            p.StoreProduct?.Product?.productName ||
+                                            `Producto ${key}`
+                                        const selected = selectedProducts[key] !== undefined
+                                        return (
+                                            <div key={key} className="flex items-center justify-between gap-2 py-1">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        id={`chk_${key}`}
+                                                        type="checkbox"
+                                                        className="w-4 h-4"
+                                                        checked={selected}
+                                                        onChange={() => handleToggleProduct(key)}
+                                                    />
+                                                    <label htmlFor={`chk_${key}`} className="text-sm">
+                                                        {`${name} — Cant: ${qty}`}
+                                                    </label>
+                                                </div>
+                                                <div className="w-28">
+                                                    <input
+                                                        aria-label={`Cantidad a anular para ${name}`}
+                                                        className="w-full rounded border px-2 py-1 text-sm"
+                                                        type="number"
+                                                        min={1}
+                                                        max={qty}
+                                                        value={selected ? selectedProducts[key] : 1}
+                                                        onChange={(e) => {
+                                                            const v = Number(e.target.value || 1)
+                                                            const valid = isNaN(v) ? 1 : Math.max(1, Math.min(v, qty))
+                                                            handleProductQuantityChange(key, valid)
+                                                        }}
+                                                        disabled={!selected}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                ) : (
+                                    <p className="text-sm text-gray-600">No hay productos</p>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Cantidad a devolver: solo visible si hay producto seleccionado */}
-                        {/* Mostrar nombre legible del producto seleccionado */}
-                        {selectedProductLabel && (
-                            <div className="col-span-2">
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                    Producto seleccionado: <span className="font-semibold">{selectedProductLabel}</span>
-                                </p>
-                            </div>
-                        )}
-                        {selectedProduct && (
-                            <div className="col-span-2 sm:col-span-1 grid w-full gap-1.5">
-                                <Label htmlFor="returnedQuantity">Cantidad a anular</Label>
-                                <Input
-                                    id="returnedQuantity"
-                                    type="number"
-                                    min={1}
-                                    value={returnedQuantity}
-                                    onChange={(e) => {
-                                        const v = Number(e.target.value || 1)
-                                        const prod = saleProducts?.find(
-                                            (p: any) =>
-                                                p.SaleProductID === selectedProduct ||
-                                                p.storeProductID === selectedProduct
-                                        )
-                                        const max = prod?.quantitySold || prod?.quantity || 1
-                                        if (isNaN(v) || v < 1) return setReturnedQuantity(1)
-                                        if (v > max) return setReturnedQuantity(max)
-                                        setReturnedQuantity(v)
-                                    }}
-                                    max={
-                                        saleProducts?.find(
-                                            (p: any) =>
-                                                p.SaleProductID === selectedProduct ||
-                                                p.storeProductID === selectedProduct
-                                        )
-                                            ? saleProducts.find(
-                                                  (p: any) =>
-                                                      p.SaleProductID === selectedProduct ||
-                                                      p.storeProductID === selectedProduct
-                                              ).quantitySold ||
-                                              saleProducts.find(
-                                                  (p: any) =>
-                                                      p.SaleProductID === selectedProduct ||
-                                                      p.storeProductID === selectedProduct
-                                              ).quantity ||
-                                              1
-                                            : 1
-                                    }
-                                />
-                            </div>
-                        )}
+                        {/* Nota: la cantidad por producto se gestiona en la lista anterior por cada producto seleccionado */}
                         <div className="col-span-2 grid w-full gap-1.5">
                             <Label htmlFor="reason">Motivo Principal</Label>
                             <Textarea
