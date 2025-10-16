@@ -185,7 +185,7 @@ export default async function SingleSalePage({ params }: PropsSale) {
                     </div>
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <PrintSaleButton sale={sale} />
-                        <AnularVentaControl saleId={sale.saleID} status={sale.status} />
+                        <AnularVentaControl sale={sale} />
                     </div>
                 </div>
             </div>
