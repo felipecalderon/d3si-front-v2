@@ -92,7 +92,16 @@ export default function PurchaseOrderClient({
     }, [searchedProducts])
 
     // 4. Hook para filtrar productos de tercero
-    const { filteredItems: terceroFilteredItems } = useTerceroProducts(flattenedProducts)
+    const {
+        filteredItems: terceroFilteredItems,
+        markupTerceroMin,
+        setMarkupTerceroMin,
+        markupTerceroMax,
+        setMarkupTerceroMax,
+        markupFlotanteMin,
+        setMarkupFlotanteMin,
+        calculateThirdPartyPrice,
+    } = useTerceroProducts(flattenedProducts)
 
     // 5. Determinar qué lista de productos usar (normal o tercero)
     const productsToDisplay = useMemo(() => {
@@ -310,6 +319,15 @@ export default function PurchaseOrderClient({
                             pedido={pedido}
                             setPedido={setPedido}
                             selectedStoreID={selectedID}
+                            tercero={{
+                                calculateThirdPartyPrice,
+                                markupTerceroMin,
+                                setMarkupTerceroMin,
+                                markupTerceroMax,
+                                setMarkupTerceroMax,
+                                markupFlotanteMin,
+                                setMarkupFlotanteMin,
+                            }}
                         />
                     </MotionItem>
                 </div>
@@ -374,6 +392,7 @@ export default function PurchaseOrderClient({
                         rawProducts={initialProducts}
                         setPedido={setPedido}
                         router={router}
+                        tercero={{ calculateThirdPartyPrice }}
                     />
                 </div>
             </MotionItem>

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { anularSale, AnularSale } from "@/actions/sales/anularSale"
+import { AnularSale, anularSale } from "@/actions/sales/anularSale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,25 +20,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/stores/user.store"
 import { toast } from "sonner"
+import { ISaleResponse, ISendSaleReturn } from "@/interfaces/sales/ISale"
+import { getSingleSale } from "@/actions/sales/getSales"
 
 interface AnularVentaModalProps {
     isOpen: boolean
     setIsOpen: (isOpen: boolean) => void
-    saleId: string
+    sale: ISaleResponse
 }
 
 const initialState: AnularSale["nullNote"] = {
     clientEmail: "",
     reason: "",
     type: "DEVOLUCION",
-    returnedQuantity: 1,
     processedBy: "",
     additionalNotes: "",
+    ProductAnulations: [],
 }
 
-export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModalProps) {
+export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalProps) {
     const { user } = useAuth()
     const [formState, setFormState] = useState(initialState)
+    // selectedProducts maps product id -> quantity to return
+    const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
     const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
     const router = useRouter()
@@ -51,22 +56,57 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
         setFormState((prev) => ({ ...prev, type: value }))
     }
 
+    const handleToggleProduct = (id: string) => {
+        setSelectedProducts((prev) => {
+            const next = { ...prev }
+            if (next[id] !== undefined) {
+                delete next[id]
+            } else {
+                next[id] = 1
+            }
+            return next
+        })
+    }
+
+    const handleProductQuantityChange = (id: string, quantity: number) => {
+        setSelectedProducts((prev) => {
+            const next = { ...prev }
+            if (quantity <= 0) {
+                delete next[id]
+            } else {
+                next[id] = quantity
+            }
+            return next
+        })
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
 
         const processedBy = user?.userID || "Usuario Desconocido"
-        const returnedQuantity = Number(formState.returnedQuantity)
 
-        if (isNaN(returnedQuantity) || returnedQuantity <= 0) {
-            setError("La cantidad devuelta debe ser un número mayor a cero.")
-            return
-        }
+        const nullNoteData = { ...formState }
+
+        // Build returnedProducts array from selectedProducts map
+        const returnedProducts: { storeProductID: string; quantity: number }[] = Object.entries(selectedProducts).map(
+            ([storeProductID, quantity]) => ({
+                storeProductID,
+                quantity,
+            })
+        )
 
         const submissionData: AnularSale = {
-            saleID: saleId,
-            nullNote: { ...formState, processedBy, returnedQuantity },
+            saleID: sale.saleID,
+            nullNote: {
+                ...nullNoteData,
+                processedBy,
+                returnedProducts,
+            },
         }
+
+        console.log("AnularSale payload:", submissionData)
+
         startTransition(async () => {
             try {
                 const data = await anularSale(submissionData)
@@ -108,7 +148,7 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                         <div className="grid w-full gap-1.5">
                             <Label htmlFor="type">Tipo de Anulación</Label>
                             <Select onValueChange={handleSelectChange} defaultValue={formState.type}>
-                                <SelectTrigger id="type">
+                                <SelectTrigger id="type" className="w-full">
                                     <SelectValue placeholder="Selecciona un tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -117,6 +157,68 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                                 </SelectContent>
                             </Select>
                         </div>
+                        {/* Lista de productos: permitir seleccionar múltiples con checkbox y cantidad por producto */}
+                        <div className="col-span-2 grid w-full gap-1.5">
+                            <Label>Productos a anular</Label>
+                            <div className="max-h-56 overflow-auto border rounded-md p-2">
+                                {sale.SaleProducts.map((p: any) => {
+                                    const key = p.SaleProductID || p.storeProductID
+                                    const qty = p.quantitySold || p.quantity || 1
+                                    const name =
+                                        p.StoreProduct?.ProductVariation?.Product?.name ||
+                                        p.StoreProduct?.ProductVariation?.Product?.title ||
+                                        p.StoreProduct?.ProductVariation?.Product?.productName ||
+                                        `Producto sin nombre (${key})`
+
+                                    const selected = selectedProducts[key] !== undefined
+                                    return (
+                                        <div key={key} className="flex items-center justify-between gap-2 py-1">
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    id={`chk_${key}`}
+                                                    type="checkbox"
+                                                    className="w-4 h-4"
+                                                    checked={selected}
+                                                    onChange={() => handleToggleProduct(key)}
+                                                />
+                                                <label htmlFor={`chk_${key}`} className="text-sm">
+                                                    {`${name} — Cant: ${qty}`}
+                                                </label>
+                                            </div>
+                                            <div className="w-28">
+                                                <input
+                                                    aria-label={`Cantidad a anular para ${name}`}
+                                                    className="w-full rounded-md border px-2 py-1 text-sm bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    type="number"
+                                                    min={1}
+                                                    max={qty}
+                                                    value={selected ? selectedProducts[key] : ""}
+                                                    onChange={(e) => {
+                                                        const raw = e.target.value
+                                                        // Permitimos escribir vacío o números parciales (ej. "2" mientras teclea)
+                                                        if (raw === "") {
+                                                            handleProductQuantityChange(key, 1)
+                                                        } else {
+                                                            const v = Number(raw)
+                                                            handleProductQuantityChange(key, isNaN(v) ? 1 : v)
+                                                        }
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        // Al salir del input, sí validamos límites (1 a qty)
+                                                        const v = Number(e.target.value)
+                                                        const clamped = Math.max(1, Math.min(v, qty))
+                                                        handleProductQuantityChange(key, clamped)
+                                                    }}
+                                                    disabled={!selected}
+                                                />
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Nota: la cantidad por producto se gestiona en la lista anterior por cada producto seleccionado */}
                         <div className="col-span-2 grid w-full gap-1.5">
                             <Label htmlFor="reason">Motivo Principal</Label>
                             <Textarea
@@ -127,18 +229,7 @@ export function AnularVentaModal({ isOpen, setIsOpen, saleId }: AnularVentaModal
                                 required
                             />
                         </div>
-                        <div className="hidden">
-                            <Label htmlFor="returnedQuantity">Cantidad Devuelta</Label>
-                            <Input
-                                id="returnedQuantity"
-                                type="hidden"
-                                min="1"
-                                placeholder="0"
-                                value={formState.returnedQuantity}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
+                        {/* deprecated hidden returnedQuantity removed to avoid id conflicts with visible input */}
                         <div className="hidden">
                             <Label htmlFor="processedBy">Procesado Por</Label>
                             <Input id="processedBy" type="hidden" value={user?.name || ""} readOnly disabled />

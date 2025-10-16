@@ -18,6 +18,9 @@ interface Props {
     rawProducts: IProduct[]
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     router: any
+    tercero: {
+        calculateThirdPartyPrice: (priceList: number) => { brutoCompra: number } | null
+    }
 }
 
 export function PurchaseOrderSummary({
@@ -29,6 +32,7 @@ export function PurchaseOrderSummary({
     rawProducts,
     setPedido,
     router,
+    tercero,
 }: Props) {
     const { user } = useAuth()
     if (!user) return null
@@ -37,28 +41,7 @@ export function PurchaseOrderSummary({
     const isSpecialRole = [Role.Vendedor, Role.Consignado, Role.Tercero].includes(user.role)
 
     const IVA = 1.19
-
-    // === Función para calcular el precio de compra del tercero (con IVA) ===
-    const calculateThirdPartyPrice = (
-        priceList: number,
-        markupTerceroMin = 1.5,
-        markupTerceroMax = 3.0,
-        step = 0.01
-    ) => {
-        for (
-            let markupFlotante = markupTerceroMin * IVA;
-            markupFlotante <= markupTerceroMax * IVA;
-            markupFlotante += step
-        ) {
-            const costoNetoTercero = priceList / markupFlotante
-            const brutoCompra = costoNetoTercero * IVA
-            const markupTercero = priceList / brutoCompra
-            if (markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax) {
-                return { brutoCompra }
-            }
-        }
-        return null
-    }
+    const { calculateThirdPartyPrice } = tercero
 
     // === Calcular neto de la orden según el rol ===
 

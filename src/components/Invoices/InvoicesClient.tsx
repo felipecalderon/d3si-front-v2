@@ -38,13 +38,20 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
 
     useEffect(() => {
         // Filtrar órdenes según el rol
-        const filteredOrders = isAdmin
-            ? initialOrders
-            : isStoreManager && storeSelected?.storeID
-            ? initialOrders.filter((order) => order.storeID === storeSelected.storeID)
-            : []
+        let filteredOrders: IOrderWithStore[] = []
+
+        if (isAdmin) {
+            filteredOrders = initialOrders
+        } else if (user?.role === Role.Tercero && user.userID) {
+            // Si es tercero, mostrar solo las órdenes creadas por el usuario logueado
+            filteredOrders = initialOrders.filter((order) => order.userID === user.userID)
+        } else if (isStoreManager && storeSelected?.storeID) {
+            // Si es gestor de tienda, mostrar solo las órdenes de la tienda seleccionada
+            filteredOrders = initialOrders.filter((order) => order.storeID === storeSelected.storeID)
+        }
+
         setOrders(filteredOrders)
-    }, [user])
+    }, [user, initialOrders, storeSelected, isAdmin, isStoreManager])
 
     const getStatusBadge = (status: string) => {
         const statusConfig = {

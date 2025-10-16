@@ -42,16 +42,33 @@ export interface ISaleResponse {
     Return: ISaleReturn | null
 }
 
+export interface IsaleProductReturned {
+    returnItemID: string
+    returnID: string
+    variationID: string
+    returnedQuantity: number
+    unitPrice: string
+    createdAt: string
+    updatedAt: string
+}
+
 export interface ISaleReturn {
     returnID: string
     saleID: string
     clientEmail: string
     reason: string
     type: "DEVOLUCION" | "GARANTIA"
-    returnedQuantity: 1
     processedBy: string
     additionalNotes: string
     createdAt: string
     updatedAt: string
     User: IUser
+    ProductAnulations: IsaleProductReturned[]
+}
+
+export type ISendSaleReturn = Omit<ISaleReturn, "returnID" | "createdAt" | "updatedAt" | "User" | "saleID"> & {
+    returnedProducts?: {
+        storeProductID: string
+        quantity: number
+    }[]
 }
