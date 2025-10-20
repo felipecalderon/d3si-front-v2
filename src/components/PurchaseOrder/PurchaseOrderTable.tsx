@@ -22,7 +22,7 @@ interface PurchaseOrderTableProps {
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     selectedStoreID: string
     tercero: {
-        calculateThirdPartyPrice: (priceList: number) => { brutoCompra: number; markupTercero: number } | null
+        calculateThirdPartyPrice: (variation: IProductVariation) => { brutoCompra: number }
         markupTerceroMin: number
         setMarkupTerceroMin: (value: number) => void
         markupTerceroMax: number
@@ -200,23 +200,12 @@ export function PurchaseOrderTable({
                                 let priceToShow = 0
                                 let markupToShow = 0
 
-                                if (isAdmin) {
-                                    priceToShow = variation.priceCost ?? 0
-                                    markupToShow = calculateMarkup(priceToShow, Number(variation.priceList))
-                                } else if (isTercero) {
-                                    const third = calculateThirdPartyPrice(Number(variation.priceList))
-                                    if (third) {
-                                        priceToShow = third.brutoCompra // lo que paga el tercero (con IVA)
-                                        markupToShow = third.markupTercero
-                                    } else {
-                                        priceToShow = Number(variation.priceList)
-                                        markupToShow = calculateMarkup(
-                                            Number(variation.priceCost),
-                                            Number(variation.priceList)
-                                        )
-                                    }
+                                if (isTercero) {
+                                    const third = calculateThirdPartyPrice(variation)
+                                    priceToShow = third.brutoCompra / 1.19
+                                    markupToShow = variation.priceList / priceToShow
                                 } else {
-                                    priceToShow = Number(variation.priceList)
+                                    priceToShow = Number(variation.priceCost)
                                     markupToShow = calculateMarkup(
                                         Number(variation.priceCost),
                                         Number(variation.priceList)

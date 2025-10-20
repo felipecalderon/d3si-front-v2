@@ -93,7 +93,6 @@ export default function PurchaseOrderClient({
 
     // 4. Hook para filtrar productos de tercero
     const {
-        filteredItems: terceroFilteredItems,
         markupTerceroMin,
         setMarkupTerceroMin,
         markupTerceroMax,
@@ -103,13 +102,8 @@ export default function PurchaseOrderClient({
         calculateThirdPartyPrice,
     } = useTerceroProducts(flattenedProducts)
 
-    // 5. Determinar qué lista de productos usar (normal o tercero)
-    const productsToDisplay = useMemo(() => {
-        return isTercero ? terceroFilteredItems : flattenedProducts
-    }, [isTercero, terceroFilteredItems, flattenedProducts])
-
     // 6. Hook para ordenamiento avanzado
-    const { sortedItems, orderByMarkup, setOrderByMarkup } = useProductSorting(productsToDisplay, isTercero)
+    const { sortedItems, orderByMarkup, setOrderByMarkup } = useProductSorting(flattenedProducts, isTercero)
 
     // 7. Paginación sobre la lista final ordenada
     const totalPages = Math.ceil(sortedItems.length / ITEMS_PER_PAGE)

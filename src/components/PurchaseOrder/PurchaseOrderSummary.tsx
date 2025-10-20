@@ -8,6 +8,7 @@ import { IProduct } from "@/interfaces/products/IProduct"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { toPrice } from "@/utils/priceFormat"
+import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
 interface Props {
     totalProductsInOrder: number
@@ -19,7 +20,7 @@ interface Props {
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     router: any
     tercero: {
-        calculateThirdPartyPrice: (priceList: number) => { brutoCompra: number } | null
+        calculateThirdPartyPrice: (variation: IProductVariation) => { brutoCompra: number }
     }
 }
 
@@ -60,7 +61,7 @@ export function PurchaseOrderSummary({
         // TERCERO usa el brutoCompra (ya incluye iva)
         if (user.role === Role.Tercero) {
             netoIncluyeIVA = true
-            const third = calculateThirdPartyPrice(Number(variation.priceList))
+            const third = calculateThirdPartyPrice(variation)
             const brutoCompra = third ? third.brutoCompra : (Number(variation.priceCost) || 0) * IVA
             return acc + brutoCompra * qty
         }
