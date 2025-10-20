@@ -24,22 +24,11 @@ export function useTerceroProducts(
     const [markupFlotanteMin, setMarkupFlotanteMin] = useState(initialMarkupFlotanteMin)
 
     const calculateThirdPartyPrice = useCallback(
-        (priceList: number, step = 0.01) => {
-            for (let markupFlotante = markupTerceroMin; markupFlotante <= markupTerceroMax; markupFlotante += step) {
-                const costoNetoTercero = priceList / markupFlotante
-                const brutoCompra = costoNetoTercero * IVA
-                const markupTercero = priceList / brutoCompra
-
-                if (markupTercero >= markupTerceroMin && markupTercero <= markupTerceroMax) {
-                    return {
-                        markupFlotante,
-                        costoNetoTercero,
-                        brutoCompra,
-                        markupTercero,
-                    }
-                }
+        (priceCost: number) => {
+            const costoNetoTercero = priceCost * markupFlotanteMin
+            return {
+                brutoCompra: costoNetoTercero * IVA,
             }
-            return null
         },
         [markupTerceroMin, markupTerceroMax]
     )

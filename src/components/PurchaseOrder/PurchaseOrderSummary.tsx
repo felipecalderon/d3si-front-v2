@@ -60,7 +60,7 @@ export function PurchaseOrderSummary({
         // TERCERO usa el brutoCompra (ya incluye iva)
         if (user.role === Role.Tercero) {
             netoIncluyeIVA = true
-            const third = calculateThirdPartyPrice(Number(variation.priceList))
+            const third = calculateThirdPartyPrice(Number(variation.priceCost))
             const brutoCompra = third ? third.brutoCompra : (Number(variation.priceCost) || 0) * IVA
             return acc + brutoCompra * qty
         }

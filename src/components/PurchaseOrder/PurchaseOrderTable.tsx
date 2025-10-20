@@ -22,7 +22,7 @@ interface PurchaseOrderTableProps {
     setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
     selectedStoreID: string
     tercero: {
-        calculateThirdPartyPrice: (priceList: number) => { brutoCompra: number; markupTercero: number } | null
+        calculateThirdPartyPrice: (priceCost: number) => { brutoCompra: number } | null
         markupTerceroMin: number
         setMarkupTerceroMin: (value: number) => void
         markupTerceroMax: number
@@ -202,12 +202,12 @@ export function PurchaseOrderTable({
 
                                 if (isAdmin) {
                                     priceToShow = variation.priceCost ?? 0
-                                    markupToShow = calculateMarkup(priceToShow, Number(variation.priceList))
+                                    markupToShow = variation.priceList / variation.priceCost
                                 } else if (isTercero) {
-                                    const third = calculateThirdPartyPrice(Number(variation.priceList))
+                                    const third = calculateThirdPartyPrice(Number(variation.priceCost))
                                     if (third) {
-                                        priceToShow = third.brutoCompra // lo que paga el tercero (con IVA)
-                                        markupToShow = third.markupTercero
+                                        priceToShow = third.brutoCompra / 1.19
+                                        markupToShow = variation.priceList / priceToShow
                                     } else {
                                         priceToShow = Number(variation.priceList)
                                         markupToShow = calculateMarkup(
