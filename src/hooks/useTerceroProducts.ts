@@ -24,8 +24,12 @@ export function useTerceroProducts(
     const [markupFlotanteMin, setMarkupFlotanteMin] = useState(initialMarkupFlotanteMin)
 
     const calculateThirdPartyPrice = useCallback(
-        (priceCost: number) => {
-            const costoNetoTercero = priceCost * markupFlotanteMin
+        (variation: IProductVariation) => {
+            let costoNetoTercero = variation.priceCost * markupFlotanteMin
+            const calcMarkup = variation.priceList / costoNetoTercero
+            if (calcMarkup > markupTerceroMax) {
+                costoNetoTercero = variation.priceList / markupTerceroMax
+            }
             return {
                 brutoCompra: costoNetoTercero * IVA,
             }
@@ -33,29 +37,7 @@ export function useTerceroProducts(
         [markupTerceroMin, markupTerceroMax]
     )
 
-    const filteredItems = useMemo(() => {
-        const cache = new Map<number, ReturnType<typeof calculateThirdPartyPrice>>()
-
-        return items.filter(({ variation }) => {
-            const priceList = Number(variation.priceList)
-            const priceCost = Number(variation.priceCost)
-            if (!priceList || !priceCost) return false
-
-            let third = cache.get(priceList)
-            if (third === undefined) {
-                third = calculateThirdPartyPrice(priceList)
-                cache.set(priceList, third)
-            }
-
-            if (!third) return false
-
-            const markupFlotante = third.brutoCompra / priceCost
-            return markupFlotante >= markupFlotanteMin
-        })
-    }, [items, markupFlotanteMin, calculateThirdPartyPrice])
-
     return {
-        filteredItems,
         markupTerceroMin,
         setMarkupTerceroMin,
         markupTerceroMax,
