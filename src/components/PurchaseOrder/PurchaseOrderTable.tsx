@@ -186,12 +186,6 @@ export function PurchaseOrderTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     SKU
                                 </TableHead>
-                                {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
-                                {!isTercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        TALLA
-                                    </TableHead>
-                                )}
                                 <TableHead
                                     className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200 cursor-pointer"
                                     onClick={() => setOrderByMarkup(!orderByMarkup)}
@@ -212,11 +206,9 @@ export function PurchaseOrderTable({
                                         STOCK TIENDA
                                     </TableHead>
                                 )}
-                                {isTercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        TALLA
-                                    </TableHead>
-                                )}
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    TALLA
+                                </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PEDIDO
                                 </TableHead>
@@ -309,14 +301,7 @@ export function PurchaseOrderTable({
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
-                                        {!isTercero && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
-                                            </TableCell>
-                                        )}
+                                        {/* Columna SKU */}
 
                                         {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
@@ -374,13 +359,12 @@ export function PurchaseOrderTable({
                                             </TableCell>
                                         )}
 
-                                        {isTercero && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
-                                            </TableCell>
-                                        )}
+                                        {/* Columna TALLA */}
+                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                            <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
+                                                <span className="font-medium">{variation.sizeNumber}</span>
+                                            </MotionItem>
+                                        </TableCell>
                                         {/* Columna CANTIDAD PEDIDO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`order-${variation.variationID}`} delay={index + 2}>
