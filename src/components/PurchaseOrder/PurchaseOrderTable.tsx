@@ -60,23 +60,64 @@ export function PurchaseOrderTable({
     }
 
     // === Ordenamiento ===
-    currentItems.sort((a, b) => {
-        // Marca primero
-        if (a.product.brand === "D3SI" && b.product.brand !== "D3SI") return -1
-        if (a.product.brand !== "D3SI" && b.product.brand === "D3SI") return 1
+    // Primero agrupamos por productID
+    const groupedItems = currentItems.reduce((groups, item) => {
+        const productID = item.product.productID
+        if (!groups[productID]) {
+            groups[productID] = []
+        }
+        groups[productID].push(item)
+        return groups
+    }, {} as Record<string, typeof currentItems>)
+
+    // Convertimos los grupos en array y ordenamos los productos
+    const sortedGroups = Object.values(groupedItems).sort((groupA, groupB) => {
+        const productA = groupA[0].product
+        const productB = groupB[0].product
+
+        // Array de marcas prioritarias en orden
+        const priorityBrands = ["D3SI", "Avocco"]
+
+        // Función para obtener el índice de prioridad (-1 si no es marca prioritaria)
+        const getPriorityIndex = (brand: string) => priorityBrands.indexOf(brand)
+
+        // Comparar por prioridad de marca
+        const priorityA = getPriorityIndex(productA.brand)
+        const priorityB = getPriorityIndex(productB.brand)
+
+        // Si ambas son marcas prioritarias, ordenar por su orden en el array
+        if (priorityA >= 0 && priorityB >= 0) {
+            return priorityA - priorityB
+        }
+        // Si solo una es prioritaria, esa va primero
+        if (priorityA >= 0) return -1
+        if (priorityB >= 0) return 1
 
         if (orderByMarkup) {
-            // Ordenar por markup (mayor beneficio primero)
-            const markupA = calculateMarkup(Number(a.variation.priceCost), Number(a.variation.priceList))
-            const markupB = calculateMarkup(Number(b.variation.priceCost), Number(b.variation.priceList))
-            return markupB - markupA
+            // Calculamos el markup promedio del grupo
+            const avgMarkupA =
+                groupA.reduce(
+                    (sum, item) =>
+                        sum + calculateMarkup(Number(item.variation.priceCost), Number(item.variation.priceList)),
+                    0
+                ) / groupA.length
+            const avgMarkupB =
+                groupB.reduce(
+                    (sum, item) =>
+                        sum + calculateMarkup(Number(item.variation.priceCost), Number(item.variation.priceList)),
+                    0
+                ) / groupB.length
+            return avgMarkupB - avgMarkupA
         } else {
-            // Ordenar por stock
-            const stockA = a.variation.stockQuantity ?? 0
-            const stockB = b.variation.stockQuantity ?? 0
-            return stockB - stockA
+            // Calculamos el stock total del grupo
+            const totalStockA = groupA.reduce((sum, item) => sum + (item.variation.stockQuantity ?? 0), 0)
+            const totalStockB = groupB.reduce((sum, item) => sum + (item.variation.stockQuantity ?? 0), 0)
+            return totalStockB - totalStockA
         }
     })
+
+    // Aplanamos los grupos ordenados de vuelta a un array
+    currentItems = sortedGroups.flatMap((group) => group)
 
     return (
         <div className="flex-1 flex flex-col">
@@ -145,12 +186,6 @@ export function PurchaseOrderTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     SKU
                                 </TableHead>
-                                {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
-                                {!isTercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        TALLA
-                                    </TableHead>
-                                )}
                                 <TableHead
                                     className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200 cursor-pointer"
                                     onClick={() => setOrderByMarkup(!orderByMarkup)}
@@ -171,11 +206,9 @@ export function PurchaseOrderTable({
                                         STOCK TIENDA
                                     </TableHead>
                                 )}
-                                {isTercero && (
-                                    <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        TALLA
-                                    </TableHead>
-                                )}
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    TALLA
+                                </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PEDIDO
                                 </TableHead>
@@ -268,14 +301,7 @@ export function PurchaseOrderTable({
                                             </MotionItem>
                                         </TableCell>
 
-                                        {/* Si es tercero, TALLA va antes de CANTIDAD PEDIDO */}
-                                        {!isTercero && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
-                                            </TableCell>
-                                        )}
+                                        {/* Columna SKU */}
 
                                         {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
@@ -296,7 +322,9 @@ export function PurchaseOrderTable({
                                                     {/* {isTercero && ( */}
                                                     <span
                                                         className={`font-semibold text-xs ${
-                                                            markupToShow >= 1.7 ? "text-green-600" : "text-red-600"
+                                                            markupToShow >= markupTerceroMin
+                                                                ? "text-green-600"
+                                                                : "text-red-600"
                                                         }`}
                                                     >
                                                         {markupToShow.toFixed(2)}
@@ -333,13 +361,12 @@ export function PurchaseOrderTable({
                                             </TableCell>
                                         )}
 
-                                        {isTercero && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
-                                                    <span className="font-medium">{variation.sizeNumber}</span>
-                                                </MotionItem>
-                                            </TableCell>
-                                        )}
+                                        {/* Columna TALLA */}
+                                        <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
+                                            <MotionItem key={`size-${variation.variationID}`} delay={index + 2}>
+                                                <span className="font-medium">{variation.sizeNumber}</span>
+                                            </MotionItem>
+                                        </TableCell>
                                         {/* Columna CANTIDAD PEDIDO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`order-${variation.variationID}`} delay={index + 2}>

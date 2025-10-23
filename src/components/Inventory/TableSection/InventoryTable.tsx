@@ -89,8 +89,8 @@ export function InventoryTable({
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     TALLA
                                 </TableHead>
-                                {/* PRECIO COSTO solo si no es vendedor ni tercero */}
-                                {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
+                                {/* PRECIO COSTO se muestra solo si es admin */}
+                                {user?.role === Role.Admin && (
                                     <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                         COSTO NETO
                                     </TableHead>
@@ -325,8 +325,8 @@ export function InventoryTable({
                                             )}
                                         </TableCell>
 
-                                        {/* Columna PRECIO COSTO solo si no es vendedor ni tercero */}
-                                        {user?.role !== Role.Vendedor && user?.role !== Role.Tercero && (
+                                        {/* Columna PRECIO COSTO se muestra solo si es admin */}
+                                        {user?.role === Role.Admin && (
                                             <TableCell
                                                 className={`w-32 text-center py-3 transition-colors ${
                                                     isEditable

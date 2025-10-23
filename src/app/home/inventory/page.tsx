@@ -29,8 +29,8 @@ export default async function InventoryPage() {
         wp-json/wc/v3/products/[wooID]/variations/[wooID] <- variaciones
      */
 
-    const parentProducts = mapToWooParentProducts(productsData)
-    console.log(createWooParentProducts(parentProducts))
+    // const parentProducts = mapToWooParentProducts(productsData)
+    // console.log(createWooParentProducts(parentProducts))
 
     return (
         <main className="p-6 flex-1 flex flex-col h-screen">
