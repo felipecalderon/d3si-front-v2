@@ -95,8 +95,13 @@ export default function PurchaseOrderClient({
 
         // Procesar cada producto
         for (const product of sortedProducts) {
-            // Para cada variación del producto
-            product.ProductVariations.forEach((variation) => {
+            // Ordenar las variaciones por stock de mayor a menor
+            const sortedVariations = [...product.ProductVariations].sort(
+                (a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0)
+            )
+
+            // Para cada variación del producto (ahora ordenadas por stock)
+            sortedVariations.forEach((variation) => {
                 // Si la página actual está llena, empezar una nueva
                 if (currentPage.length >= VARIATIONS_PER_PAGE) {
                     pages.push(currentPage)
