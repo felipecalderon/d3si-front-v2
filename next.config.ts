@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: "https",
+                hostname: "www.d3si.cl",
+            },
+            {
+                protocol: "https",
                 hostname: "bing.com",
             },
             {

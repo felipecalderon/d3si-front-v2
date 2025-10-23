@@ -116,8 +116,14 @@ export function PurchaseOrderTable({
         }
     })
 
-    // Aplanamos los grupos ordenados de vuelta a un array
-    currentItems = sortedGroups.flatMap((group) => group)
+    // Aplanamos los grupos ordenados de vuelta a un array y marcamos el primer item de cada grupo
+    currentItems = sortedGroups.flatMap((group) => {
+        // Marcamos la primera variación de cada grupo como isFirst
+        return group.map((item, index) => ({
+            ...item,
+            isFirst: index === 0, // Sobreescribimos isFirst para que solo sea true en la primera variación de cada grupo
+        }))
+    })
 
     return (
         <div className="flex-1 flex flex-col">
