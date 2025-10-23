@@ -15,9 +15,9 @@ interface PurchaseOrderItem {
 
 export function useTerceroProducts(
     items: PurchaseOrderItem[],
-    initialMarkupTerceroMin = 1.7,
+    initialMarkupTerceroMin = 1.6,
     initialMarkupTerceroMax = 3.0,
-    initialMarkupFlotanteMin = 1.4
+    initialMarkupFlotanteMin = 1.5
 ) {
     const [markupTerceroMin, setMarkupTerceroMin] = useState(initialMarkupTerceroMin)
     const [markupTerceroMax, setMarkupTerceroMax] = useState(initialMarkupTerceroMax)
@@ -25,13 +25,13 @@ export function useTerceroProducts(
 
     const calculateThirdPartyPrice = useCallback(
         (variation: IProductVariation) => {
-            let costoNetoTercero = variation.priceCost * markupFlotanteMin
-            const calcMarkup = variation.priceList / costoNetoTercero
+            let costoBrutoTercero = variation.priceCost * markupFlotanteMin
+            const calcMarkup = variation.priceList / costoBrutoTercero
             if (calcMarkup > markupTerceroMax) {
-                costoNetoTercero = variation.priceList / markupTerceroMax
+                costoBrutoTercero = variation.priceList / markupTerceroMax
             }
             return {
-                brutoCompra: costoNetoTercero * IVA,
+                brutoCompra: costoBrutoTercero,
             }
         },
         [markupTerceroMin, markupTerceroMax]

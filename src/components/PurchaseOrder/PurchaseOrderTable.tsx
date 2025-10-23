@@ -322,7 +322,9 @@ export function PurchaseOrderTable({
                                                     {/* {isTercero && ( */}
                                                     <span
                                                         className={`font-semibold text-xs ${
-                                                            markupToShow >= 1.7 ? "text-green-600" : "text-red-600"
+                                                            markupToShow >= markupTerceroMin
+                                                                ? "text-green-600"
+                                                                : "text-red-600"
                                                         }`}
                                                     >
                                                         {markupToShow.toFixed(2)}
