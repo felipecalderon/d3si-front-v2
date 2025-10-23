@@ -80,18 +80,38 @@ export default function PurchaseOrderClient({
         )
     }, [search, filteredByStore])
 
-    // 3. Aplanar productos con variaciones
+    // 3. Agrupar productos y sus variaciones
+    const groupedProducts = useMemo(() => {
+        const grouped = searchedProducts.map((product) => ({
+            product,
+            variations: product.ProductVariations,
+            totalStock: product.ProductVariations.reduce((sum, v) => sum + (v.stockQuantity || 0), 0),
+        }))
+
+        // Ordenar grupos por stock total o criterios específicos
+        grouped.sort((a, b) => b.totalStock - a.totalStock)
+
+        return grouped
+    }, [searchedProducts])
+
+    // 4. Paginación a nivel de grupos de productos
+    const totalPages = Math.ceil(groupedProducts.length / ITEMS_PER_PAGE)
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    const currentGroups = groupedProducts.slice(startIndex, endIndex)
+
+    // 5. Aplanar solo los grupos de la página actual
     const flattenedProducts = useMemo(() => {
         const flattened: Array<{ product: IProduct; variation: any; isFirst: boolean }> = []
-        searchedProducts.forEach((product) => {
+        currentGroups.forEach(({ product }) => {
             product.ProductVariations.forEach((variation, index) => {
                 flattened.push({ product, variation, isFirst: index === 0 })
             })
         })
         return flattened
-    }, [searchedProducts])
+    }, [currentGroups])
 
-    // 4. Hook para filtrar productos de tercero
+    // 6. Hook para filtrar productos de tercero
     const {
         markupTerceroMin,
         setMarkupTerceroMin,
@@ -105,11 +125,8 @@ export default function PurchaseOrderClient({
     // 6. Hook para ordenamiento avanzado
     const { sortedItems, orderByMarkup, setOrderByMarkup } = useProductSorting(flattenedProducts, isTercero)
 
-    // 7. Paginación sobre la lista final ordenada
-    const totalPages = Math.ceil(sortedItems.length / ITEMS_PER_PAGE)
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const currentItems = sortedItems.slice(startIndex, endIndex)
+    // La paginación ahora se maneja a nivel de grupos de productos
+    const currentItems = flattenedProducts
 
     // --- Fin de la lógica de filtrado y ordenamiento ---
 
@@ -140,11 +157,7 @@ export default function PurchaseOrderClient({
     }
 
     // Calcular productos únicos en la página actual
-    const uniqueProductsInCurrentPage = useMemo(() => {
-        const uniqueProductIds = new Set<string>()
-        currentItems.forEach(({ product }) => uniqueProductIds.add(product.productID))
-        return uniqueProductIds.size
-    }, [currentItems])
+    const uniqueProductsInCurrentPage = currentGroups.length
 
     // Calcular subtotal y total de productos en el pedido
     const subtotal = useMemo(() => {
