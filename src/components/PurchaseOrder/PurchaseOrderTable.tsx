@@ -60,15 +60,34 @@ export function PurchaseOrderTable({
     }
 
     // === Ordenamiento ===
-    // Primero agrupamos por productID
+    // Función para normalizar el nombre del producto
+    const normalizeProductName = (name: string) => {
+        return name.trim().toLowerCase().replace(/\s+/g, " ")
+    }
+
+    // Primero agrupamos por productID y nombre normalizado
     const groupedItems = currentItems.reduce((groups, item) => {
-        const productID = item.product.productID
-        if (!groups[productID]) {
-            groups[productID] = []
+        // Usamos una combinación de ID y nombre normalizado como key
+        const normalizedName = normalizeProductName(item.product.name)
+        const groupKey = `${item.product.productID}-${normalizedName}`
+
+        if (!groups[groupKey]) {
+            groups[groupKey] = []
         }
-        groups[productID].push(item)
+        groups[groupKey].push(item)
         return groups
     }, {} as Record<string, typeof currentItems>)
+
+    // Debug: ver grupos
+    console.log(
+        "Grupos de productos:",
+        Object.entries(groupedItems).map(([key, items]) => ({
+            key,
+            productName: items[0].product.name,
+            count: items.length,
+            variations: items.map((i) => i.variation.sku),
+        }))
+    )
 
     // Convertimos los grupos en array y ordenamos los productos
     const sortedGroups = Object.values(groupedItems).sort((groupA, groupB) => {
@@ -116,8 +135,14 @@ export function PurchaseOrderTable({
         }
     })
 
-    // Aplanamos los grupos ordenados de vuelta a un array
-    currentItems = sortedGroups.flatMap((group) => group)
+    // Aplanamos los grupos ordenados de vuelta a un array y marcamos el primer item de cada grupo
+    currentItems = sortedGroups.flatMap((group) => {
+        // Marcamos la primera variación de cada grupo como isFirst
+        return group.map((item, index) => ({
+            ...item,
+            isFirst: index === 0, // Sobreescribimos isFirst para que solo sea true en la primera variación de cada grupo
+        }))
+    })
 
     return (
         <div className="flex-1 flex flex-col">
