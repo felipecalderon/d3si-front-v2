@@ -23,7 +23,7 @@ import { inventoryStore } from "@/stores/inventory.store"
 import { useAuth } from "@/stores/user.store"
 import { useTienda } from "@/stores/tienda.store"
 
-const ITEMS_PER_PAGE = 10
+const VARIATIONS_PER_PAGE = 15 // Máximo de variaciones por página
 
 export default function PurchaseOrderClient({
     initialProducts,
@@ -80,18 +80,63 @@ export default function PurchaseOrderClient({
         )
     }, [search, filteredByStore])
 
-    // 3. Aplanar productos con variaciones
-    const flattenedProducts = useMemo(() => {
-        const flattened: Array<{ product: IProduct; variation: any; isFirst: boolean }> = []
-        searchedProducts.forEach((product) => {
-            product.ProductVariations.forEach((variation, index) => {
-                flattened.push({ product, variation, isFirst: index === 0 })
-            })
+    // 3. Paginar por variaciones (máximo 15 por página)
+    const paginatedProducts = useMemo(() => {
+        const pages: Array<Array<{ product: IProduct; variation: any; isFirst: boolean }>> = []
+        let currentPage: Array<{ product: IProduct; variation: any; isFirst: boolean }> = []
+        let lastProductId: string | null = null
+
+        // Ordenar productos por stock total primero
+        const sortedProducts = [...searchedProducts].sort((a, b) => {
+            const stockA = a.ProductVariations.reduce((sum, v) => sum + (v.stockQuantity || 0), 0)
+            const stockB = b.ProductVariations.reduce((sum, v) => sum + (v.stockQuantity || 0), 0)
+            return stockB - stockA
         })
-        return flattened
+
+        // Procesar cada producto
+        for (const product of sortedProducts) {
+            // Ordenar las variaciones por stock de mayor a menor
+            const sortedVariations = [...product.ProductVariations].sort(
+                (a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0)
+            )
+
+            // Para cada variación del producto (ahora ordenadas por stock)
+            sortedVariations.forEach((variation) => {
+                // Si la página actual está llena, empezar una nueva
+                if (currentPage.length >= VARIATIONS_PER_PAGE) {
+                    pages.push(currentPage)
+                    currentPage = []
+                    lastProductId = null // Reset lastProductId para la nueva página
+                }
+
+                // Determinar si esta variación debe mostrar el nombre del producto
+                const isFirst = product.productID !== lastProductId
+
+                // Añadir la variación a la página actual
+                currentPage.push({
+                    product,
+                    variation,
+                    isFirst,
+                })
+
+                // Actualizar el último productId procesado
+                lastProductId = product.productID
+            })
+        }
+
+        // Añadir la última página si contiene elementos
+        if (currentPage.length > 0) {
+            pages.push(currentPage)
+        }
+
+        return pages
     }, [searchedProducts])
 
-    // 4. Hook para filtrar productos de tercero
+    // Calcular el número total de páginas y obtener los items de la página actual
+    const totalPages = paginatedProducts.length
+    const flattenedProducts = useMemo(() => paginatedProducts[currentPage - 1] || [], [paginatedProducts, currentPage])
+
+    // 6. Hook para filtrar productos de tercero
     const {
         markupTerceroMin,
         setMarkupTerceroMin,
@@ -102,14 +147,12 @@ export default function PurchaseOrderClient({
         calculateThirdPartyPrice,
     } = useTerceroProducts(flattenedProducts)
 
-    // 6. Hook para ordenamiento avanzado
-    const { sortedItems, orderByMarkup, setOrderByMarkup } = useProductSorting(flattenedProducts, isTercero)
+    // 6. Hook para ordenamiento avanzado (ya no necesitamos ordenar aquí, se hace en la paginación)
+    const { orderByMarkup, setOrderByMarkup } = useProductSorting(flattenedProducts, isTercero)
 
-    // 7. Paginación sobre la lista final ordenada
-    const totalPages = Math.ceil(sortedItems.length / ITEMS_PER_PAGE)
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const currentItems = sortedItems.slice(startIndex, endIndex)
+    // Usar directamente los productos paginados
+    const currentItems = flattenedProducts
+    const sortedItems = flattenedProducts // Para mantener compatibilidad con el resto del código
 
     // --- Fin de la lógica de filtrado y ordenamiento ---
 
@@ -141,10 +184,9 @@ export default function PurchaseOrderClient({
 
     // Calcular productos únicos en la página actual
     const uniqueProductsInCurrentPage = useMemo(() => {
-        const uniqueProductIds = new Set<string>()
-        currentItems.forEach(({ product }) => uniqueProductIds.add(product.productID))
-        return uniqueProductIds.size
-    }, [currentItems])
+        const uniqueIds = new Set(flattenedProducts.map((item) => item.product.productID))
+        return uniqueIds.size
+    }, [flattenedProducts])
 
     // Calcular subtotal y total de productos en el pedido
     const subtotal = useMemo(() => {
@@ -282,8 +324,8 @@ export default function PurchaseOrderClient({
                                 </Badge>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Página {currentPage} de {totalPages} - {sortedItems.length} productos (
-                                {sortedItems.length} variaciones)
+                                Página {currentPage} de {totalPages} - {uniqueProductsInCurrentPage} productos (
+                                {flattenedProducts.length} variaciones)
                             </p>
                         </div>
                     </div>
