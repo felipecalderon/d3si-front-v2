@@ -41,7 +41,7 @@ export function PurchaseOrderTable({
 }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
-    const isTercero = user?.role === Role.Tercero
+    const isTercero = user?.role !== Role.Admin
     const [orderByMarkup, setOrderByMarkup] = useState(false)
 
     const {
@@ -121,7 +121,7 @@ export function PurchaseOrderTable({
 
     return (
         <div className="flex-1 flex flex-col">
-            {isTercero && (
+            {!isTercero && (
                 <div className="flex gap-4 mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg shadow w-1/2">
                     <div className="flex-1">
                         <label
@@ -306,9 +306,7 @@ export function PurchaseOrderTable({
                                         {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
-                                                <span className="font-semibold text-sm">
-                                                    ${Math.round(priceToShow).toLocaleString("es-CO")}
-                                                </span>
+                                                <span className="font-semibold text-sm">${toPrice(priceToShow)}</span>
                                             </MotionItem>
                                         </TableCell>
 

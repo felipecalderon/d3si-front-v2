@@ -5,23 +5,23 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: "https",
-                hostname: "cloudinary.com",
+                hostname: "*.cloudinary.com",
             },
             {
                 protocol: "https",
-                hostname: "d3si.cl",
+                hostname: "*.d3si.cl",
             },
             {
                 protocol: "https",
-                hostname: "bing.com",
+                hostname: "*.bing.com",
             },
             {
                 protocol: "https",
-                hostname: "vtexassets.com",
+                hostname: "*.vtexassets.com",
             },
             {
                 protocol: "https",
-                hostname: "procircuit.cl",
+                hostname: "*.procircuit.cl",
             },
         ],
     },
