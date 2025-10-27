@@ -129,10 +129,11 @@ export const calculateCategoryStats = (products: IProduct[], categories: ICatego
         const stats = statsMap.get(categoryId)
         if (stats) {
             stats.productCount += 1
+            // Contar variaciones y sumar costos
+            stats.count += product.ProductVariations.length
             for (const v of product.ProductVariations) {
                 stats.totalCost += Number(v.priceCost)
                 stats.totalRevenue += Number(v.priceList)
-                stats.count += v.stockQuantity
             }
         }
     }
