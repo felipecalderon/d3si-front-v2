@@ -3,6 +3,8 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
+import { ChevronUp } from "lucide-react"
+import { OrderReviewModal } from "./OrderReviewModal"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal"
@@ -45,6 +47,7 @@ export function PurchaseOrderTable({
     const isTercero = user?.role !== Role.Admin
     const [orderByMarkup, setOrderByMarkup] = useState(false)
     const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null)
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
 
     const {
         calculateThirdPartyPrice,
@@ -146,8 +149,38 @@ export function PurchaseOrderTable({
         }))
     })
 
+    // Preparar items para el modal de revisión
+    const orderItems = currentItems
+        .filter((item) => pedido[item.variation.sku] > 0)
+        .map((item) => ({
+            product: item.product,
+            variation: item.variation,
+            quantity: pedido[item.variation.sku],
+            price: isTercero
+                ? calculateThirdPartyPrice(item.variation).brutoCompra / 1.19
+                : Number(item.variation.priceCost),
+        }))
+
     return (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
+            {/* Botón flotante para revisar orden */}
+            {Object.keys(pedido).some((sku) => pedido[sku] > 0) && (
+                <button
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="fixed bottom-16 right-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 transition-all hover:transform hover:scale-105 group z-50"
+                >
+                    <span>Revisar mi orden</span>
+                    <ChevronUp className="w-5 h-5 animate-bounce" />
+                </button>
+            )}
+
+            {/* Modal de revisión de orden */}
+            <OrderReviewModal
+                isOpen={isReviewModalOpen}
+                onClose={() => setIsReviewModalOpen(false)}
+                items={orderItems}
+            />
+
             {selectedImage && (
                 <ImagePreviewModal
                     isOpen={!!selectedImage}
