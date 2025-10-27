@@ -3,19 +3,22 @@ import { Badge } from "@/components/ui/badge"
 
 interface InventoryStatsProps {
     totalStockCentral: number
+    filteredStockTotal: number
     uniqueProductsInCurrentPage: number
     searchedProductsLength: number
 }
 
 export default function InventoryStats({
     totalStockCentral,
+    filteredStockTotal,
     uniqueProductsInCurrentPage,
     searchedProductsLength,
 }: InventoryStatsProps) {
+    const stockToShow = filteredStockTotal || totalStockCentral
     return (
         <div className="flex items-center gap-4">
             <Badge variant="secondary" className="text-sm px-3 py-1">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">{totalStockCentral}</span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">{stockToShow}</span>
                 <span className="ml-1">productos en stock</span>
             </Badge>
             <Badge variant="outline" className="text-sm px-3 py-1">

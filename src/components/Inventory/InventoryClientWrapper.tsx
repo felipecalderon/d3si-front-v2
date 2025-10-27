@@ -50,6 +50,7 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
         adminStoreIDs,
         getVisiblePages,
         setCurrentPage,
+        filteredStockTotal,
     } = useInventory(initialProducts, stores)
 
     useEffect(() => {
@@ -166,6 +167,7 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
             <MotionItem delay={0}>
                 <InventoryHeader
                     totalStockCentral={totalStockShown}
+                    filteredStockTotal={filteredStockTotal}
                     uniqueProductsInCurrentPage={uniqueProductsInCurrentPage}
                     searchedProductsLength={filteredProducts.length}
                 />

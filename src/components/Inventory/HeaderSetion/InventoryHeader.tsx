@@ -6,12 +6,14 @@ import { useAuth } from "@/stores/user.store"
 
 interface InventoryHeaderProps {
     totalStockCentral: number
+    filteredStockTotal: number
     uniqueProductsInCurrentPage: number
     searchedProductsLength: number
 }
 
 export default function InventoryHeader({
     totalStockCentral,
+    filteredStockTotal,
     uniqueProductsInCurrentPage,
     searchedProductsLength,
 }: InventoryHeaderProps) {
@@ -35,6 +37,7 @@ export default function InventoryHeader({
             <div className="flex items-center gap-4">
                 <InventoryStats
                     totalStockCentral={totalStockCentral}
+                    filteredStockTotal={filteredStockTotal}
                     uniqueProductsInCurrentPage={uniqueProductsInCurrentPage}
                     searchedProductsLength={searchedProductsLength}
                 />
