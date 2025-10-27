@@ -35,6 +35,7 @@ export interface IProgressData {
     id: string
     name: string
     productCount: number
+    totalRevenue: number
     percentage: number
     color: string
 }
@@ -128,8 +129,8 @@ export const calculateCategoryStats = (products: IProduct[], categories: ICatego
         if (stats) {
             stats.productCount += 1
             for (const v of product.ProductVariations) {
-                stats.totalCost += Number(v.priceCost) * v.stockQuantity
-                stats.totalRevenue += Number(v.priceList) * v.stockQuantity
+                stats.totalCost += Number(v.priceCost)
+                stats.totalRevenue += Number(v.priceList)
                 stats.count += v.stockQuantity
             }
         }
@@ -222,6 +223,7 @@ export const generateProgressData = (subcategoryStats: ICategoryStats[]): IProgr
             id: sub.id,
             name: sub.name,
             productCount: sub.productCount,
+            totalRevenue: sub.totalCost || 0,
             percentage: totalProducts > 0 ? (sub.productCount / totalProducts) * 100 : 0,
             color: COLORS[index % COLORS.length],
         }))
