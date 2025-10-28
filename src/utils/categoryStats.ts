@@ -34,7 +34,8 @@ export interface IPieData {
 export interface IProgressData {
     id: string
     name: string
-    productCount: number
+    totalStock: number
+    totalRevenue: number
     percentage: number
     color: string
 }
@@ -127,10 +128,12 @@ export const calculateCategoryStats = (products: IProduct[], categories: ICatego
         const stats = statsMap.get(categoryId)
         if (stats) {
             stats.productCount += 1
+            // Contar stock real y calcular costos basados en stock
             for (const v of product.ProductVariations) {
-                stats.totalCost += Number(v.priceCost) * v.stockQuantity
-                stats.totalRevenue += Number(v.priceList) * v.stockQuantity
-                stats.count += v.stockQuantity
+                const stockQuantity = v.stockQuantity || 0
+                stats.count += stockQuantity
+                stats.totalCost += Number(v.priceCost) * stockQuantity
+                stats.totalRevenue += Number(v.priceList) * stockQuantity
             }
         }
     }
@@ -216,14 +219,15 @@ export const generatePieData = (
 }
 
 export const generateProgressData = (subcategoryStats: ICategoryStats[]): IProgressData[] => {
-    const totalProducts = subcategoryStats.reduce((sum, item) => sum + item.productCount, 0)
+    const totalStock = subcategoryStats.reduce((sum, item) => sum + item.count, 0)
     return subcategoryStats
         .map((sub, index) => ({
             id: sub.id,
             name: sub.name,
-            productCount: sub.productCount,
-            percentage: totalProducts > 0 ? (sub.productCount / totalProducts) * 100 : 0,
+            totalStock: sub.count || 0,
+            totalRevenue: sub.totalCost || 0,
+            percentage: totalStock > 0 ? (sub.count / totalStock) * 100 : 0,
             color: COLORS[index % COLORS.length],
         }))
-        .sort((a, b) => b.productCount - a.productCount)
+        .sort((a, b) => b.totalStock - a.totalStock)
 }

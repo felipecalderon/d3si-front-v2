@@ -3,8 +3,11 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
+import { ChevronUp } from "lucide-react"
+import { OrderReviewModal } from "./OrderReviewModal"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
@@ -41,8 +44,10 @@ export function PurchaseOrderTable({
 }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
-    const isTercero = user?.role === Role.Tercero
+    const isTercero = user?.role !== Role.Admin
     const [orderByMarkup, setOrderByMarkup] = useState(false)
+    const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null)
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
 
     const {
         calculateThirdPartyPrice,
@@ -144,9 +149,47 @@ export function PurchaseOrderTable({
         }))
     })
 
+    // Preparar items para el modal de revisión
+    const orderItems = currentItems
+        .filter((item) => pedido[item.variation.sku] > 0)
+        .map((item) => ({
+            product: item.product,
+            variation: item.variation,
+            quantity: pedido[item.variation.sku],
+            price: isTercero
+                ? calculateThirdPartyPrice(item.variation).brutoCompra / 1.19
+                : Number(item.variation.priceCost),
+        }))
+
     return (
-        <div className="flex-1 flex flex-col">
-            {isTercero && (
+        <div className="flex-1 flex flex-col relative">
+            {/* Botón flotante para revisar orden */}
+            {Object.keys(pedido).some((sku) => pedido[sku] > 0) && (
+                <button
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="fixed bottom-16 right-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 transition-all hover:transform hover:scale-105 group z-50"
+                >
+                    <span>Revisar mi orden</span>
+                    <ChevronUp className="w-5 h-5 animate-bounce" />
+                </button>
+            )}
+
+            {/* Modal de revisión de orden */}
+            <OrderReviewModal
+                isOpen={isReviewModalOpen}
+                onClose={() => setIsReviewModalOpen(false)}
+                items={orderItems}
+            />
+
+            {selectedImage && (
+                <ImagePreviewModal
+                    isOpen={!!selectedImage}
+                    onClose={() => setSelectedImage(null)}
+                    imageUrl={selectedImage.url}
+                    productName={selectedImage.name}
+                />
+            )}
+            {!isTercero && (
                 <div className="flex gap-4 mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg shadow w-1/2">
                     <div className="flex-1">
                         <label
@@ -285,26 +328,41 @@ export function PurchaseOrderTable({
                                         {isFirst && (
                                             <TableCell className="py-2 px-3 text-left w-1/4">
                                                 <MotionItem key={`product-${product.productID}`} delay={index + 2}>
-                                                    <div className="relative w-full flex items-center gap-3">
+                                                    <div className="relative w-full flex items-center gap-4">
                                                         <div className="relative">
-                                                            <Image
-                                                                src={product.image || "/placeholder.svg"}
-                                                                alt={product.name}
-                                                                width={48}
-                                                                height={48}
-                                                                className="w-12 h-12 object-cover rounded border"
-                                                                style={{ objectFit: "cover" }}
-                                                            />
-                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                                            <button
+                                                                onClick={() =>
+                                                                    setSelectedImage({
+                                                                        url: product.image || "/placeholder.svg",
+                                                                        name: product.name,
+                                                                    })
+                                                                }
+                                                                className="relative group cursor-pointer transition-transform transform hover:scale-105"
+                                                            >
+                                                                <Image
+                                                                    src={product.image || "/placeholder.svg"}
+                                                                    alt={product.name}
+                                                                    width={80}
+                                                                    height={80}
+                                                                    className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                                                    style={{ objectFit: "cover" }}
+                                                                />
+                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
+                                                                    <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium">
+                                                                        Ver imagen
+                                                                    </span>
+                                                                </div>
+                                                            </button>
+                                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 text-white text-sm rounded-full flex items-center justify-center font-bold shadow-md">
                                                                 {product.ProductVariations.length}
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <span className="font-medium text-sm block truncate">
+                                                            <span className="font-medium text-base block truncate">
                                                                 {product.name}
                                                             </span>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full font-medium">
                                                                     {product.ProductVariations.length} variaciones
                                                                 </span>
                                                             </div>
@@ -331,9 +389,7 @@ export function PurchaseOrderTable({
                                         {/* Columna PRECIO LISTA o COSTO */}
                                         <TableCell className="w-32 text-center py-3 transition-colors">
                                             <MotionItem key={`price-${variation.variationID}`} delay={index + 2}>
-                                                <span className="font-semibold text-sm">
-                                                    ${Math.round(priceToShow).toLocaleString("es-CO")}
-                                                </span>
+                                                <span className="font-semibold text-sm">${toPrice(priceToShow)}</span>
                                             </MotionItem>
                                         </TableCell>
 

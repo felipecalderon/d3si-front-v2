@@ -34,9 +34,12 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
 
     const adminStoreIDs = useMemo(() => stores.filter((s) => s.isAdminStore).map((s) => s.storeID), [stores])
 
-    const filteredProducts = useMemo(() => {
+    const result = useMemo(() => {
         return applyColumnFilters(rawProducts, columnFilters)
     }, [rawProducts, columnFilters])
+
+    const filteredProducts = result.filteredProducts
+    const totalStock = result.totalStock
 
     const flattenedProducts = useMemo<FlattenedItem[]>(() => {
         const flattened: FlattenedItem[] = []
@@ -126,5 +129,6 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
         adminStoreIDs,
         getVisiblePages,
         setCurrentPage,
+        filteredStockTotal: totalStock,
     }
 }

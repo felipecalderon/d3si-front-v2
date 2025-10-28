@@ -170,7 +170,7 @@ export function ColumnFilters({ filters, onFilterChange, onClearFilters }: Colum
 
 // Helper function to apply filters - ACTUALIZADA para búsqueda exacta en campos numéricos
 export function applyColumnFilters(products: any[], filters: any) {
-    return products.filter((product) => {
+    const filteredProducts = products.filter((product) => {
         // PRODUCTO filter (name, sku, genre)
         if (filters.producto.trim()) {
             const searchTerm = filters.producto.toLowerCase()
@@ -195,6 +195,21 @@ export function applyColumnFilters(products: any[], filters: any) {
 
         return true
     })
+
+    // Calcular el stock total de los productos filtrados
+    const totalStock = filteredProducts.reduce((sum, product) => {
+        return (
+            sum +
+            product.ProductVariations.reduce((varSum: number, variation: any) => {
+                return varSum + (variation.stockQuantity || 0)
+            }, 0)
+        )
+    }, 0)
+
+    return {
+        filteredProducts,
+        totalStock: filters.producto.trim() || filters.marca.trim() || filters.categoria.trim() ? totalStock : 0,
+    }
 }
 
 // Helper function to apply variation-level filters - ACTUALIZADA para búsqueda exacta
