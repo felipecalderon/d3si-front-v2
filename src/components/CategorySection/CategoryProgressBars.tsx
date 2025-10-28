@@ -52,9 +52,7 @@ export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: C
                                         {item.name}
                                     </span>
                                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>{item.productCount} productos</span>
-                                        <span>|</span>
-                                        <span>Variaciones: {item.variationsCount}</span>
+                                        <span>Cantidad: {item.totalStock} unidades</span>
                                         <span>|</span>
                                         <span>
                                             Valor:{" "}
