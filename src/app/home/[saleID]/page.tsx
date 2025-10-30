@@ -14,6 +14,7 @@ interface PropsSale {
 export default async function SingleSalePage({ params }: PropsSale) {
     const { saleID } = await params
     const sale = await getSingleSale(saleID)
+    console.log(sale)
     const products = sale.SaleProducts
     if (!sale || !products) return null
     const total = products.reduce((acc, act) => acc + act.subtotal, 0)

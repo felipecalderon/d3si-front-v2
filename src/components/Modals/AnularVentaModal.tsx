@@ -41,7 +41,6 @@ const initialState: AnularSale["nullNote"] = {
 export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalProps) {
     const { user } = useAuth()
     const [formState, setFormState] = useState(initialState)
-    // selectedProducts maps product id -> quantity to return
     const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
     const [error, setError] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
@@ -87,8 +86,7 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
         const processedBy = user?.userID || "Usuario Desconocido"
 
         const nullNoteData = { ...formState }
-
-        // Build returnedProducts array from selectedProducts map
+        // TODO: Revisar en back la relación real que debe ser enviada para anularse (ProductVariation/StoreProduct)
         const returnedProducts: { storeProductID: string; quantity: number }[] = Object.entries(selectedProducts).map(
             ([storeProductID, quantity]) => ({
                 storeProductID,
@@ -110,6 +108,7 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
         startTransition(async () => {
             try {
                 const data = await anularSale(submissionData)
+                console.log(await data.json())
                 if (data.ok) {
                     toast("Venta anulada correctamente")
                     setIsOpen(false)

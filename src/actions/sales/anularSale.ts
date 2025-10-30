@@ -13,6 +13,7 @@ export interface AnularSale {
 
 export const anularSale = async (details: AnularSale) => {
     // La función fetcher ya maneja la serialización y los errores, devolviendo la promesa
+    console.log({ API_URL })
     return fetch(`${API_URL}/sale`, {
         headers: { "Content-Type": "application/json" },
         method: "PUT",

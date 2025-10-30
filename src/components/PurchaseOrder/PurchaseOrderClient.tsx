@@ -22,9 +22,10 @@ import { useProductFilter } from "@/stores/productsFilters"
 import { inventoryStore } from "@/stores/inventory.store"
 import { useAuth } from "@/stores/user.store"
 import { useTienda } from "@/stores/tienda.store"
+import { usePedidoOC } from "@/stores/pedidoOC"
 
 const VARIATIONS_PER_PAGE = 15 // Máximo de variaciones por página
-
+const MAX_VARIATIONS_PER_PAGE = 20
 export default function PurchaseOrderClient({
     initialProducts,
     initialCategories,
@@ -38,7 +39,6 @@ export default function PurchaseOrderClient({
     const [stores] = useState<IStore[]>(initialStores)
     const { storeSelected } = useTienda()
     const [selectedStoreID, setSelectedStoreID] = useState<string>("")
-    const [pedido, setPedido] = useState<Record<string, number>>({})
     const [currentPage, setCurrentPage] = useState(1)
     const [isTercero, setIsTercero] = useState(false)
 
@@ -55,6 +55,7 @@ export default function PurchaseOrderClient({
     } = useProductFilter()
 
     const { setRawProducts } = inventoryStore()
+    const { addOrUpdatePedido, pedido } = usePedidoOC()
 
     // 1. Filtrar productos por tienda seleccionada
     const filteredByStore = useMemo(() => {
@@ -82,46 +83,53 @@ export default function PurchaseOrderClient({
 
     // 3. Paginar por variaciones (máximo 15 por página)
     const paginatedProducts = useMemo(() => {
-        const pages: Array<Array<{ product: IProduct; variation: any; isFirst: boolean }>> = []
-        let currentPage: Array<{ product: IProduct; variation: any; isFirst: boolean }> = []
-        let lastProductId: string | null = null
+        const pages = []
+        let currentPage: { product: IProduct; variation: any; isFirst: boolean }[] = []
+        let currentVariationCount = 0 // Contar las variantes en la página actual
 
-        // Ordenar productos por stock total primero
-        const sortedProducts = [...searchedProducts].sort((a, b) => {
-            const stockA = a.ProductVariations.reduce((sum, v) => sum + (v.stockQuantity || 0), 0)
-            const stockB = b.ProductVariations.reduce((sum, v) => sum + (v.stockQuantity || 0), 0)
-            return stockB - stockA
+        // se ordena aquí por ahora.
+        const productsToPaginate = [...searchedProducts].sort((a, b) => {
+            const totalA = a.ProductVariations.reduce((sum, v) => {
+                return sum + v.stockQuantity
+            }, 0)
+            const totalB = b.ProductVariations.reduce((sum, v) => {
+                return sum + v.stockQuantity
+            }, 0)
+            return totalB - totalA
         })
 
-        // Procesar cada producto
-        for (const product of sortedProducts) {
-            // Ordenar las variaciones por stock de mayor a menor
-            const sortedVariations = [...product.ProductVariations].sort(
-                (a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0)
+        for (const product of productsToPaginate) {
+            // Ordenar las variaciones por talla (no por stock como estaba antes)
+            const sortedVariations = [...product.ProductVariations].sort((a, b) =>
+                a.sizeNumber.localeCompare(b.sizeNumber)
             )
 
-            // Para cada variación del producto (ahora ordenadas por stock)
-            sortedVariations.forEach((variation) => {
-                // Si la página actual está llena, empezar una nueva
-                if (currentPage.length >= VARIATIONS_PER_PAGE) {
-                    pages.push(currentPage)
-                    currentPage = []
-                    lastProductId = null // Reset lastProductId para la nueva página
-                }
+            const variationCount = sortedVariations.length
 
-                // Determinar si esta variación debe mostrar el nombre del producto
-                const isFirst = product.productID !== lastProductId
+            // 💡 LÓGICA CLAVE: Comprobar si el PRODUCTO COMPLETO CABE
+            if (currentVariationCount > 0 && currentVariationCount + variationCount > MAX_VARIATIONS_PER_PAGE) {
+                // Si la página actual NO está vacía (currentVariationCount > 0)
+                // Y añadir este producto excede el límite (20),
+                // entonces, guarda la página actual y empieza una nueva.
+                pages.push(currentPage)
+                currentPage = []
+                currentVariationCount = 0 // Reiniciar el contador de variantes
+            }
+
+            // Añadir todas las variantes del producto actual a la página actual
+            sortedVariations.forEach((variation, index) => {
+                const isFirst = index === 0 // La primera variación del producto es la que lleva el rowSpan
 
                 // Añadir la variación a la página actual
                 currentPage.push({
                     product,
                     variation,
-                    isFirst,
+                    isFirst: isFirst, // isFirst siempre es true para la primera variante del producto
                 })
-
-                // Actualizar el último productId procesado
-                lastProductId = product.productID
             })
+
+            // Actualizar el conteo de variantes de la página actual
+            currentVariationCount += variationCount
         }
 
         // Añadir la última página si contiene elementos
@@ -129,23 +137,16 @@ export default function PurchaseOrderClient({
             pages.push(currentPage)
         }
 
+        // Nota: Eliminamos la variable `lastProductId` porque la lógica
+        // de `isFirst` ahora se basa en el índice de la variación dentro
+        // de su propio producto (índice 0).
+
         return pages
     }, [searchedProducts])
 
     // Calcular el número total de páginas y obtener los items de la página actual
     const totalPages = paginatedProducts.length
     const flattenedProducts = useMemo(() => paginatedProducts[currentPage - 1] || [], [paginatedProducts, currentPage])
-
-    // 6. Hook para filtrar productos de tercero
-    const {
-        markupTerceroMin,
-        setMarkupTerceroMin,
-        markupTerceroMax,
-        setMarkupTerceroMax,
-        markupFlotanteMin,
-        setMarkupFlotanteMin,
-        calculateThirdPartyPrice,
-    } = useTerceroProducts(flattenedProducts)
 
     // 6. Hook para ordenamiento avanzado (ya no necesitamos ordenar aquí, se hace en la paginación)
     const { orderByMarkup, setOrderByMarkup } = useProductSorting(flattenedProducts, isTercero)
@@ -167,10 +168,18 @@ export default function PurchaseOrderClient({
             for (const product of initialProducts) {
                 for (const variation of product.ProductVariations) {
                     if (variation.sku === sku) {
-                        setPedido((prev) => ({
-                            ...prev,
-                            [sku]: (prev[sku] || 0) + 1,
-                        }))
+                        const findQuantity =
+                            pedido.find(
+                                (p) =>
+                                    p.product.productID === product.productID &&
+                                    p.variation.variationID === variation.variationID
+                            )?.quantity || 0
+                        addOrUpdatePedido({
+                            variation: variation,
+                            product: product,
+                            price: variation.priceCost,
+                            quantity: findQuantity + 1,
+                        })
                         found = true
                         break
                     }
@@ -188,21 +197,10 @@ export default function PurchaseOrderClient({
         return uniqueIds.size
     }, [flattenedProducts])
 
-    // Calcular subtotal y total de productos en el pedido
-    const subtotal = useMemo(() => {
-        return initialProducts.reduce((total, product) => {
-            return (
-                total +
-                product.ProductVariations.reduce((sub, variation) => {
-                    const qty = pedido[variation.sku] || 0
-                    return sub + qty * (variation.priceList ?? 0)
-                }, 0)
-            )
-        }, 0)
-    }, [pedido, initialProducts])
-
     const totalProductsInOrder = useMemo(() => {
-        return Object.values(pedido).reduce((acc, curr) => acc + curr, 0)
+        return pedido.reduce((prev, curr) => {
+            return prev + curr.quantity
+        }, 0)
     }, [pedido])
 
     // Función para obtener páginas visibles en paginación
@@ -350,21 +348,7 @@ export default function PurchaseOrderClient({
                 </div>
                 <div className="flex-1 overflow-y-auto flex flex-col">
                     <MotionItem delay={1} className="flex-1">
-                        <PurchaseOrderTable
-                            currentItems={currentItems}
-                            pedido={pedido}
-                            setPedido={setPedido}
-                            selectedStoreID={selectedID}
-                            tercero={{
-                                calculateThirdPartyPrice,
-                                markupTerceroMin,
-                                setMarkupTerceroMin,
-                                markupTerceroMax,
-                                setMarkupTerceroMax,
-                                markupFlotanteMin,
-                                setMarkupFlotanteMin,
-                            }}
-                        />
+                        <PurchaseOrderTable currentItems={currentItems} />
                     </MotionItem>
                 </div>
 
@@ -418,18 +402,8 @@ export default function PurchaseOrderClient({
                 )}
             </main>
             <MotionItem>
-                <div className=" fixed left-0 right-0 bottom-0 z-50 dark:bg-slate-900 bg-slate-200 shadow-[4px_-4px_8px_rgba(0,0,0,0.1)] dark:shadow-slate-950 shadow-slate-400 border-t px-8 py-1 transition-all duration-300 w-full lg:ml-[260px] lg:w-[calc(100%-250px)]">
-                    <PurchaseOrderSummary
-                        totalProductsInOrder={totalProductsInOrder}
-                        subtotal={subtotal}
-                        isLoading={false}
-                        selectedStoreID={user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""}
-                        pedido={pedido}
-                        rawProducts={initialProducts}
-                        setPedido={setPedido}
-                        router={router}
-                        tercero={{ calculateThirdPartyPrice }}
-                    />
+                <div className="fixed left-0 right-0 bottom-0 z-50 dark:bg-slate-900 bg-slate-200 shadow-[4px_-4px_8px_rgba(0,0,0,0.1)] dark:shadow-slate-950 shadow-slate-400 border-t px-8 py-1 transition-all duration-300 w-full lg:ml-[260px] lg:w-[calc(100%-250px)]">
+                    <PurchaseOrderSummary />
                 </div>
             </MotionItem>
         </>

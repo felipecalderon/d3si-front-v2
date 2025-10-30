@@ -3,8 +3,6 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import { useAuth } from "@/stores/user.store"
-import { ChevronUp } from "lucide-react"
-import { OrderReviewModal } from "./OrderReviewModal"
 import { Role } from "@/lib/userRoles"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal"
@@ -14,6 +12,10 @@ import { MotionItem } from "@/components/Animations/motionItem"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
 import { toPrice } from "@/utils/priceFormat"
+import { OrderReviewDrawer } from "./OrderReviewDrawer"
+import { usePedidoOC } from "@/stores/pedidoOC"
+import { useTerceroProducts } from "@/hooks/useTerceroProducts"
+import { useTienda } from "@/stores/tienda.store"
 
 interface PurchaseOrderTableProps {
     currentItems: Array<{
@@ -21,44 +23,25 @@ interface PurchaseOrderTableProps {
         variation: IProductVariation
         isFirst: boolean
     }>
-    pedido: Record<string, number>
-    setPedido: React.Dispatch<React.SetStateAction<Record<string, number>>>
-    selectedStoreID: string
-    tercero: {
-        calculateThirdPartyPrice: (variation: IProductVariation) => { brutoCompra: number }
-        markupTerceroMin: number
-        setMarkupTerceroMin: (value: number) => void
-        markupTerceroMax: number
-        setMarkupTerceroMax: (value: number) => void
-        markupFlotanteMin: number
-        setMarkupFlotanteMin: (value: number) => void
-    }
 }
 
-export function PurchaseOrderTable({
-    currentItems,
-    pedido,
-    setPedido,
-    selectedStoreID,
-    tercero,
-}: PurchaseOrderTableProps) {
+export function PurchaseOrderTable({ currentItems }: PurchaseOrderTableProps) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
     const isTercero = user?.role !== Role.Admin
     const [orderByMarkup, setOrderByMarkup] = useState(false)
     const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null)
-    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
-
+    const { addOrUpdatePedido, pedido } = usePedidoOC()
     const {
-        calculateThirdPartyPrice,
         markupTerceroMin,
         setMarkupTerceroMin,
         markupTerceroMax,
         setMarkupTerceroMax,
         markupFlotanteMin,
         setMarkupFlotanteMin,
-    } = tercero
-
+        calculateThirdPartyPrice,
+    } = useTerceroProducts(currentItems)
+    const { storeSelected } = useTienda()
     const calculateMarkup = (priceCost: number, priceList: number): number => {
         if (!priceCost) return 0
         return priceList / priceCost
@@ -82,17 +65,6 @@ export function PurchaseOrderTable({
         groups[groupKey].push(item)
         return groups
     }, {} as Record<string, typeof currentItems>)
-
-    // Debug: ver grupos
-    console.log(
-        "Grupos de productos:",
-        Object.entries(groupedItems).map(([key, items]) => ({
-            key,
-            productName: items[0].product.name,
-            count: items.length,
-            variations: items.map((i) => i.variation.sku),
-        }))
-    )
 
     // Convertimos los grupos en array y ordenamos los productos
     const sortedGroups = Object.values(groupedItems).sort((groupA, groupB) => {
@@ -149,38 +121,8 @@ export function PurchaseOrderTable({
         }))
     })
 
-    // Preparar items para el modal de revisión
-    const orderItems = currentItems
-        .filter((item) => pedido[item.variation.sku] > 0)
-        .map((item) => ({
-            product: item.product,
-            variation: item.variation,
-            quantity: pedido[item.variation.sku],
-            price: isTercero
-                ? calculateThirdPartyPrice(item.variation).brutoCompra / 1.19
-                : Number(item.variation.priceCost),
-        }))
-
     return (
         <div className="flex-1 flex flex-col relative">
-            {/* Botón flotante para revisar orden */}
-            {Object.keys(pedido).some((sku) => pedido[sku] > 0) && (
-                <button
-                    onClick={() => setIsReviewModalOpen(true)}
-                    className="fixed bottom-16 right-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 transition-all hover:transform hover:scale-105 group z-50"
-                >
-                    <span>Revisar mi orden</span>
-                    <ChevronUp className="w-5 h-5 animate-bounce" />
-                </button>
-            )}
-
-            {/* Modal de revisión de orden */}
-            <OrderReviewModal
-                isOpen={isReviewModalOpen}
-                onClose={() => setIsReviewModalOpen(false)}
-                items={orderItems}
-            />
-
             {selectedImage && (
                 <ImagePreviewModal
                     isOpen={!!selectedImage}
@@ -290,14 +232,20 @@ export function PurchaseOrderTable({
                             {currentItems.map(({ product, variation, isFirst }, index) => {
                                 // Stock de la tienda seleccionada
                                 let stockTienda = 0
-                                if (selectedStoreID) {
+                                if (storeSelected && storeSelected.storeID) {
                                     const storeProduct = variation.StoreProducts?.find(
-                                        (sp: any) => sp.storeID === selectedStoreID
+                                        (sp: any) => sp.storeID === storeSelected.storeID
                                     )
                                     stockTienda = storeProduct ? storeProduct.quantity : 0
                                 }
 
-                                const pedidoQuantity = pedido[variation.sku] || 0
+                                const pedidoQuantity =
+                                    pedido.find(
+                                        (p) =>
+                                            p.product.productID === product.productID &&
+                                            p.variation.variationID === variation.variationID
+                                    )?.quantity || 0
+
                                 let priceToShow = 0
                                 let markupToShow = 0
 
@@ -326,11 +274,14 @@ export function PurchaseOrderTable({
                                     >
                                         {/* Columna PRODUCTO */}
                                         {isFirst && (
-                                            <TableCell className="py-2 px-3 text-left w-1/4">
+                                            <TableCell
+                                                className="py-2 px-3 text-left w-1/4"
+                                                rowSpan={product.ProductVariations.length}
+                                            >
                                                 <MotionItem key={`product-${product.productID}`} delay={index + 2}>
-                                                    <div className="relative w-full flex items-center gap-4">
+                                                    <div className="flex flex-col relative w-full items-center gap-4">
                                                         <div className="relative">
-                                                            <button
+                                                            <div
                                                                 onClick={() =>
                                                                     setSelectedImage({
                                                                         url: product.image || "/placeholder.svg",
@@ -342,9 +293,9 @@ export function PurchaseOrderTable({
                                                                 <Image
                                                                     src={product.image || "/placeholder.svg"}
                                                                     alt={product.name}
-                                                                    width={80}
-                                                                    height={80}
-                                                                    className="w-20 h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                                                    width={200}
+                                                                    height={200}
+                                                                    className="w-48 h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
                                                                     style={{ objectFit: "cover" }}
                                                                 />
                                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
@@ -352,27 +303,27 @@ export function PurchaseOrderTable({
                                                                         Ver imagen
                                                                     </span>
                                                                 </div>
-                                                            </button>
-                                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 text-white text-sm rounded-full flex items-center justify-center font-bold shadow-md">
-                                                                {product.ProductVariations.length}
                                                             </div>
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <span className="font-medium text-base block truncate">
+                                                        <div>
+                                                            <p className="font-medium text-base text-center">
                                                                 {product.name}
-                                                            </span>
-                                                            <div className="flex items-center gap-2 mt-2">
+                                                            </p>
+                                                            <div className="flex justify-center gap-2 mt-2">
                                                                 <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full font-medium">
-                                                                    {product.ProductVariations.length} variaciones
+                                                                    {product.ProductVariations.reduce(
+                                                                        (prev, variation) => {
+                                                                            return prev + variation.stockQuantity
+                                                                        },
+                                                                        0
+                                                                    )}{" "}
+                                                                    productos
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </MotionItem>
                                             </TableCell>
-                                        )}
-                                        {!isFirst && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2"></TableCell>
                                         )}
 
                                         {/* Columna SKU */}
@@ -457,19 +408,18 @@ export function PurchaseOrderTable({
                                                         className="w-16 h-8 text-center text-xs border-2"
                                                         min="0"
                                                         max={variation.stockQuantity}
-                                                        value={pedidoQuantity || ""}
+                                                        value={pedidoQuantity === 0 ? "" : pedidoQuantity}
                                                         onChange={(e) => {
                                                             const val = Number.parseInt(e.target.value) || 0
-                                                            if (val >= variation.stockQuantity) {
-                                                                return setPedido((prev) => ({
-                                                                    ...prev,
-                                                                    [variation.sku]: variation.stockQuantity,
-                                                                }))
-                                                            }
-                                                            setPedido((prev) => ({
-                                                                ...prev,
-                                                                [variation.sku]: val,
-                                                            }))
+
+                                                            if (val > variation.stockQuantity) return
+
+                                                            addOrUpdatePedido({
+                                                                product,
+                                                                variation,
+                                                                quantity: val,
+                                                                price: priceToShow,
+                                                            })
                                                         }}
                                                         onWheel={(e) => {
                                                             e.currentTarget.blur()
