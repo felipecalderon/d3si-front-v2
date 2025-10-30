@@ -11,8 +11,6 @@ export function PurchaseOrderSummary() {
 
     if (!user) return null
 
-    let netoIncluyeIVA = false
-
     const neto = pedido.reduce((acc, curr) => {
         return acc + curr.price * curr.quantity
     }, 0)
@@ -34,19 +32,15 @@ export function PurchaseOrderSummary() {
                         </div>
                         <div className="flex flex-col-reverse text-center">
                             <span>Neto:</span>
-                            <span className="font-bold">${toPrice(netoIncluyeIVA ? neto / 1.19 : neto)}</span>
+                            <span className="font-bold">${toPrice(neto)}</span>
                         </div>
                         <div className="flex flex-col-reverse text-center">
                             <span>IVA (19%):</span>
-                            <span className="font-bold">
-                                ${toPrice(netoIncluyeIVA ? neto - neto / 1.19 : neto * 0.19)}
-                            </span>
+                            <span className="font-bold">${toPrice(neto * 0.19)}</span>
                         </div>
                         <div className="flex justify-between border-t border-white pt-2 mt-2">
                             <span className="font-bold">Total:</span>
-                            <span className="font-bold text-yellow-200">
-                                ${toPrice(Math.round(netoIncluyeIVA ? neto : neto * 1.19))}
-                            </span>
+                            <span className="font-bold text-yellow-200">${toPrice(Math.round(neto * 1.19))}</span>
                         </div>
                     </div>
                 </div>
