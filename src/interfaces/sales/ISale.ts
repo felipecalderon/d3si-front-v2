@@ -45,7 +45,7 @@ export interface ISaleResponse {
 export interface IsaleProductReturned {
     returnItemID: string
     returnID: string
-    variationID: string
+    storeProductID: string
     returnedQuantity: number
     unitPrice: string
     createdAt: string

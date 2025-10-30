@@ -2,6 +2,7 @@ import { getSingleSale } from "@/actions/sales/getSales"
 import AnularVentaControl from "@/components/Caja/AnularVentaControl"
 import PrintSaleButton from "@/components/Caja/PrintSaleButton"
 import SingleSaleTable from "@/components/Caja/SingleSaleTable"
+import { getAnulatedProducts } from "@/lib/getAnulatedProducts"
 import { toPrice } from "@/utils/priceFormat"
 import { MapPin, Phone, Receipt, ShoppingBag, Store } from "lucide-react"
 import Link from "next/link"
@@ -14,10 +15,13 @@ interface PropsSale {
 export default async function SingleSalePage({ params }: PropsSale) {
     const { saleID } = await params
     const sale = await getSingleSale(saleID)
-    console.log(sale)
     const products = sale.SaleProducts
     if (!sale || !products) return null
+
+    const nulledProducts = getAnulatedProducts(sale)
     const total = products.reduce((acc, act) => acc + act.subtotal, 0)
+    const totalNulled = nulledProducts.reduce((acc, act) => acc + act.subtotal, 0)
+
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
             <div className="max-w-5xl mx-auto print-container">
@@ -135,8 +139,21 @@ export default async function SingleSalePage({ params }: PropsSale) {
                             <SingleSaleTable products={products} />
                         </div>
                     </div>
+                    {nulledProducts.length && (
+                        <div className="bg-red-50 dark:bg-red-950 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                                    <ShoppingBag className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                    Productos anulados
+                                </h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <SingleSaleTable products={nulledProducts} />
+                            </div>
+                        </div>
+                    )}
                     {sale.Return && (
-                        <div className="bg-gradient-to-r from-red-50 to-red-50 dark:from-red-950/50 dark:to-red-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="bg-red-50 dark:bg-red-950 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="text-center">
                                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">
@@ -167,19 +184,19 @@ export default async function SingleSalePage({ params }: PropsSale) {
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
                                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                    {toPrice(total / 1.19)}
+                                    {toPrice((total - totalNulled) / 1.19)}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
                                 <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                    {toPrice(total * 0.19)}
+                                    {toPrice((total - totalNulled) * 0.19)}
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
                                 <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                    {toPrice(total)}
+                                    {toPrice(total - totalNulled)}
                                 </p>
                             </div>
                         </div>
