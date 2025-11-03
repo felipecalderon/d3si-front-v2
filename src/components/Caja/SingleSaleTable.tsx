@@ -3,6 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { ISaleProduct } from "@/interfaces/sales/ISale"
 
 export default function SingleSaleTable({ products }: { products: ISaleProduct[] }) {
+    const subtotal = products.reduce((acc, p) => {
+        return acc + p.quantitySold * p.unitPrice
+    }, 0)
     return (
         <Table>
             <TableHeader>
@@ -28,7 +31,7 @@ export default function SingleSaleTable({ products }: { products: ISaleProduct[]
                             <TableCell>{toPrice(p.unitPrice)}</TableCell>
                             <TableCell align="center">{p.quantitySold}</TableCell>
                             <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                                {toPrice(p.subtotal)}
+                                {toPrice(subtotal)}
                             </TableCell>
                         </TableRow>
                     )

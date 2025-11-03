@@ -1,14 +1,6 @@
 "use client"
-
 import { useState, useMemo } from "react"
-import { IProduct } from "@/interfaces/products/IProduct"
-import { IProductVariation } from "@/interfaces/products/IProductVariation"
-
-interface PurchaseOrderItem {
-    product: IProduct
-    variation: IProductVariation
-    isFirst: boolean
-}
+import { PurchaseOrderItem } from "@/interfaces/orders/IOrder"
 
 const calculateMarkup = (priceCost: number, priceList: number): number => {
     if (!priceCost) return 0

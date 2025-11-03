@@ -9,17 +9,6 @@ export const CartTable = () => {
     const { cartItems, actions } = useSaleStore()
     const { removeProduct, updateQuantity } = actions
 
-    const handleQuantityChange = (id: string, newQuantity: number) => {
-        const item = cartItems.find((i) => i.storeProductID === id)
-        if (item && newQuantity > item.availableStock) {
-            return // Or show a toast message
-        }
-        if (newQuantity <= 0) {
-            return removeProduct(id)
-        }
-        updateQuantity(id, newQuantity)
-    }
-
     if (cartItems.length === 0) {
         return (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -42,20 +31,20 @@ export const CartTable = () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {cartItems.map((producto) => (
-                        <TableRow className="hover:bg-muted/50 dark:hover:bg-gray-700/50" key={producto.storeProductID}>
+                    {cartItems.map((item) => (
+                        <TableRow className="hover:bg-muted/50 dark:hover:bg-gray-700/50" key={item.variation.sku}>
                             <TableCell className="flex items-center gap-3 p-2">
-                                {producto.image && (
+                                {item.product.image && (
                                     <Image
                                         width={100}
                                         height={100}
-                                        src={producto.image}
-                                        alt={producto.name}
+                                        src={item.product.image}
+                                        alt={item.product.name}
                                         className="w-10 h-10 object-cover rounded"
                                     />
                                 )}
                                 <span>
-                                    {producto.name} - {producto.size}
+                                    {item.product.name} - {item.variation.sizeNumber}
                                 </span>
                             </TableCell>
                             <TableCell className="p-2 text-center">
@@ -64,29 +53,27 @@ export const CartTable = () => {
                                         title="Cantidad"
                                         type="number"
                                         min={0}
-                                        max={producto.availableStock}
-                                        value={producto.quantity}
+                                        max={item.storeProduct.quantity}
+                                        value={item.variation.quantity}
                                         onWheel={(e) => {
                                             e.currentTarget.blur()
                                         }}
-                                        onChange={(e) =>
-                                            handleQuantityChange(producto.storeProductID, Number(e.target.value))
-                                        }
+                                        onChange={(e) => updateQuantity(item.variation.sku, Number(e.target.value))}
                                         className="w-16 text-center rounded border border-gray-300 p-1"
                                     />
 
-                                    <p className="text-xs text-gray-500 mt-1">Stock: {producto.availableStock}</p>
+                                    <p className="text-xs text-gray-500 mt-1">Stock: {item.storeProduct.quantity}</p>
                                 </div>
                             </TableCell>
 
-                            <TableCell className="p-2 text-center">${toPrice(producto.price)}</TableCell>
+                            <TableCell className="p-2 text-center">${toPrice(item.variation.priceList)}</TableCell>
                             <TableCell className="p-2 text-center">
-                                ${toPrice(producto.price * producto.quantity)}
+                                ${toPrice(item.variation.priceList * item.variation.quantity)}
                             </TableCell>
                             <TableCell className="p-2 text-center">
                                 <button
                                     title="Eliminar"
-                                    onClick={() => removeProduct(producto.storeProductID)}
+                                    onClick={() => removeProduct(item.variation.sku)}
                                     className="text-red-600 hover:text-red-800"
                                 >
                                     <Trash2 size={18} />

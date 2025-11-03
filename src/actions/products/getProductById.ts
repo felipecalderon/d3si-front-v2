@@ -3,7 +3,7 @@ import { IProduct } from "@/interfaces/products/IProduct"
 export const getProductById = (products: IProduct[], storeId: string, skuInput: string) => {
     for (const product of products) {
         const variation = product.ProductVariations.find((v) => v.sku === skuInput)
-        if (variation) {
+        if (variation && variation.StoreProducts) {
             const variationStoreProduct = variation.StoreProducts.find((sp) => sp.storeID === storeId)
             if (!variationStoreProduct) return null
 

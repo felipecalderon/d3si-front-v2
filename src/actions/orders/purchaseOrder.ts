@@ -1,17 +1,9 @@
 "use server"
+import { IOrder } from "@/interfaces/orders/IOrder"
 
-interface OrderProduct {
-    variationID: string
-    quantityOrdered: number
-}
+type NewOrder = Omit<IOrder, "orderID" | "ProductVariations" | "createdAt" | "updatedAt" | "total">
 
-interface CreateOrderData {
-    storeID: string
-    userID: string
-    products: OrderProduct[]
-}
-
-export const createOrder = async (data: CreateOrderData) => {
+export const createOrder = async (data: NewOrder) => {
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order`, {
             method: "POST",

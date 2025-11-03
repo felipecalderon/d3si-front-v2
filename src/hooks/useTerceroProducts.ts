@@ -1,17 +1,9 @@
 "use client"
-
 import { useState, useMemo, useCallback } from "react"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
+import { PurchaseOrderItem } from "@/interfaces/orders/IOrder"
 
 const IVA = 1.19
-
-import { IProduct } from "@/interfaces/products/IProduct"
-
-interface PurchaseOrderItem {
-    product: IProduct
-    variation: IProductVariation
-    isFirst: boolean
-}
 
 export function useTerceroProducts(
     items: PurchaseOrderItem[],

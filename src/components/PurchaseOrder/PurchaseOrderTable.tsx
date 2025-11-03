@@ -9,23 +9,13 @@ import { ImagePreviewModal } from "@/components/ui/image-preview-modal"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
-import type { IProduct } from "@/interfaces/products/IProduct"
-import { IProductVariation } from "@/interfaces/products/IProductVariation"
 import { toPrice } from "@/utils/priceFormat"
-import { OrderReviewDrawer } from "./OrderReviewDrawer"
 import { usePedidoOC } from "@/stores/pedidoOC"
 import { useTerceroProducts } from "@/hooks/useTerceroProducts"
 import { useTienda } from "@/stores/tienda.store"
+import { PurchaseOrderItem } from "@/interfaces/orders/IOrder"
 
-interface PurchaseOrderTableProps {
-    currentItems: Array<{
-        product: IProduct
-        variation: IProductVariation
-        isFirst: boolean
-    }>
-}
-
-export function PurchaseOrderTable({ currentItems }: PurchaseOrderTableProps) {
+export function PurchaseOrderTable({ currentItems }: { currentItems: PurchaseOrderItem[] }) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
     const isTercero = user?.role !== Role.Admin
@@ -240,11 +230,8 @@ export function PurchaseOrderTable({ currentItems }: PurchaseOrderTableProps) {
                                 }
 
                                 const pedidoQuantity =
-                                    pedido.find(
-                                        (p) =>
-                                            p.product.productID === product.productID &&
-                                            p.variation.variationID === variation.variationID
-                                    )?.quantity || 0
+                                    pedido.find((p) => p.variation.variationID === variation.variationID)?.variation
+                                        .quantity || 0
 
                                 let priceToShow = 0
                                 let markupToShow = 0
@@ -416,9 +403,7 @@ export function PurchaseOrderTable({ currentItems }: PurchaseOrderTableProps) {
 
                                                             addOrUpdatePedido({
                                                                 product,
-                                                                variation,
-                                                                quantity: val,
-                                                                price: priceToShow,
+                                                                variation: { ...variation, quantity: val },
                                                             })
                                                         }}
                                                         onWheel={(e) => {

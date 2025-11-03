@@ -89,7 +89,7 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
                                 month: "short",
                                 year: "numeric",
                             })
-                            const total = Math.round(parseFloat(order.total))
+                            const total = Math.round(Number(order.total))
                             const totalConIVA = Math.round(total * 1.19)
                             return (
                                 <TableRow

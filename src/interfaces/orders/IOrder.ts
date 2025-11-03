@@ -1,27 +1,24 @@
-export interface IProductVariation {
-    OrderProduct: any
-    Product: any
-    variationID: string
-    productID: string
-    sizeNumber: string
-    priceList: string
-    priceCost: number
-    sku: string
-    stockQuantity: number
-    createdAt: string
-    updatedAt: string
+import { IProduct } from "../products/IProduct"
+import { IProductVariation } from "../products/IProductVariation"
+
+export interface IVariationWithQuantity extends IProductVariation {
+    quantity: number
+}
+/**
+ * Represente una variación de producto dentro de una orden, incluyendo la cantidad ordenada.
+ */
+export interface IVariationWithOrderedQuantity extends IProductVariation {
     quantityOrdered: number
-    subtotal: number
 }
 
 export interface IOrder {
     orderID: string
     storeID: string
     userID: string
-    total: string
+    total: number
     status: string
     type: string
-    discount: string
+    discount: number
     dte: string | null
     startQuote: string | null
     endQuote: string | null
@@ -29,5 +26,12 @@ export interface IOrder {
     expirationPeriod: string
     createdAt: string
     updatedAt: string
-    ProductVariations: IProductVariation[]
+    ProductVariations: IVariationWithOrderedQuantity[]
+    newProducts?: IVariationWithQuantity[]
+}
+
+export interface PurchaseOrderItem {
+    product: IProduct
+    variation: IVariationWithQuantity
+    isFirst: boolean
 }

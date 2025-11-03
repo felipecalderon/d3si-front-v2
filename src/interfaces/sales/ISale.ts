@@ -9,8 +9,9 @@ export type PaymentStatus = "Pagado" | "Pendiente" | "Anulado"
 
 export interface ISaleRequest {
     storeID: string
-    products: IProductSold[]
     paymentType: PaymentType
+    status: PaymentStatus
+    SaleProducts: Omit<ISaleProduct, "SaleProductID" | "StoreProduct">[]
 }
 
 // Para representar un producto vendido
@@ -24,11 +25,11 @@ export interface ISaleProduct {
     storeProductID: string
     quantitySold: number
     unitPrice: number
-    subtotal: number
     StoreProduct: {
         ProductVariation: IProductVariation & { Product: IProduct }
     }
 }
+
 // Para representar una venta que viene desde el backend (respuesta)
 export interface ISaleResponse {
     saleID: string

@@ -23,8 +23,7 @@ export const getAnulatedProducts = (sale: ISaleResponse): ISaleProduct[] => {
 
             // Sobreescribir los datos importantes.
             modifiedProduct.quantitySold = anulationData.returnedQuantity
-            modifiedProduct.subtotal = anulationData.returnedQuantity * parseFloat(anulationData.unitPrice)
-            return modifiedProduct
+            return { ...modifiedProduct }
         })
 
     return anulatedProducts

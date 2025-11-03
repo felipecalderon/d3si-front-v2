@@ -23,7 +23,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
         if (user?.role === Role.Admin || user?.role === Role.Tercero || !userStoreID) return initialProducts
         return initialProducts.filter((product) =>
             product.ProductVariations.some((variation) =>
-                variation.StoreProducts.some((sp) => sp.storeID === userStoreID)
+                variation.StoreProducts?.some((sp) => sp.storeID === userStoreID)
             )
         )
     }, [initialProducts, user?.role, userStoreID])
@@ -85,7 +85,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
                 return (
                     total +
                     product.ProductVariations.reduce((sum, v) => {
-                        const storeProduct = v.StoreProducts.find((sp) => sp.storeID === userStoreID)
+                        const storeProduct = v.StoreProducts?.find((sp) => sp.storeID === userStoreID)
                         return sum + (storeProduct ? storeProduct.quantity : 0)
                     }, 0)
                 )

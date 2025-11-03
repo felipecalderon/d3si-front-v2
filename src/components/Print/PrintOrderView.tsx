@@ -1,6 +1,7 @@
 "use client"
 
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
+import { toPrice } from "@/utils/priceFormat"
 
 interface Props {
     order: IOrderWithStore
@@ -26,13 +27,13 @@ export default function PrintOrderView({ order }: Props) {
                 <strong>Estado:</strong> {order.status}
             </p>
             <p>
-                <strong>Total:</strong> ${parseFloat(order.total).toFixed(2)}
+                <strong>Total:</strong> ${toPrice(order.total)}
             </p>
             <p>
                 <strong>Tipo:</strong> {order.type}
             </p>
             <p>
-                <strong>Descuento:</strong> ${parseFloat(order.discount || "0").toFixed(2)}
+                <strong>Descuento:</strong> ${toPrice(order.discount)}
             </p>
 
             <hr className="my-2 border-black" />
@@ -67,8 +68,10 @@ export default function PrintOrderView({ order }: Props) {
                             <td className="border border-black px-2 py-1">{item.sku}</td>
                             <td className="border border-black px-2 py-1">{item.sizeNumber}</td>
                             <td className="border border-black px-2 py-1">{item.quantityOrdered}</td>
-                            <td className="border border-black px-2 py-1">${parseFloat(item.priceList).toFixed(2)}</td>
-                            <td className="border border-black px-2 py-1">${item.subtotal.toFixed(2)}</td>
+                            <td className="border border-black px-2 py-1">${toPrice(item.priceCost)}</td>
+                            <td className="border border-black px-2 py-1">
+                                ${toPrice(item.priceCost * item.quantityOrdered)}
+                            </td>
                         </tr>
                     ))}
                 </tbody>

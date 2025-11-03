@@ -46,7 +46,6 @@ export const mapWooLineItemToISaleProduct = (
         storeProductID: `${lineItem.product_id}-${lineItem.variation_id || "default"}`,
         quantitySold: lineItem.quantity,
         unitPrice: Number(lineItem.price),
-        subtotal: Number(lineItem.price) * lineItem.quantity,
         StoreProduct: {
             ProductVariation: {
                 ...variation,

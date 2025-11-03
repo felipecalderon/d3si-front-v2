@@ -21,6 +21,7 @@ import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { useReactToPrint } from "react-to-print"
+import { IVariationWithOrderedQuantity, IVariationWithQuantity } from "@/interfaces/orders/IOrder"
 
 function useOrder(orderId: string) {
     const [order, setOrder] = useState<IOrderWithStore | null>(null)
@@ -94,21 +95,10 @@ export default function OrderDetail({ orderId }: Props) {
     if (!order) return <div className="p-8 text-center">No se encontró la orden.</div>
 
     // Sumar neto usando subtotal de OrderProduct
-    const neto =
-        order.ProductVariations?.reduce(
-            (acc, item) =>
-                acc +
-                (item.OrderProduct
-                    ? typeof item.OrderProduct.subtotal === "number"
-                        ? item.OrderProduct.subtotal
-                        : Number(item.OrderProduct.subtotal)
-                    : 0),
-            0
-        ) || 0
+    const neto = order.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered * item.priceCost, 0) || 0
 
     // Sumar cantidad total de productos solicitados
-    const cantidadTotalProductos =
-        order.ProductVariations?.reduce((acc, item) => acc + (item.OrderProduct?.quantityOrdered ?? 0), 0) || 0
+    const cantidadTotalProductos = order.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered, 0) || 0
     const iva = neto * 0.19
     const totalConIva = neto + iva
     // Mostrar fecha de emisión en UTC (sin ajuste de zona horaria local)
@@ -135,14 +125,8 @@ export default function OrderDetail({ orderId }: Props) {
         }
         order.ProductVariations.push({
             ...variation,
-            priceList: String(variation.priceList),
-            Product: product,
-            OrderProduct: {
-                quantityOrdered: 1,
-                subtotal: Number(variation.priceList),
-            },
+            priceList: variation.priceList,
             quantityOrdered: 1,
-            subtotal: Number(variation.priceList),
             createdAt: variation.createdAt || new Date().toISOString(),
             updatedAt: variation.updatedAt || new Date().toISOString(),
         })
@@ -168,19 +152,22 @@ export default function OrderDetail({ orderId }: Props) {
                 endQuote,
                 expiration: arrivalDate ? new Date(arrivalDate).toISOString() : order.expiration,
                 newProducts:
-                    order.ProductVariations?.map((v) => ({
-                        variationID: v.variationID,
-                        productID: v.productID,
-                        sizeNumber: v.sizeNumber,
-                        priceList: v.priceList,
-                        priceCost: v.priceCost,
-                        sku: v.sku,
-                        stockQuantity: v.stockQuantity,
-                        createdAt: v.createdAt,
-                        updatedAt: v.updatedAt,
-                        quantityOrdered: v.OrderProduct?.quantityOrdered ?? v.quantityOrdered,
-                        subtotal: v.OrderProduct?.subtotal ?? v.subtotal,
-                    })) || [],
+                    order.ProductVariations?.map(
+                        (v) =>
+                            ({
+                                variationID: v.variationID,
+                                productID: v.productID,
+                                sizeNumber: v.sizeNumber,
+                                priceList: v.priceList,
+                                priceCost: v.priceCost,
+                                sku: v.sku,
+                                stockQuantity: v.stockQuantity,
+                                createdAt: v.createdAt,
+                                updatedAt: v.updatedAt,
+                                quantityOrdered: v.quantityOrdered,
+                                quantity: 0,
+                            } as IVariationWithQuantity)
+                    ) || ([] as IVariationWithQuantity[]),
             }
             await updateOrder(body)
             toast.success("Orden actualizada correctamente")
@@ -301,7 +288,7 @@ export default function OrderDetail({ orderId }: Props) {
                                 const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
                                 if (idx === -1) return
                                 const pv = order.ProductVariations[idx]
-                                const qty = pv.OrderProduct?.quantityOrdered ?? 1
+                                const qty = pv.quantityOrdered ?? 1
                                 if (qty === 1) {
                                     if (confirm("¿Seguro que quiere eliminar el artículo de la orden de compra?")) {
                                         order.ProductVariations = order.ProductVariations.filter(
@@ -314,13 +301,6 @@ export default function OrderDetail({ orderId }: Props) {
                                     const price = Number(pv.priceList)
                                     order.ProductVariations[idx] = {
                                         ...pv,
-                                        OrderProduct: {
-                                            ...pv.OrderProduct,
-                                            quantityOrdered: newQty,
-                                            subtotal: price * newQty,
-                                        },
-                                        quantityOrdered: newQty,
-                                        subtotal: price * newQty,
                                     }
                                     setForceUpdate((f) => f + 1)
                                 }
@@ -330,17 +310,10 @@ export default function OrderDetail({ orderId }: Props) {
                                 const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
                                 if (idx === -1) return
                                 const pv = order.ProductVariations[idx]
-                                const newQty = (pv.OrderProduct?.quantityOrdered ?? 1) + 1
-                                const price = Number(pv.priceList)
+                                const newQty = (pv.quantityOrdered ?? 1) + 1
                                 order.ProductVariations[idx] = {
                                     ...pv,
-                                    OrderProduct: {
-                                        ...pv.OrderProduct,
-                                        quantityOrdered: newQty,
-                                        subtotal: price * newQty,
-                                    },
                                     quantityOrdered: newQty,
-                                    subtotal: price * newQty,
                                 }
                                 setForceUpdate((f) => f + 1)
                             }}
@@ -356,20 +329,8 @@ export default function OrderDetail({ orderId }: Props) {
                                 // Mantener cantidad y subtotal previos
                                 order.ProductVariations[idx] = {
                                     ...newVariation,
-                                    Product: parent,
-                                    OrderProduct: {
-                                        ...pv.OrderProduct,
-                                        // Mantener cantidad y recalcular subtotal
-                                        quantityOrdered: pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered,
-                                        subtotal:
-                                            (pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered) *
-                                            Number(newVariation.priceList),
-                                    },
-                                    quantityOrdered: pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered,
-                                    subtotal:
-                                        (pv.OrderProduct?.quantityOrdered ?? pv.quantityOrdered) *
-                                        Number(newVariation.priceList),
-                                    priceList: String(newVariation.priceList),
+                                    quantityOrdered: pv.quantityOrdered ?? pv.quantityOrdered,
+                                    priceList: newVariation.priceList,
                                     createdAt: newVariation.createdAt || new Date().toISOString(),
                                     updatedAt: newVariation.updatedAt || new Date().toISOString(),
                                 }

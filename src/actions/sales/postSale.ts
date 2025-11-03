@@ -8,7 +8,7 @@ interface ResponseSale {
     total: number
 }
 
-export const postSale = async (saleData: ISaleRequest) => {
+export const createNewSale = async (saleData: ISaleRequest) => {
     try {
         const data = await fetcher<ResponseSale>(`${API_URL}/sale`, {
             method: "POST",

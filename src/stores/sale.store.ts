@@ -1,29 +1,26 @@
 import { create } from "zustand"
-import { ISaleCartItem } from "@/interfaces/sales/ISaleCartItem"
+import { toast } from "sonner"
+import { useTienda } from "./tienda.store"
 import { PaymentType } from "@/interfaces/sales/ISale"
 import { IProduct } from "@/interfaces/products/IProduct"
-import { toast } from "sonner"
-import { getProductById } from "@/actions/products/getProductById"
-import { postSale } from "@/actions/sales/postSale"
-import { useTienda } from "./tienda.store"
+import { IStoreProduct } from "@/interfaces/products/IProductVariation"
+import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
 
-interface BackendResponseNewSale {
-    message: string
-    saleID: string
-    total: number
+interface SaleItem {
+    product: IProduct
+    variation: IVariationWithQuantity
+    storeProduct: IStoreProduct
 }
 
 interface SaleState {
-    cartItems: ISaleCartItem[]
+    cartItems: SaleItem[]
     paymentMethod: PaymentType
     loading: boolean
-    total: number
     actions: {
-        addProduct: (productCode: string, initialProducts: IProduct[]) => void
-        removeProduct: (id: string) => void
-        updateQuantity: (id: string, quantity: number) => void
+        addProduct: (product: IProduct, variation: IVariationWithQuantity, storeProduct: IStoreProduct) => void
+        removeProduct: (sku: string) => void
+        updateQuantity: (sku: string, quantity: number) => void
         setPaymentMethod: (method: PaymentType) => void
-        submitSale: () => Promise<BackendResponseNewSale | undefined>
         clearCart: () => void
     }
 }
@@ -32,121 +29,54 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     cartItems: [],
     paymentMethod: "Efectivo",
     loading: false,
-    total: 0,
     actions: {
-        addProduct: (productCode, initialProducts) => {
+        addProduct: (product, variation, storeProduct) => {
             const { storeSelected } = useTienda.getState()
             if (!storeSelected) {
                 toast.error("Debes elegir una tienda")
                 return
             }
-
-            const foundProduct = getProductById(initialProducts, storeSelected.storeID, productCode)
-            if (!foundProduct) {
-                return // Toast is handled inside getProductById
-            }
-
-            const availableStock = storeSelected.isAdminStore ? foundProduct.stockQuantity : foundProduct.quantity
-            if (availableStock <= 0) {
+            if (variation.stockQuantity <= 0) {
                 toast("No hay stock disponible para este producto.")
                 return
             }
+            const { cartItems } = get()
 
-            set((state) => {
-                const existingItem = state.cartItems.find((p) => p.storeProductID === foundProduct.storeProductID)
-                let newCartItems = []
-
-                if (existingItem) {
-                    if (existingItem.quantity + 1 > availableStock) {
-                        toast("No se puede agregar más, stock insuficiente.")
-                        return { cartItems: state.cartItems }
-                    }
-                    newCartItems = state.cartItems.map((item) =>
-                        item.storeProductID === foundProduct.storeProductID
-                            ? { ...item, quantity: item.quantity + 1 }
-                            : item
-                    )
+            const existingItem = cartItems.find((p) => p.variation.sku === variation.sku)
+            if (existingItem) {
+                if (existingItem.variation.quantity + 1 > existingItem.variation.stockQuantity) {
+                    toast("No se puede agregar más, stock insuficiente.")
                 } else {
-                    newCartItems = [
-                        ...state.cartItems,
-                        {
-                            storeProductID: foundProduct.storeProductID,
-                            name: foundProduct.name,
-                            price: Number(foundProduct.priceList),
-                            image: foundProduct.image || "",
-                            quantity: 1,
-                            availableStock: availableStock,
-                            size: foundProduct.sizeNumber,
-                        },
-                    ]
+                    const newCartItems = cartItems.map((item) =>
+                        item.variation.sku === variation.sku ? { ...item, quantity: item.variation.quantity + 1 } : item
+                    )
+                    set({ cartItems: newCartItems })
                 }
-                const newTotal = newCartItems.reduce((acc, p) => acc + p.price * p.quantity, 0)
-                return { cartItems: newCartItems, total: newTotal }
-            })
+            } else {
+                const newCartItems = [...cartItems, { product, storeProduct, variation: { ...variation, quantity: 1 } }]
+                set({ cartItems: newCartItems })
+            }
         },
-        removeProduct: (id) => {
+        removeProduct: (sku) => {
             set((state) => {
-                const newCartItems = state.cartItems.filter((item) => item.storeProductID !== id)
-                const newTotal = newCartItems.reduce((acc, p) => acc + p.price * p.quantity, 0)
-                return { cartItems: newCartItems, total: newTotal }
+                const newCartItems = state.cartItems.filter((item) => item.variation.sku !== sku)
+                return { cartItems: newCartItems }
             })
         },
-        updateQuantity: (id, quantity) => {
+        updateQuantity: (sku, quantity) => {
             set((state) => {
                 const newCartItems = state.cartItems.map((item) =>
-                    item.storeProductID === id ? { ...item, quantity } : item
+                    item.variation.sku === sku ? { ...item, variation: { ...item.variation, quantity } } : item
                 )
-                const newTotal = newCartItems.reduce((acc, p) => acc + p.price * p.quantity, 0)
-                return { cartItems: newCartItems, total: newTotal }
+                console.log(newCartItems)
+                return { cartItems: newCartItems }
             })
         },
         setPaymentMethod: (method) => {
             set({ paymentMethod: method })
         },
-        submitSale: async () => {
-            const { cartItems, paymentMethod } = get()
-            const { storeSelected } = useTienda.getState()
-
-            if (cartItems.length === 0) {
-                toast.error("Agrega al menos un producto.")
-                return
-            }
-            if (!storeSelected) {
-                toast.error("No se pudo cargar la tienda")
-                return
-            }
-
-            set({ loading: true })
-            try {
-                const productsForBackend = cartItems.map((item) => ({
-                    storeProductID: item.storeProductID,
-                    quantitySold: item.quantity,
-                }))
-
-                const res = await postSale({
-                    storeID: storeSelected.storeID,
-                    paymentType: paymentMethod,
-                    products: productsForBackend,
-                })
-
-                if (res) {
-                    get().actions.clearCart()
-                    toast.success(res.message)
-                    return res
-                } else {
-                    toast.error("Error al registrar la venta")
-                    return
-                }
-            } catch (err) {
-                console.error(err)
-                toast.error("Error al enviar la venta")
-                return
-            } finally {
-                set({ loading: false })
-            }
-        },
         clearCart: () => {
-            set({ cartItems: [], total: 0 })
+            set({ cartItems: [] })
         },
     },
 }))
