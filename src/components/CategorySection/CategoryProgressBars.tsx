@@ -20,6 +20,8 @@ export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: C
         return `Distribución por ${viewMode === "categoria" ? "Categoría" : "Tipo"}`
     }
 
+    const totalCost = data?.reduce((sum, item) => sum + item.totalRevenue, 0) || 0
+
     if (!data) {
         return (
             <div className="space-y-4">
@@ -40,7 +42,12 @@ export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: C
     }
     return (
         <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
+            <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
+                <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    Costo Neto Total: ${toPrice(totalCost)}
+                </div>
+            </div>
             <div className="space-y-4">
                 {data.map((item) => (
                     <div key={item.name} className="space-y-2">
