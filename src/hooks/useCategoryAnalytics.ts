@@ -83,6 +83,7 @@ export const useCategoryAnalytics = ({ products, categories }: UseCategoryAnalyt
         progressData,
         selectedCategoryName,
         hasData,
+        parentStats,
         handleModeChange,
         handlePieClick,
         setShowModal,
