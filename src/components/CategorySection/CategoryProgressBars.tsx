@@ -1,7 +1,7 @@
 "use client"
 
 import { Progress } from "@/components/ui/progress"
-import { IProgressData } from "@/utils/categoryStats"
+import { ICategoryStats, IProgressData } from "@/utils/categoryStats"
 import { toPrice } from "@/utils/priceFormat"
 
 type ViewMode = "categoria" | "tipo"
@@ -10,15 +10,26 @@ interface CategoryProgressBarsProps {
     data: IProgressData[]
     viewMode: ViewMode
     selectedCategoryName: string | null
+    parentCategories?: ICategoryStats[]
+    showSummary?: boolean
 }
 
-export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: CategoryProgressBarsProps) {
+export function CategoryProgressBars({
+    data,
+    viewMode,
+    selectedCategoryName,
+    parentCategories = [],
+    showSummary = false,
+}: CategoryProgressBarsProps) {
     const getTitle = () => {
         if (viewMode === "categoria" && selectedCategoryName) {
             return `Subcategorías de ${selectedCategoryName}`
         }
         return `Distribución por ${viewMode === "categoria" ? "Categoría" : "Tipo"}`
     }
+
+    const totalCost = data?.reduce((sum, item) => sum + item.totalRevenue, 0) || 0
+    const totalParentCost = parentCategories?.reduce((sum, item) => sum + item.totalCost, 0) || 0
 
     if (!data) {
         return (
@@ -38,9 +49,52 @@ export function CategoryProgressBars({ data, viewMode, selectedCategoryName }: C
             </div>
         )
     }
+    if (showSummary) {
+        return (
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Resumen de Categorías Principales
+                    </h3>
+                    <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        Costo Neto Total: ${toPrice(totalParentCost)}
+                    </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {parentCategories.map((category) => (
+                        <div key={category.id} className="bg-white dark:bg-gray-700 p-3 rounded-md shadow-sm">
+                            <div className="font-medium text-gray-800 dark:text-gray-200">{category.name}</div>
+                            <div className="mt-2 space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Productos:</span>
+                                    <span className="font-medium">{category.productCount}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Stock Total:</span>
+                                    <span className="font-medium">{category.count}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Costo Neto:</span>
+                                    <span className="font-medium text-green-600 dark:text-green-400">
+                                        ${toPrice(category.totalCost)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
+            <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
+                <div className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    Costo Neto Total: ${toPrice(totalCost)}
+                </div>
+            </div>
             <div className="space-y-4">
                 {data.map((item) => (
                     <div key={item.name} className="space-y-2">

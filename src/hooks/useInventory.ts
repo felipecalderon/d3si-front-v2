@@ -10,7 +10,7 @@ import type { IProduct } from "@/interfaces/products/IProduct"
 import type { IStore } from "@/interfaces/stores/IStore"
 import type { FlattenedItem } from "@/interfaces/products/IFlatternProduct"
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 20
 
 export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
     const { user } = useAuth()
@@ -23,7 +23,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
         if (user?.role === Role.Admin || user?.role === Role.Tercero || !userStoreID) return initialProducts
         return initialProducts.filter((product) =>
             product.ProductVariations.some((variation) =>
-                variation.StoreProducts.some((sp) => sp.storeID === userStoreID)
+                variation.StoreProducts?.some((sp) => sp.storeID === userStoreID)
             )
         )
     }, [initialProducts, user?.role, userStoreID])
@@ -63,10 +63,54 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
         return applyVariationFilters(flattened, columnFilters, adminStoreIDs)
     }, [filteredProducts, columnFilters, adminStoreIDs])
 
-    const totalPages = Math.ceil(flattenedProducts.length / ITEMS_PER_PAGE)
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    const currentItems = flattenedProducts.slice(startIndex, endIndex)
+    // Se implementa paginación que mantiene productos agrupados
+    const paginatedItems = useMemo(() => {
+        const pages = []
+        let currentPage: FlattenedItem[] = []
+        let currentVariationCount = 0
+
+        // Se agrupan productos por ID
+        const groupedProducts = flattenedProducts.reduce((groups, item) => {
+            const productId = item.product.productID
+            if (!groups[productId]) {
+                groups[productId] = []
+            }
+            groups[productId].push(item)
+            return groups
+        }, {} as Record<string, FlattenedItem[]>)
+
+        // Iterar sobre los grupos de productos
+        for (const productGroup of Object.values(groupedProducts)) {
+            const variationCount = productGroup.length
+
+            // Si añadir este producto excedería el límite de la página actual
+            if (currentVariationCount > 0 && currentVariationCount + variationCount > ITEMS_PER_PAGE) {
+                pages.push(currentPage)
+                currentPage = []
+                currentVariationCount = 0
+            }
+
+            // Añadir todas las variaciones del producto actual
+            productGroup.forEach((item, index) => {
+                currentPage.push({
+                    ...item,
+                    isFirst: index === 0,
+                })
+            })
+            currentVariationCount += variationCount
+        }
+
+        // Añadir la última página si tiene elementos
+        if (currentPage.length > 0) {
+            pages.push(currentPage)
+        }
+
+        return pages
+    }, [flattenedProducts])
+
+    const totalPages = paginatedItems.length
+
+    const currentItems = useMemo(() => paginatedItems[currentPage - 1] || [], [paginatedItems, currentPage])
 
     const uniqueProductsInCurrentPage = useMemo(() => {
         const uniqueProductIds = new Set()
@@ -85,7 +129,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
                 return (
                     total +
                     product.ProductVariations.reduce((sum, v) => {
-                        const storeProduct = v.StoreProducts.find((sp) => sp.storeID === userStoreID)
+                        const storeProduct = v.StoreProducts?.find((sp) => sp.storeID === userStoreID)
                         return sum + (storeProduct ? storeProduct.quantity : 0)
                     }, 0)
                 )

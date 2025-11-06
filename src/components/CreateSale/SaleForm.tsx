@@ -1,23 +1,42 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ScanInput } from "@/components/CreateSale/ScanInput"
 import { CartTable } from "@/components/CreateSale/CartTable"
 import { useSaleStore } from "@/stores/sale.store"
-import { PaymentType } from "@/interfaces/sales/ISale"
+import { ISaleRequest, PaymentType } from "@/interfaces/sales/ISale"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { toPrice } from "@/utils/priceFormat"
 import { Button } from "../ui/button"
 import { useTienda } from "@/stores/tienda.store"
+import { createNewSale } from "@/actions/sales/postSale"
+import { toast } from "sonner"
 
 export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) => {
     const router = useRouter()
-    const { cartItems, total, paymentMethod, loading, actions } = useSaleStore()
-    const { setPaymentMethod, submitSale, clearCart } = actions
+    const { cartItems, paymentMethod, loading, actions } = useSaleStore()
+    const { setPaymentMethod, clearCart } = actions
     const { storeSelected } = useTienda()
+    const total = useMemo(() => {
+        return cartItems.reduce((acc, item) => {
+            return acc + item.variation.quantity * item.variation.priceList
+        }, 0)
+    }, [cartItems])
     const handleSubmit = async () => {
-        const res = await submitSale()
+        if (!storeSelected) return toast.error("No hay una tienda elegida")
+        const toSubmitSale: ISaleRequest = {
+            paymentType: paymentMethod,
+            status: "Pagado",
+            storeID: storeSelected.storeID,
+            SaleProducts: cartItems.map((item) => ({
+                storeProductID: item.storeProduct.storeProductID,
+                quantitySold: item.variation.quantity,
+                unitPrice: item.variation.priceList,
+            })),
+        }
+
+        const res = await createNewSale(toSubmitSale)
         if (res) {
             router.refresh()
             router.push(`/home?storeID=${storeSelected?.storeID}`)

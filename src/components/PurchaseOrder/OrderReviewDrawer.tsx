@@ -27,32 +27,30 @@ import { useRouter } from "next/navigation"
 import { Input } from "../ui/input"
 import { usePedidoOC } from "@/stores/pedidoOC"
 
-interface Item {
-    product: IProduct
-    variation: IProductVariation
-    quantity: number
-    price: number
-}
-export function OrderReviewDrawer({ items }: { items: Item[] }) {
+export function OrderReviewDrawer() {
     const [isLoading, setLoading] = useState(false)
-    const total = useMemo(() => {
-        return items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    }, [items])
     const { user } = useAuth()
     const { storeSelected } = useTienda()
     const router = useRouter()
-    const { addOrUpdatePedido } = usePedidoOC()
+    const { addOrUpdatePedido, pedido } = usePedidoOC()
+    const total = useMemo(() => {
+        return pedido.reduce((sum, item) => sum + item.variation.priceCost * item.variation.quantity, 0)
+    }, [pedido])
     const submitOC = async () => {
         try {
             setLoading(true)
-            // TODO: NO Mapear, sino pasar todo items (trabajar en back)
             await createOrder({
                 storeID: storeSelected?.storeID || "",
                 userID: user?.userID || "",
-                products: items.map((p) => ({
-                    variationID: p.variation.variationID,
-                    quantityOrdered: p.quantity,
-                })),
+                newProducts: pedido.map((p) => p.variation), // Variaciones con prop.quantity (extenido)
+                discount: 0, // Aún no se aplica en backend
+                dte: "", // Numero de factura, debe ser string
+                startQuote: null, // Cuota actual del pago: numero entero menor o igual a endQuote
+                endQuote: null, // Cuota final del pago (cantidad de cuotas totales)
+                expiration: null, // Date (string) o Null: Fecha de vencimiento
+                expirationPeriod: "MENSUAL",
+                status: "Pendiente",
+                type: "OCD",
             })
 
             toast.success("Orden creada con éxito")
@@ -91,29 +89,36 @@ export function OrderReviewDrawer({ items }: { items: Item[] }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {items.map((item) => (
-                                    <TableRow key={item.variation.sku}>
-                                        <TableCell className="font-medium">{item.product.name}</TableCell>
-                                        <TableCell>{item.variation.sizeNumber}</TableCell>
-                                        <TableCell className="text-right w-10">
-                                            <Input
-                                                type="number"
-                                                value={item.quantity}
-                                                onChange={(e) => {
-                                                    const numberValue = Number(e.target.value)
-                                                    addOrUpdatePedido({
-                                                        ...item,
-                                                        quantity: numberValue,
-                                                    })
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-right">{toPrice(item.price)}</TableCell>
-                                        <TableCell className="text-right">
-                                            {toPrice(item.price * item.quantity)}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {pedido.map((item) => {
+                                    return (
+                                        <TableRow key={item.variation.sku}>
+                                            <TableCell className="font-medium">{item.product.name}</TableCell>
+                                            <TableCell>{item.variation.sizeNumber}</TableCell>
+                                            <TableCell className="text-right w-10">
+                                                <Input
+                                                    type="number"
+                                                    value={item.variation.quantity}
+                                                    onChange={(e) => {
+                                                        addOrUpdatePedido({
+                                                            ...item,
+                                                            product: item.product,
+                                                            variation: {
+                                                                ...item.variation,
+                                                                quantity: Number(e.target.value),
+                                                            },
+                                                        })
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {toPrice(item.variation.priceCost)}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {toPrice(item.variation.priceCost * item.variation.quantity)}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-right font-bold">
                                         Total:
@@ -129,7 +134,7 @@ export function OrderReviewDrawer({ items }: { items: Item[] }) {
                         </DrawerClose>
                         <Button
                             className="bg-blue-600 hover:bg-blue-500"
-                            disabled={isLoading || items.length === 0}
+                            disabled={isLoading || pedido.length === 0}
                             onClick={submitOC}
                         >
                             {isLoading ? "Creando OC..." : "Crear orden de compra"}

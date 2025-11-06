@@ -12,16 +12,16 @@ export function PurchaseOrderSummary() {
     if (!user) return null
 
     const neto = pedido.reduce((acc, curr) => {
-        return acc + curr.price * curr.quantity
+        return acc + curr.variation.priceCost * curr.variation.quantity
     }, 0)
 
     const totalProducts = pedido.reduce((acc, curr) => {
-        return acc + curr.quantity
+        return acc + curr.variation.quantity
     }, 0)
 
     return (
         <>
-            {pedido.length > 0 && <OrderReviewDrawer items={pedido} />}
+            {pedido.length > 0 && <OrderReviewDrawer />}
             <div className="w-full">
                 <div className="flex md:justify-around items-center gap-4">
                     {/* Cuadro resumen con fondo verde */}

@@ -34,10 +34,6 @@ const HomePage = async ({ searchParams }: SearchParams) => {
 
     if (!storeID) return null
 
-    // Calcular inicio y fin de mes actual
-    const startOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1)
-    const endOfMonth = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0, 23, 59, 59, 999)
-
     const [sales, wooOrders, resume, allOrders] = await Promise.all([
         getSales(storeID, yyyyDate),
         getWooCommerceOrders(newDate),
@@ -46,19 +42,10 @@ const HomePage = async ({ searchParams }: SearchParams) => {
     ])
     const wooSales = wooOrders.map(mapWooOrderToSale)
     const allSales = [...sales, ...wooSales]
-
-    // Filtrar órdenes de compra del mes corriente, que no sean OCC y que sean de la tienda actual
     const purchaseOrders: (IOrderWithStore & { isOrder: true })[] = allOrders
-        .filter(
-            (order: any) =>
-                order.storeID === storeID &&
-                order.type !== "OCC" &&
-                new Date(order.createdAt) >= startOfMonth &&
-                new Date(order.createdAt) <= endOfMonth
-        )
-        .map((order: any) => ({ ...order, isOrder: true }))
+        .filter((order) => order.storeID === storeID && order.type !== "OCC")
+        .map((order) => ({ ...order, isOrder: true }))
 
-    // Combinar ventas y órdenes
     const items = [...allSales, ...purchaseOrders]
 
     const wooResume = salesToResume(wooSales, newDate)

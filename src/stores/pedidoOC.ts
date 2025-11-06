@@ -1,13 +1,11 @@
 "use client"
+import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
 import { IProduct } from "@/interfaces/products/IProduct"
-import { IProductVariation } from "@/interfaces/products/IProductVariation"
 import { create } from "zustand"
 
 interface NewPedido {
     product: IProduct
-    variation: IProductVariation
-    quantity: number
-    price: number
+    variation: IVariationWithQuantity
 }
 
 interface PurchaseOrderState {
@@ -32,9 +30,9 @@ export const usePedidoOC = create<PurchaseOrderState>((set) => ({
             // Si existe, actualiza la cantidad
             if (existingIndex !== -1) {
                 const updated = [...state.pedido]
-                updated[existingIndex].quantity = item.quantity
-                updated[existingIndex].price = item.price
-                return { pedido: updated.filter((p) => p.quantity > 0) }
+                updated[existingIndex].variation.quantity = item.variation.quantity
+                updated[existingIndex].variation.priceCost = item.variation.priceCost
+                return { pedido: updated.filter((p) => p.variation.quantity > 0) }
             }
 
             // Si no existe, lo agrega

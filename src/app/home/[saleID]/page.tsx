@@ -19,8 +19,8 @@ export default async function SingleSalePage({ params }: PropsSale) {
     if (!sale || !products) return null
 
     const nulledProducts = getAnulatedProducts(sale)
-    const total = products.reduce((acc, act) => acc + act.subtotal, 0)
-    const totalNulled = nulledProducts.reduce((acc, act) => acc + act.subtotal, 0)
+    const total = products.reduce((acc, act) => acc + act.quantitySold * act.unitPrice, 0)
+    const totalNulled = nulledProducts.reduce((acc, act) => acc + act.quantitySold * Number(act.unitPrice), 0)
 
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">

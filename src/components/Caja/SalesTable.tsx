@@ -8,7 +8,7 @@ import DateCell from "../DateCell"
 import { useRouter } from "next/navigation"
 import { toPrice } from "@/utils/priceFormat"
 
-type TableItem = ISaleResponse | (IOrderWithStore & { isOrder: true })
+type TableItem = ISaleResponse | IOrderWithStore
 
 interface Props {
     items: TableItem[]
@@ -52,14 +52,6 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                             // Venta
                             if ("saleID" in item) {
                                 const storeName = item.Store?.name || "Sucursal"
-                                const productsDescription = item.SaleProducts?.length
-                                    ? item.SaleProducts.map((sp) => {
-                                          const productName =
-                                              sp?.StoreProduct?.ProductVariation?.Product?.name ?? "Producto"
-                                          const quantity = sp.quantitySold ?? "-"
-                                          return `${quantity} x ${productName}`
-                                      }).join(", ")
-                                    : "-"
                                 return (
                                     <TableRow
                                         key={item.saleID}
@@ -74,7 +66,17 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                             {typeof item.total === "number" ? `$${toPrice(item.total)}` : "Sin dato"}
                                         </TableCell>
                                         <TableCell align="left" className="max-w-96">
-                                            {productsDescription}
+                                            {item.SaleProducts.map((sp) => {
+                                                const { quantitySold } = sp
+                                                const { name } =
+                                                    sp?.StoreProduct?.ProductVariation?.Product ?? "Producto"
+                                                const { sizeNumber } = sp?.StoreProduct?.ProductVariation
+                                                return (
+                                                    <p key={sp.SaleProductID}>
+                                                        {quantitySold} x {name} - {sizeNumber}
+                                                    </p>
+                                                )
+                                            })}
                                         </TableCell>
                                         <TableCell
                                             className={`font-medium ${
@@ -93,13 +95,10 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                             } else {
                                 // Orden de compra
                                 const storeName = item.Store?.name || "Sucursal"
-                                const productsDescription = item.ProductVariations?.length
-                                    ? item.ProductVariations.map((pv) => {
-                                          const productName = pv.Product?.name ?? "Producto"
-                                          const quantity = pv.quantityOrdered ?? "-"
-                                          return `${quantity} x ${productName}`
-                                      }).join(", ")
-                                    : "-"
+                                const itemsOrdered = item.ProductVariations?.reduce(
+                                    (acc, p) => acc + p.quantityOrdered,
+                                    0
+                                )
                                 return (
                                     <TableRow
                                         key={item.orderID}
@@ -114,7 +113,7 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                             {item.total ? `$${toPrice(Number(item.total))}` : "Sin dato"}
                                         </TableCell>
                                         <TableCell align="left" className="max-w-96">
-                                            {productsDescription}
+                                            {itemsOrdered} unidades
                                         </TableCell>
                                         <TableCell
                                             className={`font-medium ${

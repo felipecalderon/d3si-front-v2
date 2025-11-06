@@ -23,17 +23,17 @@ import { inventoryStore } from "@/stores/inventory.store"
 import { useAuth } from "@/stores/user.store"
 import { useTienda } from "@/stores/tienda.store"
 import { usePedidoOC } from "@/stores/pedidoOC"
+import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
+import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
-const VARIATIONS_PER_PAGE = 15 // Máximo de variaciones por página
 const MAX_VARIATIONS_PER_PAGE = 20
+
 export default function PurchaseOrderClient({
     initialProducts,
     initialCategories,
     initialStores,
 }: PurchaseOrderClientProps) {
-    const router = useRouter()
     const { user } = useAuth()
-    // Estados
     const [search, setSearch] = useState("")
     const [barcodeSku, setBarcodeSku] = useState("")
     const [stores] = useState<IStore[]>(initialStores)
@@ -63,7 +63,7 @@ export default function PurchaseOrderClient({
         if (user?.role === "store_manager" && storeSelected?.storeID) {
             return filteredAndSortedProducts.filter((product) =>
                 product.ProductVariations.some((variation) =>
-                    variation.StoreProducts.some((storeProduct) => storeProduct.storeID === storeSelected.storeID)
+                    variation?.StoreProducts?.some((storeProduct) => storeProduct.storeID === storeSelected.storeID)
                 )
             )
         }
@@ -84,7 +84,7 @@ export default function PurchaseOrderClient({
     // 3. Paginar por variaciones (máximo 15 por página)
     const paginatedProducts = useMemo(() => {
         const pages = []
-        let currentPage: { product: IProduct; variation: any; isFirst: boolean }[] = []
+        let currentPage: { product: IProduct; variation: IVariationWithQuantity; isFirst: boolean }[] = []
         let currentVariationCount = 0 // Contar las variantes en la página actual
 
         // se ordena aquí por ahora.
@@ -100,9 +100,9 @@ export default function PurchaseOrderClient({
 
         for (const product of productsToPaginate) {
             // Ordenar las variaciones por talla (no por stock como estaba antes)
-            const sortedVariations = [...product.ProductVariations].sort((a, b) =>
-                a.sizeNumber.localeCompare(b.sizeNumber)
-            )
+            const sortedVariations: IVariationWithQuantity[] = [...product.ProductVariations]
+                .sort((a, b) => a.sizeNumber.localeCompare(b.sizeNumber))
+                .map((v) => ({ quantity: 0, ...v }))
 
             const variationCount = sortedVariations.length
 
@@ -169,16 +169,11 @@ export default function PurchaseOrderClient({
                 for (const variation of product.ProductVariations) {
                     if (variation.sku === sku) {
                         const findQuantity =
-                            pedido.find(
-                                (p) =>
-                                    p.product.productID === product.productID &&
-                                    p.variation.variationID === variation.variationID
-                            )?.quantity || 0
+                            pedido.find((p) => p.variation.variationID === variation.variationID)?.variation.quantity ||
+                            0
                         addOrUpdatePedido({
-                            variation: variation,
+                            variation: { quantity: findQuantity + 1, ...variation },
                             product: product,
-                            price: variation.priceCost,
-                            quantity: findQuantity + 1,
                         })
                         found = true
                         break
@@ -199,7 +194,7 @@ export default function PurchaseOrderClient({
 
     const totalProductsInOrder = useMemo(() => {
         return pedido.reduce((prev, curr) => {
-            return prev + curr.quantity
+            return prev + curr.variation.quantity
         }, 0)
     }, [pedido])
 

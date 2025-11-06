@@ -473,7 +473,7 @@ export function InventoryTable({
                                                     </span>
                                                 </MotionItem> */}
                                                 <div className="flex flex-col">
-                                                    {productData?.StoreProducts.filter(
+                                                    {productData?.StoreProducts?.filter(
                                                         (sp) => sp.Store.role === Role.Vendedor
                                                     ).map((sp) => (
                                                         <div className="flex" key={sp.storeProductID}>

@@ -49,7 +49,7 @@ export default function PrintSaleButton({ sale }: { sale: ISaleResponse }) {
                     </td>
                   <td>${p.quantitySold}</td>
                   <td>${toPrice(p.unitPrice)}</td>
-                  <td>${toPrice(p.subtotal)}</td>
+                  <td>${toPrice(p.unitPrice * p.quantitySold)}</td>
                 </tr>
               `
               ).join("")}
