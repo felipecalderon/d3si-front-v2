@@ -15,31 +15,43 @@ import { toast } from "sonner"
 
 export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) => {
     const router = useRouter()
-    const { cartItems, paymentMethod, loading, actions } = useSaleStore()
+    const { cartItems, paymentMethod, actions } = useSaleStore()
     const { setPaymentMethod, clearCart } = actions
     const { storeSelected } = useTienda()
+    const [loading, setLoading] = useState(false)
+
     const total = useMemo(() => {
         return cartItems.reduce((acc, item) => {
             return acc + item.variation.quantity * item.variation.priceList
         }, 0)
     }, [cartItems])
-    const handleSubmit = async () => {
-        if (!storeSelected) return toast.error("No hay una tienda elegida")
-        const toSubmitSale: ISaleRequest = {
-            paymentType: paymentMethod,
-            status: "Pagado",
-            storeID: storeSelected.storeID,
-            SaleProducts: cartItems.map((item) => ({
-                storeProductID: item.storeProduct.storeProductID,
-                quantitySold: item.variation.quantity,
-                unitPrice: item.variation.priceList,
-            })),
-        }
 
-        const res = await createNewSale(toSubmitSale)
-        if (res) {
-            router.refresh()
-            router.push(`/home?storeID=${storeSelected?.storeID}`)
+    const handleSubmit = async () => {
+        try {
+            setLoading(true)
+            if (!storeSelected) return toast.error("No hay una tienda elegida")
+            const toSubmitSale: ISaleRequest = {
+                paymentType: paymentMethod,
+                status: "Pagado",
+                storeID: storeSelected.storeID,
+                SaleProducts: cartItems.map((item) => ({
+                    storeProductID: item.storeProduct.storeProductID,
+                    quantitySold: item.variation.quantity,
+                    unitPrice: item.variation.priceList,
+                })),
+            }
+
+            const res = await createNewSale(toSubmitSale)
+            if (res) {
+                toast.success("Venta generada exitosamente! Redirigiendo...")
+                actions.clearCart()
+                router.refresh()
+                router.push(`/home?storeID=${storeSelected?.storeID}`)
+            }
+        } catch (error) {
+            toast.error("Falló al crear la venta :(")
+        } finally {
+            setLoading(false)
         }
     }
 

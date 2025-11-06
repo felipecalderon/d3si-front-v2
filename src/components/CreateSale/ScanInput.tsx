@@ -3,10 +3,11 @@ import { useSaleStore } from "@/stores/sale.store"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useMemo, useState } from "react"
+import { ChangeEvent, KeyboardEvent, useMemo, useState } from "react"
 import { IStoreProduct } from "@/interfaces/products/IProductVariation"
 import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
 import { useTienda } from "@/stores/tienda.store"
+import { toast } from "sonner"
 
 interface Props {
     initialProducts: IProduct[]
@@ -15,46 +16,60 @@ interface Props {
 export const ScanInput = ({ initialProducts }: Props) => {
     const { addProduct } = useSaleStore((state) => state.actions)
     const { storeSelected } = useTienda()
-    const { loading } = useSaleStore()
-    const [productCode, setProductCode] = useState("")
+    const [productInput, setProductCode] = useState("")
 
-    // const handleAdd = (product: IProduct, variation: IVariationWithQuantity, storeProduct: IStoreProduct) => {
-    //     addProduct(product, variation, storeProduct)
-    //     setProductCode("")
-    // }
-
-    const results = useMemo(() => {
-        const filterProducts = initialProducts.filter((p) => p.name.toLowerCase().includes(productCode))
+    const parentProductFinded = useMemo(() => {
+        const filterProducts = initialProducts.filter((p) => p.name.toLowerCase().includes(productInput))
         return filterProducts
-    }, [productCode])
+    }, [productInput])
 
+    const handleSetInputValue = (e: ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault()
+        setProductCode(e.target.value)
+    }
+
+    const handleEnterPressed = async (e: KeyboardEvent<HTMLInputElement>) => {
+        const isEnterPress = e.code === "Enter" || e.code === "NumpadEnter"
+        if (isEnterPress) {
+            e.preventDefault()
+            const productFinded = initialProducts.find((p) => p.ProductVariations.some((v) => v.sku === productInput))
+            if (productFinded) {
+                const variationFinded = productFinded.ProductVariations.find((v) => v.sku === productInput)
+                if (variationFinded) {
+                    const variationWithQuantity = { ...variationFinded, quantity: 1 }
+                    const storeProduct = variationFinded.StoreProducts?.find(
+                        (p) => p.storeID === storeSelected?.storeID && p.variationID === variationFinded.variationID
+                    )
+                    if (storeProduct) {
+                        addProduct(productFinded, variationWithQuantity, storeProduct)
+                        setProductCode("")
+                    }
+                }
+                console.log(variationFinded)
+            } else {
+                toast.error(`No se encontró sku: ${productInput}`)
+            }
+            console.log(productFinded)
+        }
+    }
     return (
         <>
             <form className="flex items-center gap-2 mb-6">
                 <Input
                     type="text"
-                    value={productCode}
-                    onChange={(e) => setProductCode(e.target.value)}
+                    value={productInput}
+                    onChange={handleSetInputValue}
+                    onKeyDown={handleEnterPressed}
                     placeholder="Código de producto"
                     className="flex-1"
                     autoFocus
                 />
-
-                {/* <Button
-                    onClick={() => add}
-                    disabled={loading}
-                    className={`px-4 py-2 font-semibold rounded-lg transition ${
-                        loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
-                    }`}
-                >
-                    {loading ? "Buscando..." : "Agregar"}
-                </Button> */}
             </form>
             <div className="relative">
                 <ul className="absolute -top-6 bg-white dark:bg-slate-700 border rounded-lg shadow mt-2 max-h-64 overflow-y-auto z-50">
-                    {productCode.length > 2 &&
-                        productCode !== "" &&
-                        results.map((product) =>
+                    {productInput.length > 2 &&
+                        productInput !== "" &&
+                        parentProductFinded.map((product) =>
                             product.ProductVariations.map((variation) => {
                                 const storeID = storeSelected?.storeID ?? ""
                                 const storeProduct = variation.StoreProducts?.find(

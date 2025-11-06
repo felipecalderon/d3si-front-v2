@@ -35,25 +35,42 @@ export const useSaleStore = create<SaleState>((set, get) => ({
             if (!storeSelected) {
                 toast.error("Debes elegir una tienda")
                 return
-            }
-            if (variation.stockQuantity <= 0) {
-                toast("No hay stock disponible para este producto.")
-                return
-            }
+            } // Es importante verificar el stock en el carrito, no solo en la variación que se pasa
             const { cartItems } = get()
 
-            const existingItem = cartItems.find((p) => p.variation.sku === variation.sku)
+            const existingItem = cartItems.find((p) => p.variation.sku === variation.sku) // Stock a comparar: si ya existe, usamos su stock actual, si no, usamos el stock de la variación pasada.
+            const stockQuantity = existingItem ? existingItem.variation.stockQuantity : variation.stockQuantity
+            const currentQuantity = existingItem ? existingItem.variation.quantity : 0
+            if (currentQuantity + 1 > stockQuantity) {
+                toast("No se puede agregar más, stock insuficiente.")
+                return
+            }
+
             if (existingItem) {
-                if (existingItem.variation.quantity + 1 > existingItem.variation.stockQuantity) {
-                    toast("No se puede agregar más, stock insuficiente.")
-                } else {
-                    const newCartItems = cartItems.map((item) =>
-                        item.variation.sku === variation.sku ? { ...item, quantity: item.variation.quantity + 1 } : item
-                    )
-                    set({ cartItems: newCartItems })
-                }
+                // El producto YA existe, aumentamos la cantidad en 1.
+                const newCartItems = cartItems.map((item) => {
+                    if (item.variation.sku === variation.sku) {
+                        return {
+                            ...item,
+                            variation: {
+                                ...item.variation, // **AQUÍ ESTÁ EL CAMBIO CLAVE:** Aumentar la cantidad dentro de `variation`
+                                quantity: item.variation.quantity + 1,
+                            },
+                        }
+                    }
+                    return item
+                })
+                set({ cartItems: newCartItems })
             } else {
-                const newCartItems = [...cartItems, { product, storeProduct, variation: { ...variation, quantity: 1 } }]
+                // El producto NO existe, se agrega con cantidad 1.
+                const newCartItems = [
+                    ...cartItems,
+                    {
+                        product,
+                        storeProduct,
+                        variation: { ...variation, quantity: 1 },
+                    },
+                ]
                 set({ cartItems: newCartItems })
             }
         },
