@@ -143,6 +143,7 @@ export default function OrderDetail({ orderId }: Props) {
             const startQuote = currentQuota !== undefined && currentQuota !== null ? String(currentQuota) : null
             const endQuote = totalQuotas !== undefined && totalQuotas !== null ? String(totalQuotas) : null
             const body = {
+                ...order,
                 orderID: order.orderID,
                 status: paymentStatus,
                 type: order.type,
