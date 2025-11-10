@@ -196,7 +196,7 @@ export const generatePieData = (
                     ...stats,
                     profitMargin: Math.max(0, Math.min(100, profitMargin)),
                     color: COLORS[index % COLORS.length],
-                    totalValue: stats.productCount, // Necesario para mostrar el gráfico
+                    totalValue: stats.count, // Usar stock total para el tamaño del gráfico
                 }
             })
             .sort((a, b) => b.productCount - a.productCount)
@@ -212,7 +212,7 @@ export const generatePieData = (
                 ...statsItem,
                 profitMargin: Math.max(0, Math.min(100, profitMargin)),
                 color: COLORS[index % COLORS.length],
-                totalValue: statsItem.productCount, // Necesario para mostrar el gráfico
+                totalValue: statsItem.count, // Usar stock total para el tamaño del gráfico
             }
         })
         .sort((a, b) => b.totalRevenue - a.totalRevenue)
