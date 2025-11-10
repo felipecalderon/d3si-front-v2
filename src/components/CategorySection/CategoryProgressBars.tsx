@@ -22,10 +22,13 @@ export function CategoryProgressBars({
     showSummary = false,
 }: CategoryProgressBarsProps) {
     const getTitle = () => {
-        if (viewMode === "categoria" && selectedCategoryName) {
-            return `Subcategorías de ${selectedCategoryName}`
+        if (viewMode === "categoria") {
+            if (selectedCategoryName) {
+                return `Subcategorías de ${selectedCategoryName}`
+            }
+            return "Todas las Categorías"
         }
-        return `Distribución por ${viewMode === "categoria" ? "Categoría" : "Tipo"}`
+        return `Distribución por Tipo`
     }
 
     const totalCost = data?.reduce((sum, item) => sum + item.totalRevenue, 0) || 0
@@ -40,12 +43,22 @@ export function CategoryProgressBars({
         )
     }
     if (!data.length) {
+        // Solo mostrar mensaje de "sin subcategorías" si hay una categoría seleccionada
+        if (selectedCategoryName) {
+            return (
+                <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        {selectedCategoryName}: No tiene subcategorías
+                    </div>
+                </div>
+            )
+        }
+        // Si no hay selección y no hay datos, mostrar mensaje genérico
         return (
             <div className="space-y-4">
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTitle()}</h3>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    {selectedCategoryName}: No tiene subcategorías
-                </div>
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">No hay datos disponibles</div>
             </div>
         )
     }
@@ -109,7 +122,7 @@ export function CategoryProgressBars({
                                         <span>Cantidad: {item.totalStock} unidades</span>
                                         <span>|</span>
                                         <span>
-                                            Valor:{" "}
+                                            Costo Neto:{" "}
                                             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                                 ${toPrice(item.totalRevenue)}
                                             </span>
