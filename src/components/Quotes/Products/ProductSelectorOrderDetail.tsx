@@ -7,18 +7,57 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { PlusIcon, ChevronDownIcon, CheckIcon } from "lucide-react"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { useEditOrderStore } from "@/stores/order.store"
+import { toast } from "sonner"
 
 interface ProductSelectorProps {
     filteredProducts: IProduct[]
-    onProductSelect: (productId: string) => void
-    onAddNewProduct?: (productData: { name: string; image?: string }) => void
 }
 
-export function ProductSelector({ filteredProducts, onProductSelect }: ProductSelectorProps) {
+interface ProductWithVariation extends IProduct {
+    sizeNumber: string
+    sku: string
+}
+
+export function ProductSelector({ filteredProducts }: ProductSelectorProps) {
+    const { actions } = useEditOrderStore()
+    const { addProduct } = actions
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
-    const handleProductSelect = (productId: string) => {
-        onProductSelect(productId)
+    const productBySkuMap = React.useMemo(() => {
+        const map = new Map<string, IProduct>()
+        filteredProducts.forEach((product) => {
+            product.ProductVariations.forEach((variation) => {
+                map.set(variation.sku, product)
+            })
+        })
+        return map
+    }, [filteredProducts])
+
+    // lista plana y enriquecida con O(V)
+    const productsWithSize: ProductWithVariation[] = React.useMemo(() => {
+        return filteredProducts
+            .flatMap((product) =>
+                product.ProductVariations.map((v) => ({
+                    ...product,
+                    sizeNumber: v.sizeNumber,
+                    sku: v.sku,
+                    stock: v.stockQuantity,
+                }))
+            )
+            .filter((p) => p.stock > 0)
+    }, [filteredProducts])
+
+    const handleProductSelect = (sku: string) => {
+        const productFinded = productBySkuMap.get(sku)
+
+        if (!productFinded) return toast.error(`No se encontró el sku: ${sku}`)
+
+        const variationFinded = productFinded.ProductVariations.find((pv) => pv.sku === sku)
+
+        if (variationFinded) {
+            addProduct(productFinded, { ...variationFinded, quantity: 1 })
+        }
         setIsPopoverOpen(false)
     }
 
@@ -51,13 +90,13 @@ export function ProductSelector({ filteredProducts, onProductSelect }: ProductSe
                                         <CommandInput placeholder="Escribí para buscar..." />
                                         <CommandEmpty>No se encontró producto disponible.</CommandEmpty>
                                         <CommandGroup>
-                                            {filteredProducts.map((product) => (
+                                            {productsWithSize.map((product, i) => (
                                                 <CommandItem
-                                                    key={product.productID}
-                                                    onSelect={() => handleProductSelect(product.productID)}
+                                                    key={`${product.productID}-${product.sizeNumber}-${i}`}
+                                                    onSelect={() => handleProductSelect(product.sku)}
                                                 >
                                                     <CheckIcon className="mr-2 h-4 w-4 opacity-0" />
-                                                    {product.name}
+                                                    {product.name} - {product.sizeNumber}
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>

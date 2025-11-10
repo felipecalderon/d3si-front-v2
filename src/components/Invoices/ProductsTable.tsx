@@ -1,25 +1,21 @@
 import React from "react"
 
 import { Package, Minus, Plus } from "lucide-react"
-
-interface Product {
-    variationID: string
-    sku: string
-    sizeNumber: string | string[]
-    availableSizes?: string[]
-    Product?: { name?: string }
-    OrderProduct?: { quantityOrdered?: number; subtotal?: number | string }
-}
+import { toPrice } from "@/utils/priceFormat"
+import { OrderEditItem, useEditOrderStore } from "@/stores/order.store"
+import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
+import { toast } from "sonner"
 
 interface Props {
-    products: Product[]
-    isAdmin: boolean
-    onRemove: (variationID: string) => void
-    onIncrement?: (variationID: string) => void
-    onSelectTallas?: (variationID: string, tallas: string[]) => void
+    products: OrderEditItem[]
 }
 
-const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncrement, onSelectTallas }) => {
+const ProductsTable: React.FC<Props> = ({ products }) => {
+    const { user } = useAuth()
+    const { actions } = useEditOrderStore()
+    const { incrementQuantity, decrementQuantity, removeProduct } = actions
+    const isAdmin = user?.role === Role.Admin
     if (!products || products.length === 0) {
         return (
             <div className="text-center py-8">
@@ -31,7 +27,7 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
     return (
         <div className="space-y-4">
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="block overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-gray-200 dark:border-gray-700">
@@ -53,62 +49,51 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                     <tbody>
                         {products.map((item, index) => (
                             <tr
-                                key={item.variationID}
+                                key={item.variation.variationID}
                                 className={`border-b border-gray-100 dark:border-gray-700 ${
                                     index % 2 === 0 ? "bg-gray-50 dark:bg-slate-700/50" : ""
                                 }`}
                             >
                                 <td className="py-3 px-2">
                                     <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">
-                                        {item.sku}
+                                        {item.variation.sku}
                                     </span>
                                 </td>
                                 <td className="py-3 px-2">
                                     <span className="px-2 py-1 rounded text-xs font-medium">
-                                        {item.Product?.name || "-"}
+                                        {item.product.name || "-"}
                                     </span>
                                 </td>
                                 <td className="py-3 px-2">
-                                    <select
-                                        className="min-w-[80px] border rounded px-2 py-1 text-xs bg-white dark:bg-slate-800 text-blue-800 dark:text-blue-300"
-                                        value={
-                                            typeof item.sizeNumber === "string"
-                                                ? item.sizeNumber
-                                                : item.sizeNumber[0] || ""
-                                        }
-                                        onChange={(e) => {
-                                            const selected = e.target.value
-                                            if (onSelectTallas) onSelectTallas(item.variationID, [selected])
-                                        }}
-                                    >
-                                        {(
-                                            item.availableSizes ||
-                                            (typeof item.sizeNumber === "string" ? [item.sizeNumber] : [])
-                                        ).map((size) => (
-                                            <option key={size} value={size}>
-                                                {size}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <span>{item.variation.sizeNumber}</span>
                                 </td>
                                 <td className="py-3 px-2 text-center">
                                     <div className="flex items-center justify-center gap-2">
                                         {isAdmin && (
                                             <button
                                                 className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
-                                                onClick={() => onRemove(item.variationID)}
+                                                onClick={() => decrementQuantity(item.variation.sku)}
                                                 title="Quitar uno"
                                             >
                                                 <Minus className="w-4 h-4 text-red-600" />
                                             </button>
                                         )}
                                         <span className="font-semibold min-w-[24px] text-center block">
-                                            {item.OrderProduct?.quantityOrdered ?? "-"}
+                                            {item.variation.quantity}
                                         </span>
                                         {isAdmin && (
                                             <button
+                                                // disabled={item.variation.quantity <= item.variation.stockQuantity}
                                                 className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
-                                                onClick={() => onIncrement && onIncrement(item.variationID)}
+                                                onClick={() => {
+                                                    if (item.variation.quantity <= item.variation.stockQuantity) {
+                                                        return toast.error("No se pueden agregar más, no hay más stock")
+                                                    } else if (item.variation.stockQuantity === 0) {
+                                                        removeProduct(item.variation.sku)
+                                                        return toast.error("Producto sin stock disponible")
+                                                    }
+                                                    incrementQuantity(item.variation.sku)
+                                                }}
                                                 title="Agregar uno"
                                             >
                                                 <Plus className="w-4 h-4 text-green-600" />
@@ -117,89 +102,12 @@ const ProductsTable: React.FC<Props> = ({ products, isAdmin, onRemove, onIncreme
                                     </div>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                    {item.OrderProduct &&
-                                        (typeof item.OrderProduct.subtotal === "number"
-                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 0,
-                                              })
-                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 0,
-                                              }))}
+                                    {toPrice(Number(item.variation.priceCost) * item.variation.quantity)}
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-            </div>
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {products.map((item) => (
-                    <div
-                        key={item.variationID}
-                        className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
-                    >
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs font-mono">
-                                {item.sku}
-                            </span>
-                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
-                                Talla {item.sizeNumber}
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-1 gap-2 text-sm">
-                            <div>
-                                <p className="text-gray-600 dark:text-gray-400">Nombre</p>
-                                <p className="font-medium">{item.Product?.name || "-"}</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-600 dark:text-gray-400">Cantidad</p>
-                                <p className="font-semibold">{item.OrderProduct?.quantityOrdered ?? "-"}</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-600 dark:text-gray-400">Subtotal</p>
-                                <p className="font-bold text-green-600 dark:text-green-400">
-                                    {item.OrderProduct &&
-                                        (typeof item.OrderProduct.subtotal === "number"
-                                            ? item.OrderProduct.subtotal.toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 0,
-                                              })
-                                            : Number(item.OrderProduct.subtotal).toLocaleString("es-CL", {
-                                                  style: "currency",
-                                                  currency: "CLP",
-                                                  minimumFractionDigits: 0,
-                                              }))}
-                                </p>
-                            </div>
-                        </div>
-                        {isAdmin && (
-                            <div className="mt-2 flex items-center gap-2 justify-end">
-                                <button
-                                    className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
-                                    onClick={() => onRemove(item.variationID)}
-                                    title="Quitar uno"
-                                >
-                                    <Minus className="w-4 h-4 text-red-600" />
-                                </button>
-                                <span className="font-semibold min-w-[24px] text-center block">
-                                    {item.OrderProduct?.quantityOrdered ?? "-"}
-                                </span>
-                                <button
-                                    className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
-                                    onClick={() => onIncrement && onIncrement(item.variationID)}
-                                    title="Agregar uno"
-                                >
-                                    <Plus className="w-4 h-4 text-green-600" />
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ))}
             </div>
         </div>
     )
