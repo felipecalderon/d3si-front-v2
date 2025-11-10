@@ -12,6 +12,8 @@ interface DataToPie {
     profitMargin: number
     totalProfit: number
     totalValue: number
+    totalRevenue: number
+    totalCost: number
 }
 
 interface CategoryPieChartProps {
@@ -34,8 +36,12 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
                             <span className="font-medium">{data.productCount}</span>
                         </div>
                         <div className="flex justify-between">
+                            <span>Stock Total:</span>
+                            <span className="font-medium">{data.count?.toLocaleString("es-CL") || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
                             <span>Valor Total:</span>
-                            <span className="font-medium">${data.totalValue.toLocaleString("es-CL")}</span>
+                            <span className="font-medium">${data.totalRevenue?.toLocaleString("es-CL") || 0}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Margen:</span>
