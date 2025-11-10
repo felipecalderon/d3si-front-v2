@@ -1,106 +1,72 @@
 "use client"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useState, useRef, useEffect, useMemo } from "react"
 import { toast } from "react-hot-toast"
 import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
 import type { IProduct } from "@/interfaces/products/IProduct"
-import { getAllProducts } from "@/actions/products/getAllProducts"
-import type { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Receipt, ShoppingBag } from "lucide-react"
 import OrderMainInfo from "./OrderMainInfo"
 import StoreInfo from "./StoreInfo"
 import ProductsTable from "./ProductsTable"
 import FinancialSummary from "./FinancialSummary"
-
-interface Props {
-    orderId: string
-}
-
-import { getOrderById } from "@/actions/orders/getOrderById"
-import { updateOrder } from "@/actions/orders/updateOrder"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { useReactToPrint } from "react-to-print"
-import { IVariationWithOrderedQuantity, IVariationWithQuantity } from "@/interfaces/orders/IOrder"
+import { ISingleOrderResponse } from "@/interfaces/orders/IOrder"
+import { useEditOrderStore } from "@/stores/order.store"
+import { useRouter } from "next/navigation"
+import { updateOrder } from "@/actions/orders/updateOrder"
+import { Button } from "../ui/button"
 
-function useOrder(orderId: string) {
-    const [order, setOrder] = useState<IOrderWithStore | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    const fetchOrder = React.useCallback(() => {
-        setLoading(true)
-        setError(null)
-        getOrderById(orderId)
-            .then((data) => setOrder(data))
-            .catch((err) => setError(err.message))
-            .finally(() => setLoading(false))
-    }, [orderId])
-
-    useEffect(() => {
-        fetchOrder()
-    }, [orderId, fetchOrder])
-
-    return { order, loading, error, fetchOrder }
+interface Props {
+    order: ISingleOrderResponse
+    allProducts: IProduct[]
 }
 
-export default function OrderDetail({ orderId }: Props) {
-    const { order, loading, error, fetchOrder } = useOrder(orderId)
-    // Estado local para forzar re-render de la tabla de productos
-    const [_, setForceUpdate] = useState(0)
+type typeField =
+    | "userID"
+    | "createdAt"
+    | "updatedAt"
+    | "storeID"
+    | "total"
+    | "status"
+    | "type"
+    | "discount"
+    | "dte"
+    | "startQuote"
+    | "endQuote"
+    | "expiration"
+    | "expirationPeriod"
+
+export default function OrderDetail({ order, allProducts }: Props) {
+    const router = useRouter()
+    const { user } = useAuth()
+    const { actions, newProducts, ...editedOrder } = useEditOrderStore()
+    const userRole = user?.role ?? Role.Tercero
+    const isAdmin = userRole === Role.Admin
     const printRef = useRef<HTMLDivElement>(null)
+    const [loading, setLoading] = useState(false)
     const handlePrint = useReactToPrint({
         contentRef: printRef,
     })
 
-    // DTE, cuotas, y estados
-    const [arrivalDate, setArrivalDate] = useState("")
-    const [dteNumber, setDteNumber] = useState("")
-    const [paymentStatus, setPaymentStatus] = useState("Pendiente")
-    const [currentQuota, setCurrentQuota] = useState<number | undefined>(undefined)
-    const [totalQuotas, setTotalQuotas] = useState<number | undefined>(undefined)
-    const [editQuotas, setEditQuotas] = useState(false)
-    const paymentStates = ["Pendiente", "Enviado", "Anulado"]
-    const { user } = useAuth()
-    const userRole = user?.role
-    const isAdmin = userRole === Role.Admin
-
-    // Estado para mostrar el selector de productos
     const [showProductSelector, setShowProductSelector] = useState(false)
-    const [allProducts, setAllProducts] = useState<IProduct[]>([])
+
+    // Carga la orden en el store global de zustand para modificarlo posteriormente
     useEffect(() => {
-        getAllProducts().then(setAllProducts)
+        const { addProduct, updateOrderStringField } = actions
+        const { ProductVariations, newProducts, Store, ...restOrder } = order
+        const arrFields = Object.entries(restOrder)
+
+        arrFields.forEach(([field, value]) => {
+            updateOrderStringField(field as typeField, value)
+        })
+        order.ProductVariations.forEach((v) => {
+            const variationWithQuantity = { ...v, quantity: v.OrderProduct.quantityOrdered }
+            addProduct(v.Product, variationWithQuantity)
+        })
     }, [])
 
-    useEffect(() => {
-        if (order) {
-            setPaymentStatus(order.status || "Pendiente")
-            setArrivalDate(order.expiration ? order.expiration.slice(0, 10) : "")
-            setDteNumber(order.dte || "")
-            setCurrentQuota(
-                order.startQuote != null && order.startQuote !== "" && !isNaN(Number(order.startQuote))
-                    ? Number(order.startQuote)
-                    : undefined
-            )
-            setTotalQuotas(
-                order.endQuote != null && order.endQuote !== "" && !isNaN(Number(order.endQuote))
-                    ? Number(order.endQuote)
-                    : undefined
-            )
-        }
-    }, [order])
-
-    if (loading) return <div className="p-8 text-center">Cargando...</div>
-    if (error) return <div className="p-8 text-center text-red-600">{error}</div>
-    if (!order) return <div className="p-8 text-center">No se encontró la orden.</div>
-
-    // Sumar neto usando subtotal de OrderProduct
-    const neto = order.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered * item.priceCost, 0) || 0
-
-    // Sumar cantidad total de productos solicitados
-    const cantidadTotalProductos = order.ProductVariations?.reduce((acc, item) => acc + item.quantityOrdered, 0) || 0
-    const iva = neto * 0.19
-    const totalConIva = neto + iva
     // Mostrar fecha de emisión en UTC (sin ajuste de zona horaria local)
     const createdAtDate = new Date(order.createdAt)
     const fecha = createdAtDate.toLocaleDateString("es-MX", {
@@ -110,88 +76,42 @@ export default function OrderDetail({ orderId }: Props) {
         timeZone: "UTC",
     })
 
-    // Handler para agregar un producto seleccionado a la orden
-    const handleProductSelect = (productId: string) => {
-        if (!order) return
-        const product = allProducts.find((p) => p.productID === productId)
-        if (!product || !product.ProductVariations.length) {
-            toast.error("No se encontró una variación para este producto.")
-            return
-        }
-        const variation = product.ProductVariations[0]
-        if (order.ProductVariations.some((v) => v.variationID === variation.variationID)) {
-            toast.error("Este producto ya está en la orden.")
-            return
-        }
-        order.ProductVariations.push({
-            ...variation,
-            priceList: variation.priceList,
-            quantityOrdered: 1,
-            createdAt: variation.createdAt || new Date().toISOString(),
-            updatedAt: variation.updatedAt || new Date().toISOString(),
-        })
-        setShowProductSelector(false)
-        setForceUpdate((f) => f + 1)
-        toast.success("Producto agregado a la orden.")
-    }
+    const cantidadTotalProductos = useMemo(() => {
+        return newProducts.reduce((acc, prod) => acc + prod.variation.quantity, 0)
+    }, [newProducts])
 
-    // Handler para guardar cambios en la orden (actualizar en backend)
+    // guardar cambios en la orden
     const handleActualizarOrden = async () => {
-        if (!order) return
         try {
-            // Convertir cuotas a string o null
-            const startQuote = currentQuota !== undefined && currentQuota !== null ? String(currentQuota) : null
-            const endQuote = totalQuotas !== undefined && totalQuotas !== null ? String(totalQuotas) : null
-            const body = {
-                ...order,
-                orderID: order.orderID,
-                status: paymentStatus,
-                type: order.type,
-                discount: order.discount,
-                dte: dteNumber,
-                startQuote,
-                endQuote,
-                expiration: arrivalDate ? new Date(arrivalDate).toISOString() : order.expiration,
-                newProducts:
-                    order.ProductVariations?.map(
-                        (v) =>
-                            ({
-                                variationID: v.variationID,
-                                productID: v.productID,
-                                sizeNumber: v.sizeNumber,
-                                priceList: v.priceList,
-                                priceCost: v.priceCost,
-                                sku: v.sku,
-                                stockQuantity: v.stockQuantity,
-                                createdAt: v.createdAt,
-                                updatedAt: v.updatedAt,
-                                quantityOrdered: v.quantityOrdered,
-                                quantity: 0,
-                            } as IVariationWithQuantity)
-                    ) || ([] as IVariationWithQuantity[]),
-            }
-            await updateOrder(body)
-            toast.success("Orden actualizada correctamente")
-            setTimeout(() => {
-                fetchOrder()
-            }, 1200)
+            setLoading(true)
+            const toNewProducts = newProducts.map((p) => p.variation)
+            const toUpdate = { ...editedOrder, newProducts: toNewProducts }
+            await toast.promise(updateOrder(toUpdate), {
+                loading: "Actualizando...",
+                error: "Falló al actualizar",
+                success: "Orden actualizada correctamente",
+            })
         } catch (e: any) {
             toast.error(e?.message || "Error al actualizar la orden")
+        } finally {
+            setLoading(false)
         }
     }
 
-    // Handler para eliminar la orden (anular OC)
+    // Handler para eliminar la orden
     const handleDelete = async () => {
         if (!order) return
         if (confirm("¿Estás seguro de que quieres anular esta orden?")) {
             try {
+                setLoading(true)
                 await deleteOrder(order.orderID)
+                router.push("/home/invoices")
                 toast.success("Orden anulada correctamente")
-                setTimeout(() => {
-                    window.location.href = "/home/invoices"
-                }, 1000)
-            } catch (e: any) {
-                toast.error(e?.message || "Error al anular la orden")
+            } catch (e) {
+                console.log(e)
+                toast.error("Error al anular la orden")
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -223,30 +143,13 @@ export default function OrderDetail({ orderId }: Props) {
                 </div>
                 <StoreInfo store={order.Store} />
                 <div className="space-y-6 pt-6">
-                    <OrderMainInfo
-                        cantidadTotalProductos={cantidadTotalProductos}
-                        fecha={fecha}
-                        arrivalDate={arrivalDate}
-                        setArrivalDate={setArrivalDate}
-                        isAdmin={isAdmin}
-                        dteNumber={dteNumber}
-                        setDteNumber={setDteNumber}
-                        paymentStatus={paymentStatus}
-                        setPaymentStatus={setPaymentStatus}
-                        paymentStates={paymentStates}
-                        currentQuota={currentQuota}
-                        setCurrentQuota={setCurrentQuota}
-                        totalQuotas={totalQuotas}
-                        setTotalQuotas={setTotalQuotas}
-                        editQuotas={editQuotas}
-                        setEditQuotas={setEditQuotas}
-                    />
+                    <OrderMainInfo cantidadTotalProductos={cantidadTotalProductos} fecha={fecha} />
 
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="flex items-center gap-2 text-lg font-semibold">
                                 <ShoppingBag className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                Productos ({order.ProductVariations?.length || 0})
+                                Productos ({newProducts.reduce((acc, v) => acc + v.variation.quantity, 0)})
                             </h3>
                             {isAdmin && (
                                 <button
@@ -259,11 +162,7 @@ export default function OrderDetail({ orderId }: Props) {
                         </div>
                         {showProductSelector && (
                             <div className="mb-4">
-                                <ProductSelector
-                                    filteredProducts={allProducts}
-                                    onProductSelect={handleProductSelect}
-                                    onAddNewProduct={() => {}}
-                                />
+                                <ProductSelector filteredProducts={allProducts} />
                                 <button
                                     className="mt-2 text-sm text-gray-500 underline"
                                     onClick={() => setShowProductSelector(false)}
@@ -272,103 +171,35 @@ export default function OrderDetail({ orderId }: Props) {
                                 </button>
                             </div>
                         )}
-                        <ProductsTable
-                            products={(order.ProductVariations || []).map((pv) => {
-                                // Buscar el producto padre para obtener todas las tallas disponibles
-                                const parent = allProducts.find((p) => p.productID === pv.productID)
-                                return {
-                                    ...pv,
-                                    availableSizes: parent
-                                        ? parent.ProductVariations.map((v) => v.sizeNumber)
-                                        : [pv.sizeNumber],
-                                }
-                            })}
-                            isAdmin={isAdmin}
-                            onRemove={(variationID) => {
-                                if (!order) return
-                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
-                                if (idx === -1) return
-                                const pv = order.ProductVariations[idx]
-                                const qty = pv.quantityOrdered ?? 1
-                                if (qty === 1) {
-                                    if (confirm("¿Seguro que quiere eliminar el artículo de la orden de compra?")) {
-                                        order.ProductVariations = order.ProductVariations.filter(
-                                            (v) => v.variationID !== variationID
-                                        )
-                                        setForceUpdate((f) => f + 1)
-                                    }
-                                } else {
-                                    const newQty = qty - 1
-                                    const price = Number(pv.priceList)
-                                    order.ProductVariations[idx] = {
-                                        ...pv,
-                                    }
-                                    setForceUpdate((f) => f + 1)
-                                }
-                            }}
-                            onIncrement={(variationID) => {
-                                if (!order) return
-                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
-                                if (idx === -1) return
-                                const pv = order.ProductVariations[idx]
-                                const newQty = (pv.quantityOrdered ?? 1) + 1
-                                order.ProductVariations[idx] = {
-                                    ...pv,
-                                    quantityOrdered: newQty,
-                                }
-                                setForceUpdate((f) => f + 1)
-                            }}
-                            onSelectTallas={(variationID, tallas) => {
-                                if (!order) return
-                                const idx = order.ProductVariations.findIndex((v) => v.variationID === variationID)
-                                if (idx === -1) return
-                                const pv = order.ProductVariations[idx]
-                                const parent = allProducts.find((p) => p.productID === pv.productID)
-                                if (!parent) return
-                                const newVariation = parent.ProductVariations.find((v) => v.sizeNumber === tallas[0])
-                                if (!newVariation) return
-                                // Mantener cantidad y subtotal previos
-                                order.ProductVariations[idx] = {
-                                    ...newVariation,
-                                    quantityOrdered: pv.quantityOrdered ?? pv.quantityOrdered,
-                                    priceList: newVariation.priceList,
-                                    createdAt: newVariation.createdAt || new Date().toISOString(),
-                                    updatedAt: newVariation.updatedAt || new Date().toISOString(),
-                                }
-                                setForceUpdate((f) => f + 1)
-                            }}
-                        />
+                        <ProductsTable products={newProducts} />
                     </div>
-                    <FinancialSummary
-                        neto={neto}
-                        iva={iva}
-                        totalConIva={totalConIva}
-                        totalQuotas={totalQuotas}
-                        currentQuota={currentQuota}
-                    />
+                    <FinancialSummary total={editedOrder.total} />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
-                        <button
+                        <Button
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
                             onClick={handlePrint}
+                            disabled={loading || editedOrder.status === "Pagado"}
                         >
                             Imprimir
-                        </button>
+                        </Button>
 
                         {isAdmin && (
-                            <button
+                            <Button
+                                disabled={loading || editedOrder.status === "Pagado"}
                                 className=" bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleActualizarOrden}
                             >
-                                Actualizar Orden
-                            </button>
+                                {loading ? `Actualizando...` : `Actualizar Orden`}
+                            </Button>
                         )}
                         {isAdmin && (
-                            <button
+                            <Button
+                                disabled={loading || editedOrder.status === "Pagado"}
                                 className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleDelete}
                             >
                                 Eliminar OC
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

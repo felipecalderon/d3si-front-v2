@@ -9,7 +9,6 @@ export type Genre = "Hombre" | "Mujer" | "Unisex"
 // Description si hace falta, se agregará la propiedad a la base de datos
 
 export interface IProduct {
-    // sku: undefined
     description: string
     wooID: number | null
     brand: Brand

@@ -1,69 +1,46 @@
 import React from "react"
 import { Input } from "../ui/input"
+import { useEditOrderStore } from "@/stores/order.store"
+import { useAuth } from "@/stores/user.store"
+import { Role } from "@/lib/userRoles"
+import { formatDateToYYYYMMDD } from "@/utils/dateTransforms"
 
 interface Props {
     cantidadTotalProductos: number
     fecha: string
-    arrivalDate: string
-    setArrivalDate: (v: string) => void
-    isAdmin: boolean
-    dteNumber: string
-    setDteNumber: (v: string) => void
-    paymentStatus: string
-    setPaymentStatus: (v: string) => void
-    paymentStates: string[]
-    currentQuota: number | undefined
-    setCurrentQuota: (v: number | undefined) => void
-    totalQuotas: number | undefined
-    setTotalQuotas: (v: number | undefined) => void
-    editQuotas: boolean
-    setEditQuotas: (v: boolean) => void
 }
 
-const OrderMainInfo: React.FC<Props> = ({
-    cantidadTotalProductos,
-    fecha,
-    arrivalDate,
-    setArrivalDate,
-    isAdmin,
-    dteNumber,
-    setDteNumber,
-    paymentStatus,
-    setPaymentStatus,
-    paymentStates,
-    currentQuota,
-    setCurrentQuota,
-    totalQuotas,
-    setTotalQuotas,
-    editQuotas,
-    setEditQuotas,
-}) => {
+const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
     // Si las cuotas coinciden, el estado debe ser 'Pagado' y el select debe estar deshabilitado
-    React.useEffect(() => {
-        if (
-            typeof currentQuota === "number" &&
-            typeof totalQuotas === "number" &&
-            currentQuota > 0 &&
-            totalQuotas > 0 &&
-            currentQuota === totalQuotas &&
-            paymentStatus !== "Pagado"
-        ) {
-            setPaymentStatus("Pagado")
-        }
-    }, [currentQuota, totalQuotas, setPaymentStatus, paymentStatus])
+    // React.useEffect(() => {
+    //     if (
+    //         typeof currentQuota === "number" &&
+    //         typeof totalQuotas === "number" &&
+    //         currentQuota > 0 &&
+    //         totalQuotas > 0 &&
+    //         currentQuota === totalQuotas &&
+    //         paymentStatus !== "Pagado"
+    //     ) {
+    //         setPaymentStatus("Pagado")
+    //     }
+    // }, [currentQuota, totalQuotas, setPaymentStatus, paymentStatus])
 
-    const isPagado =
-        typeof currentQuota === "number" &&
-        typeof totalQuotas === "number" &&
-        currentQuota > 0 &&
-        totalQuotas > 0 &&
-        currentQuota === totalQuotas
+    // const isPagado =
+    //     typeof currentQuota === "number" &&
+    //     typeof totalQuotas === "number" &&
+    //     currentQuota > 0 &&
+    //     totalQuotas > 0 &&
+    //     currentQuota === totalQuotas
+    const paymentStates = ["Pendiente", "Enviado", "Anulado"]
     const [editCurrentQuota, setEditCurrentQuota] = React.useState(false)
     const [editTotalQuotas, setEditTotalQuotas] = React.useState(false)
-
+    const { user } = useAuth()
+    const { actions, ...editedOrder } = useEditOrderStore()
+    const { updateOrderStringField } = actions
+    const isAdmin = user?.role === Role.Admin
     // Validaciones
-    const canEditCurrentQuota = (totalQuotas ?? 0) > 0
-    const maxCurrentQuota = totalQuotas ?? 0
+    // const canEditCurrentQuota = (totalQuotas ?? 0) > 0
+    // const maxCurrentQuota = totalQuotas ?? 0
 
     return (
         <>
@@ -95,8 +72,8 @@ const OrderMainInfo: React.FC<Props> = ({
                     <Input
                         type="date"
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={arrivalDate}
-                        onChange={(e) => setArrivalDate(e.target.value)}
+                        value={editedOrder.expiration ? formatDateToYYYYMMDD(new Date(editedOrder.expiration)) : ""}
+                        onChange={(e) => updateOrderStringField("expiration", e.target.value)}
                         disabled={!isAdmin}
                     />
                 </div>
@@ -109,9 +86,9 @@ const OrderMainInfo: React.FC<Props> = ({
                     <input
                         type="text"
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={dteNumber || ""}
-                        onChange={(e) => setDteNumber(e.target.value)}
                         placeholder="Sin DTE"
+                        value={editedOrder.dte || ""}
+                        onChange={(e) => updateOrderStringField("dte", e.target.value)}
                         disabled={!isAdmin}
                     />
                 </div>
@@ -122,9 +99,9 @@ const OrderMainInfo: React.FC<Props> = ({
                     </label>
                     <select
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={isPagado ? "Pagado" : paymentStatus}
-                        onChange={(e) => setPaymentStatus(e.target.value)}
-                        disabled={isPagado || !isAdmin}
+                        value={editedOrder.status}
+                        onChange={(e) => updateOrderStringField("status", e.target.value)}
+                        disabled={editedOrder.status === "Pagado" || !isAdmin}
                     >
                         {paymentStates.map((state) => (
                             <option key={state} value={state}>
@@ -142,8 +119,8 @@ const OrderMainInfo: React.FC<Props> = ({
                     <Input
                         type="date"
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={arrivalDate}
-                        onChange={(e) => setArrivalDate(e.target.value)}
+                        // value={arrivalDate}
+                        // onChange={(e) => setArrivalDate(e.target.value)}
                         disabled
                     />
                 </div>
@@ -153,81 +130,55 @@ const OrderMainInfo: React.FC<Props> = ({
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center mb-2">
                         <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Total de cuotas
+                            Cuota actual
                         </label>
-                        {isAdmin && (
-                            <button
-                                type="button"
-                                className="text-xs text-blue-600 hover:underline ml-2"
-                                onClick={() => setEditTotalQuotas(!editTotalQuotas)}
-                            >
-                                {editTotalQuotas ? "Cancelar" : "Editar"}
-                            </button>
-                        )}
                     </div>
                     <input
                         type="number"
-                        min={0}
-                        max={typeof totalQuotas === "number" ? totalQuotas : undefined}
-                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        value={totalQuotas ?? ""}
-                        placeholder="Sin cuota"
-                        disabled={!editTotalQuotas || !isAdmin}
+                        min={1}
+                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                        max={Number(editedOrder.endQuote ?? 0)}
+                        value={Number(editedOrder.startQuote ?? 0)}
+                        placeholder={editedOrder.startQuote ? "Sin cuota" : "Pago único"}
+                        disabled={!isAdmin}
                         onChange={(e) => {
                             const val = Number(e.target.value)
-                            if (val < 0) return
-                            if (typeof totalQuotas === "number" && val > totalQuotas) return
-                            setCurrentQuota(Number.isNaN(val) ? undefined : val)
-                            const newTotalQuotas = Number.isNaN(val) ? undefined : val
-                            setTotalQuotas(newTotalQuotas)
-
-                            // Si se establece total de cuotas a 0, resetear cuota actual
-                            if (newTotalQuotas === 0 || newTotalQuotas === undefined) {
-                                setCurrentQuota(undefined)
-                                setEditCurrentQuota(false)
-                            }
-                            // Si la cuota actual es mayor al nuevo total, ajustarla
-                            else if (currentQuota && currentQuota > newTotalQuotas) {
-                                setCurrentQuota(newTotalQuotas)
-                            }
+                            if (val < 0 || val > Number(editedOrder.endQuote ?? 0)) return
+                            updateOrderStringField("startQuote", e.target.value)
                         }}
                     />
+                    {/* {editCurrentQuota && canEditCurrentQuota && (
+                        <p className="text-xs text-gray-500 mt-1">Máximo: {maxCurrentQuota} cuotas</p>
+                    )} */}
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center mb-2">
                         <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Cuota actual
+                            Total de cuotas
                         </label>
-                        {isAdmin && canEditCurrentQuota && (
-                            <button
-                                type="button"
-                                className="text-xs text-blue-600 hover:underline ml-2"
-                                onClick={() => setEditCurrentQuota(!editCurrentQuota)}
-                            >
-                                {editCurrentQuota ? "Cancelar" : "Editar"}
-                            </button>
-                        )}
-                        {isAdmin && !canEditCurrentQuota && (
-                            <span className="text-xs text-gray-400 ml-2">Establece total de cuotas primero</span>
-                        )}
                     </div>
                     <input
                         type="number"
-                        min={0}
-                        max={maxCurrentQuota}
-                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                        value={currentQuota ?? ""}
-                        placeholder={canEditCurrentQuota ? "Sin cuota" : "Pago único"}
-                        disabled={!editCurrentQuota || !isAdmin || !canEditCurrentQuota}
+                        min={1}
+                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                        value={editedOrder.endQuote ?? ""}
+                        placeholder="Sin cuota"
+                        disabled={!isAdmin}
                         onChange={(e) => {
                             const val = Number(e.target.value)
-                            if (val < 0 || val > maxCurrentQuota) return
-                            setCurrentQuota(Number.isNaN(val) ? undefined : val)
+                            if (isNaN(val)) return
+                            if (val < 0) return
+                            updateOrderStringField("endQuote", e.target.value)
+                            // Si se establece total de cuotas a 0, resetear cuota actual
+                            if (!editedOrder.startQuote || Number(editedOrder.startQuote ?? 0) === 0) {
+                                updateOrderStringField("startQuote", "1")
+                            }
+                            // Si la cuota actual es mayor al nuevo total, ajustarla
+                            else if (Number(editedOrder.startQuote ?? 0) > Number(editedOrder.endQuote ?? 0)) {
+                                updateOrderStringField("startQuote", editedOrder.endQuote)
+                            }
                         }}
                     />
-                    {editCurrentQuota && canEditCurrentQuota && (
-                        <p className="text-xs text-gray-500 mt-1">Máximo: {maxCurrentQuota} cuotas</p>
-                    )}
                 </div>
             </div>
         </>

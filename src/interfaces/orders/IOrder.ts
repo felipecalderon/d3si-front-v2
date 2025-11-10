@@ -1,5 +1,6 @@
 import { IProduct } from "../products/IProduct"
-import { IProductVariation } from "../products/IProductVariation"
+import { IProductVariation, IVariationFromOrder } from "../products/IProductVariation"
+import { IStore } from "../stores/IStore"
 
 export interface IVariationWithQuantity extends IProductVariation {
     quantity: number
@@ -28,6 +29,11 @@ export interface IOrder {
     updatedAt: string
     ProductVariations: IVariationWithOrderedQuantity[]
     newProducts?: IVariationWithQuantity[]
+}
+
+export interface ISingleOrderResponse extends Omit<IOrder, "ProductVariations"> {
+    ProductVariations: IVariationFromOrder[]
+    Store: IStore
 }
 
 export interface PurchaseOrderItem {

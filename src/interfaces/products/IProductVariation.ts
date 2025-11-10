@@ -1,4 +1,5 @@
 import { IStore } from "../stores/IStore"
+import { IProduct } from "./IProduct"
 
 export interface IStoreProduct {
     storeProductID: string
@@ -23,4 +24,18 @@ export interface IProductVariation {
     stockQuantity: number
     Stores?: IStore[]
     StoreProducts?: IStoreProduct[]
+}
+
+export interface IVariationFromOrder extends IProductVariation {
+    OrderProduct: {
+        OrderProductID: string
+        orderID: string
+        variationID: string
+        quantityOrdered: number
+        priceCost: number
+        subtotal: number
+        createdAt: string
+        updatedAt: string
+    }
+    Product: IProduct
 }

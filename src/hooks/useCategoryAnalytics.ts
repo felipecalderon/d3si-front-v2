@@ -38,32 +38,32 @@ export const useCategoryAnalytics = ({ products, categories }: UseCategoryAnalyt
     // 3. Pasamos los stats de los padres al generador del gráfico
     const pieData = useMemo(() => generatePieData(viewMode, typeStats, parentStats), [viewMode, typeStats, parentStats])
 
-    // 4. El generador de barras de progreso ya no depende del modo de vista
-    const progressData = useMemo(() => generateProgressData(subcategoryStats), [subcategoryStats])
+    // 4. El generador de barras de progreso muestra todas las categorías si no hay selección
+    const progressData = useMemo(() => {
+        if (viewMode === "categoria" && !selectedCategoryId) {
+            // Mostrar todas las categorías principales
+            return generateProgressData(parentStats)
+        }
+        // Mostrar subcategorías de la categoría seleccionada
+        return generateProgressData(subcategoryStats)
+    }, [viewMode, selectedCategoryId, subcategoryStats, parentStats])
 
     useEffect(() => {
-        if (viewMode === "categoria" && !selectedCategoryId && parentStats.length > 0) {
-            const calzadoCategory = parentStats.find((cat) => cat.name.toLowerCase().includes("calzado"))
-            setSelectedCategoryId(calzadoCategory ? calzadoCategory.id : parentStats[0].id)
-        }
-    }, [viewMode, parentStats, selectedCategoryId])
+        // Ya no seleccionamos una categoría por defecto
+        // El usuario debe hacer click en el gráfico para seleccionar
+    }, [viewMode, parentStats])
 
-    const handlePieClick = (data: { id?: string }) => {
-        if (viewMode === "categoria" && data.id) {
-            setSelectedCategoryId(data.id)
+    const handlePieClick = (data: { id?: string | null }) => {
+        if (viewMode === "categoria") {
+            // Si data.id es null, deseleccionar
+            setSelectedCategoryId(data.id === null ? null : data.id || null)
         }
     }
 
     const handleModeChange = (mode: ViewMode) => {
         setViewMode(mode)
-        if (mode === "tipo") {
-            setSelectedCategoryId(null)
-        } else if (pieData.length > 0) {
-            const topCategory = pieData[0] as IPieData
-            setSelectedCategoryId(topCategory.id || null)
-        } else {
-            setSelectedCategoryId(null)
-        }
+        // Siempre deseleccionar al cambiar de modo
+        setSelectedCategoryId(null)
     }
 
     const selectedCategoryName = useMemo(() => {
