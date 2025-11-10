@@ -40,8 +40,8 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
                             <span className="font-medium">{data.count?.toLocaleString("es-CL") || 0}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>Valor Total:</span>
-                            <span className="font-medium">${data.totalRevenue?.toLocaleString("es-CL") || 0}</span>
+                            <span>Costo Neto:</span>
+                            <span className="font-medium">${data.totalCost?.toLocaleString("es-CL") || 0}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Margen:</span>

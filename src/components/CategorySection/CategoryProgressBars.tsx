@@ -122,7 +122,7 @@ export function CategoryProgressBars({
                                         <span>Cantidad: {item.totalStock} unidades</span>
                                         <span>|</span>
                                         <span>
-                                            Valor:{" "}
+                                            Costo Neto:{" "}
                                             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                                 ${toPrice(item.totalRevenue)}
                                             </span>
