@@ -49,12 +49,22 @@ export function CategoryPieChart({ data, viewMode, selectedCategoryId, onPieClic
     }
     const totalProducts = data.reduce((acc, prev) => prev.productCount + acc, 0)
     const minPercentToDisplay = 0.01 // 0.01 = mostrará solo los porcentajes mayores a 1%
+
+    const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Verificar si el click fue en el contenedor de fondo y no en el gráfico
+        const target = e.target as HTMLElement
+        // Si el click es en el div contenedor o en el svg de fondo (no en un path del pie)
+        if (viewMode === "categoria" && (target.tagName === "DIV" || target.tagName === "svg")) {
+            onPieClick({ id: null })
+        }
+    }
+
     return (
         <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
                 {viewMode === "categoria" ? "Categorías Principales" : "Distribución por Tipo"}
             </h3>
-            <div className="h-80">
+            <div className="h-80 cursor-pointer" onClick={handleBackgroundClick}>
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie

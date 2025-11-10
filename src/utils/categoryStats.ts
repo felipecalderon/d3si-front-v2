@@ -218,15 +218,15 @@ export const generatePieData = (
         .sort((a, b) => b.totalRevenue - a.totalRevenue)
 }
 
-export const generateProgressData = (subcategoryStats: ICategoryStats[]): IProgressData[] => {
-    const totalStock = subcategoryStats.reduce((sum, item) => sum + item.count, 0)
-    return subcategoryStats
-        .map((sub, index) => ({
-            id: sub.id,
-            name: sub.name,
-            totalStock: sub.count || 0,
-            totalRevenue: sub.totalCost || 0,
-            percentage: totalStock > 0 ? (sub.count / totalStock) * 100 : 0,
+export const generateProgressData = (stats: ICategoryStats[]): IProgressData[] => {
+    const totalStock = stats.reduce((sum, item) => sum + item.count, 0)
+    return stats
+        .map((item, index) => ({
+            id: item.id,
+            name: item.name,
+            totalStock: item.count || 0,
+            totalRevenue: item.totalCost || 0,
+            percentage: totalStock > 0 ? (item.count / totalStock) * 100 : 0,
             color: COLORS[index % COLORS.length],
         }))
         .sort((a, b) => b.totalStock - a.totalStock)
