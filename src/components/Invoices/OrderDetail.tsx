@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useRef, useEffect, useMemo } from "react"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
 import type { IProduct } from "@/interfaces/products/IProduct"
 import { Receipt, ShoppingBag } from "lucide-react"
@@ -17,8 +17,7 @@ import { useEditOrderStore } from "@/stores/order.store"
 import { useRouter } from "next/navigation"
 import { updateOrder } from "@/actions/orders/updateOrder"
 import { Button } from "../ui/button"
-import { useTerceroProducts } from "@/stores/terceroCost.store"
-import MarkupTerceroAjuste from "./AdjustMarkupTer"
+import { useLoadingToaster } from "@/stores/loading.store"
 
 interface Props {
     order: ISingleOrderResponse
@@ -51,9 +50,10 @@ export default function OrderDetail({ order, allProducts }: Props) {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
     })
-    const { calculateThirdPartyPrice } = useTerceroProducts()
+    // const { calculateThirdPartyPrice } = useTerceroProducts()
     const [showProductSelector, setShowProductSelector] = useState(false)
     const { addProduct, updateOrderStringField, clearCart } = actions
+    const { activeToastId, setToastId } = useLoadingToaster()
 
     // Carga la orden en el store global de zustand para modificarlo posteriormente
     useEffect(() => {
@@ -64,17 +64,24 @@ export default function OrderDetail({ order, allProducts }: Props) {
         arrFields.forEach(([field, value]) => {
             updateOrderStringField(field as typeField, value)
         })
-        // acá se aplica el costo de tercero si no es tienda admin
         order.ProductVariations.forEach((v) => {
-            const terceroCost = Store.role !== Role.Admin ? calculateThirdPartyPrice(v) : { brutoCompra: v.priceCost }
+            // const terceroCost = Store.role !== Role.Admin ? calculateThirdPartyPrice(v) : { brutoCompra: v.priceCost }
             const variationWithQuantity = {
                 ...v,
                 quantity: v.OrderProduct.quantityOrdered,
-                priceCost: terceroCost.brutoCompra,
+                priceCost: v.OrderProduct.priceCost,
             }
             addProduct(v.Product, variationWithQuantity)
         })
     }, [])
+
+    useEffect(() => {
+        if (activeToastId) {
+            console.log(activeToastId)
+            toast.success("Orden cargada!", { id: activeToastId })
+            setToastId(null)
+        }
+    }, [activeToastId])
 
     // Mostrar fecha de emisión en UTC (sin ajuste de zona horaria local)
     const createdAtDate = new Date(order.createdAt)
@@ -95,11 +102,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
             setLoading(true)
             const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
             const toUpdate = { ...editedOrder, newProducts: toNewProducts }
-            await toast.promise(updateOrder(toUpdate), {
-                loading: "Actualizando...",
-                error: "Falló al actualizar",
-                success: "Orden actualizada correctamente",
-            })
+            await updateOrder(toUpdate)
         } catch (e) {
             console.log(e)
             toast.error("Error al actualizar la orden")
@@ -191,14 +194,14 @@ export default function OrderDetail({ order, allProducts }: Props) {
                         <Button
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
                             onClick={handlePrint}
-                            disabled={loading || editedOrder.status === "Pagado"}
+                            disabled={loading}
                         >
                             Imprimir
                         </Button>
 
                         {isAdmin && (
                             <Button
-                                disabled={loading || editedOrder.status === "Pagado"}
+                                disabled={loading}
                                 className=" bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleActualizarOrden}
                             >

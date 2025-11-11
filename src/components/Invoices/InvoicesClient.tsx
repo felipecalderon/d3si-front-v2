@@ -11,19 +11,18 @@ import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
 import { toPrice } from "@/utils/priceFormat"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { useLoadingToaster } from "@/stores/loading.store"
 
 export default function InvoicesClient({ initialOrders, stores }: InvoicesClientProps) {
+    const route = useRouter()
     const { user } = useAuth()
     const { storeSelected } = useTienda()
-    const isStoreManager = user?.role === Role.Vendedor
-    const isAdmin = user?.role === Role.Admin
-    const route = useRouter()
-
+    const { setToastId } = useLoadingToaster()
     const [orders, setOrders] = useState<IOrderWithStore[]>([])
 
-    const handleView = (order: IOrderWithStore) => {
-        route.push(`/home/order/${order.orderID}`)
-    }
+    const isStoreManager = user?.role === Role.Vendedor
+    const isAdmin = user?.role === Role.Admin
 
     const getStoreName = (storeID: string) => {
         return stores.find((s) => s.storeID === storeID)?.name || "Tienda no encontrada"
@@ -56,8 +55,8 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
     const getStatusBadge = (status: string) => {
         const statusConfig = {
             Pendiente: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-            Completado: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-            Cancelado: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+            Pagado: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+            Anulado: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
             "En proceso": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
         }
         return (
@@ -67,86 +66,66 @@ export default function InvoicesClient({ initialOrders, stores }: InvoicesClient
     }
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="bg-gray-50 dark:bg-slate-800">
-                            <TableHead>#</TableHead>
-                            <TableHead>Folio</TableHead>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Tienda</TableHead>
-                            <TableHead>Total Neto</TableHead>
-                            <TableHead>Total + IVA</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {orders.map((order, i) => {
-                            const fecha = new Date(order.createdAt).toLocaleDateString("es-MX", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                            })
-                            const total = Math.round(Number(order.total))
-                            const totalConIVA = Math.round(total * 1.19)
-                            return (
-                                <TableRow
-                                    key={order.orderID}
-                                    className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-                                >
-                                    <TableCell>{i + 1}</TableCell>
-                                    <TableCell>
-                                        <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm font-mono">
-                                            {order.orderID.slice(0, 8)}
-                                        </code>
-                                    </TableCell>
-                                    <TableCell>{fecha}</TableCell>
-                                    <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
-                                    <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                                        ${toPrice(total)}
-                                    </TableCell>
-                                    <TableCell className="font-semibold text-blue-600 dark:text-blue-400">
-                                        ${toPrice(totalConIVA)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                                                order.status
-                                            )}`}
-                                        >
-                                            {order.status}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2 flex-wrap">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleView(order)}
-                                                className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-300"
-                                            >
-                                                Ver
-                                            </Button>
-                                            {(!isStoreManager || user.role === Role.Consignado || isAdmin) && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={() => handleDelete(order.orderID)}
-                                                    className="hover:bg-red-700"
-                                                >
-                                                    Borrar
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
-            </div>
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <Table className="overflow-hidden">
+                <TableHeader className="overflow-hidden ">
+                    <TableRow className="bg-gray-50 dark:bg-slate-800">
+                        <TableHead>#</TableHead>
+                        <TableHead>Folio</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Tienda</TableHead>
+                        <TableHead>Total Neto</TableHead>
+                        <TableHead>Total + IVA</TableHead>
+                        <TableHead>Estado</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody className="overflow-hidden ">
+                    {orders.map((order, i) => {
+                        const fecha = new Date(order.createdAt).toLocaleDateString("es-CL", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                        })
+                        const total = Math.round(Number(order.total))
+                        const totalConIVA = Math.round(total * 1.19)
+                        return (
+                            <TableRow
+                                key={order.orderID}
+                                onClick={() => {
+                                    const tId = toast.loading(`Cargando orden de ${order.Store?.name ?? "tienda"}`)
+                                    setToastId(tId as number)
+                                    route.push(`/home/order/${order.orderID}`)
+                                }}
+                                className="hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] transition-all"
+                            >
+                                <TableCell>{i + 1}</TableCell>
+                                <TableCell>
+                                    <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm font-mono">
+                                        {order.orderID.slice(0, 8)}
+                                    </code>
+                                </TableCell>
+                                <TableCell>{fecha}</TableCell>
+                                <TableCell>{order.Store?.name || getStoreName(order.storeID)}</TableCell>
+                                <TableCell className="font-semibold text-green-600 dark:text-green-400">
+                                    ${toPrice(total)}
+                                </TableCell>
+                                <TableCell className="font-semibold text-blue-600 dark:text-blue-400">
+                                    ${toPrice(totalConIVA)}
+                                </TableCell>
+                                <TableCell>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+                                            order.status
+                                        )}`}
+                                    >
+                                        {order.status}
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
 
             {orders.length === 0 && (
                 <div className="p-8 text-center">
