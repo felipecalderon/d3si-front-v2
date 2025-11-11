@@ -26,6 +26,8 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Input } from "../ui/input"
 import { usePedidoOC } from "@/stores/pedidoOC"
+import { Role } from "@/lib/userRoles"
+import { useTerceroProducts } from "@/stores/terceroCost.store"
 
 export function OrderReviewDrawer() {
     const [isLoading, setLoading] = useState(false)
@@ -33,21 +35,47 @@ export function OrderReviewDrawer() {
     const { storeSelected } = useTienda()
     const router = useRouter()
     const { addOrUpdatePedido, pedido } = usePedidoOC()
+    const { calculateThirdPartyPrice } = useTerceroProducts()
+
+    const pedidoConPrecioCalculado = useMemo(() => {
+        const isAdmin = storeSelected?.role === Role.Admin
+
+        return pedido.map((item) => {
+            const priceCostTer = isAdmin
+                ? item.variation.priceCost // Precio de costo normal para TIENDA admin
+                : calculateThirdPartyPrice(item.variation).brutoCompra // Precio de tercero para otros roles de TIENDAS
+
+            const subtotal = priceCostTer * item.variation.quantity
+
+            return {
+                ...item,
+                priceCostTer, // almacenado para usarlo en la tabla y en el total
+                subtotal, // Precalculo del subtotal
+            }
+        })
+    }, [pedido, storeSelected, calculateThirdPartyPrice])
+
     const total = useMemo(() => {
-        return pedido.reduce((sum, item) => sum + item.variation.priceCost * item.variation.quantity, 0)
-    }, [pedido])
+        return pedidoConPrecioCalculado.reduce((sum, item) => sum + item.subtotal, 0)
+    }, [pedidoConPrecioCalculado])
+
     const submitOC = async () => {
         try {
             setLoading(true)
+            const newProductsTercero = pedidoConPrecioCalculado.map((item) => ({
+                ...item.variation,
+                priceCost: item.priceCostTer,
+            }))
+
             await createOrder({
                 storeID: storeSelected?.storeID || "",
                 userID: user?.userID || "",
-                newProducts: pedido.map((p) => p.variation), // Variaciones con prop.quantity (extenido)
-                discount: 0, // Aún no se aplica en backend
-                dte: "", // Numero de factura, debe ser string
-                startQuote: null, // Cuota actual del pago: numero entero menor o igual a endQuote
-                endQuote: null, // Cuota final del pago (cantidad de cuotas totales)
-                expiration: null, // Date (string) o Null: Fecha de vencimiento
+                newProducts: newProductsTercero,
+                discount: 0,
+                dte: "",
+                startQuote: null,
+                endQuote: null,
+                expiration: null,
                 expirationPeriod: "MENSUAL",
                 status: "Pendiente",
                 type: "OCD",
@@ -89,7 +117,7 @@ export function OrderReviewDrawer() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {pedido.map((item) => {
+                                {pedidoConPrecioCalculado.map((item) => {
                                     return (
                                         <TableRow key={item.variation.sku}>
                                             <TableCell className="font-medium">{item.product.name}</TableCell>
@@ -110,12 +138,8 @@ export function OrderReviewDrawer() {
                                                     }}
                                                 />
                                             </TableCell>
-                                            <TableCell className="text-right">
-                                                {toPrice(item.variation.priceCost)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {toPrice(item.variation.priceCost * item.variation.quantity)}
-                                            </TableCell>
+                                            <TableCell className="text-right">{toPrice(item.priceCostTer)}</TableCell>
+                                            <TableCell className="text-right">{toPrice(item.subtotal)}</TableCell>
                                         </TableRow>
                                     )
                                 })}

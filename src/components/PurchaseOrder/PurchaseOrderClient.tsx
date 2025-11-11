@@ -10,11 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { ListFilters } from "@/components/ListTable/ListFilters"
-import { useTerceroProducts } from "@/hooks/useTerceroProducts"
 import { useProductSorting } from "@/hooks/useProductSorting"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation"
 import { PurchaseOrderClientProps } from "@/interfaces/orders/IPurchaseOrder"
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary"
 import { PurchaseOrderTable } from "./PurchaseOrderTable"
@@ -24,7 +22,6 @@ import { useAuth } from "@/stores/user.store"
 import { useTienda } from "@/stores/tienda.store"
 import { usePedidoOC } from "@/stores/pedidoOC"
 import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
-import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
 const MAX_VARIATIONS_PER_PAGE = 20
 
@@ -36,9 +33,7 @@ export default function PurchaseOrderClient({
     const { user } = useAuth()
     const [search, setSearch] = useState("")
     const [barcodeSku, setBarcodeSku] = useState("")
-    const [stores] = useState<IStore[]>(initialStores)
-    const { storeSelected } = useTienda()
-    const [selectedStoreID, setSelectedStoreID] = useState<string>("")
+    const { storeSelected, setStoreSelected } = useTienda()
     const [currentPage, setCurrentPage] = useState(1)
     const [isTercero, setIsTercero] = useState(false)
 
@@ -59,7 +54,7 @@ export default function PurchaseOrderClient({
 
     // 1. Filtrar productos por tienda seleccionada
     const filteredByStore = useMemo(() => {
-        if (user?.role === "admin" && !selectedStoreID) return filteredAndSortedProducts
+        if (user?.role === "admin" && !storeSelected?.storeID) return filteredAndSortedProducts
         if (user?.role === "store_manager" && storeSelected?.storeID) {
             return filteredAndSortedProducts.filter((product) =>
                 product.ProductVariations.some((variation) =>
@@ -68,7 +63,7 @@ export default function PurchaseOrderClient({
             )
         }
         return filteredAndSortedProducts
-    }, [filteredAndSortedProducts, selectedStoreID, user?.role, storeSelected?.storeID])
+    }, [filteredAndSortedProducts, storeSelected?.storeID, user?.role, storeSelected?.storeID])
 
     // 2. Filtrar productos por búsqueda
     const searchedProducts = useMemo(() => {
@@ -224,8 +219,6 @@ export default function PurchaseOrderClient({
         setSelectedFilter("genre")
     }, [])
 
-    const selectedID = user?.role === "admin" ? selectedStoreID : storeSelected?.storeID || ""
-
     return (
         <>
             <main className="p-6 flex-1 flex flex-col min-h-screen" style={{ paddingBottom: "120px" }}>
@@ -248,12 +241,18 @@ export default function PurchaseOrderClient({
                                         Orden de compra para:
                                     </span>
                                     {user?.role === "admin" ? (
-                                        <Select value={selectedStoreID} onValueChange={setSelectedStoreID}>
+                                        <Select
+                                            value={storeSelected?.storeID}
+                                            onValueChange={(storeID) => {
+                                                const findedStore = initialStores.find((s) => s.storeID === storeID)!
+                                                setStoreSelected(findedStore)
+                                            }}
+                                        >
                                             <SelectTrigger className="w-[300px] h-11 border-2">
                                                 <SelectValue placeholder="Seleccionar tienda" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {stores.map((store) => (
+                                                {initialStores.map((store) => (
                                                     <SelectItem key={store.storeID} value={store.storeID}>
                                                         {store.name} - {store.city}
                                                     </SelectItem>
@@ -266,7 +265,7 @@ export default function PurchaseOrderClient({
                                                 <SelectValue placeholder="Seleccionar tienda" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {stores.map((store) => (
+                                                {initialStores.map((store) => (
                                                     <SelectItem key={store.storeID} value={store.storeID}>
                                                         {store.name} - {store.city}
                                                     </SelectItem>

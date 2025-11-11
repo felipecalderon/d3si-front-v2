@@ -17,6 +17,8 @@ import { useEditOrderStore } from "@/stores/order.store"
 import { useRouter } from "next/navigation"
 import { updateOrder } from "@/actions/orders/updateOrder"
 import { Button } from "../ui/button"
+import { useTerceroProducts } from "@/stores/terceroCost.store"
+import MarkupTerceroAjuste from "./AdjustMarkupTer"
 
 interface Props {
     order: ISingleOrderResponse
@@ -49,20 +51,27 @@ export default function OrderDetail({ order, allProducts }: Props) {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
     })
-
+    const { calculateThirdPartyPrice } = useTerceroProducts()
     const [showProductSelector, setShowProductSelector] = useState(false)
+    const { addProduct, updateOrderStringField, clearCart } = actions
 
     // Carga la orden en el store global de zustand para modificarlo posteriormente
     useEffect(() => {
-        const { addProduct, updateOrderStringField } = actions
+        clearCart()
         const { ProductVariations, newProducts, Store, ...restOrder } = order
         const arrFields = Object.entries(restOrder)
 
         arrFields.forEach(([field, value]) => {
             updateOrderStringField(field as typeField, value)
         })
+        // acá se aplica el costo de tercero si no es tienda admin
         order.ProductVariations.forEach((v) => {
-            const variationWithQuantity = { ...v, quantity: v.OrderProduct.quantityOrdered }
+            const terceroCost = Store.role !== Role.Admin ? calculateThirdPartyPrice(v) : { brutoCompra: v.priceCost }
+            const variationWithQuantity = {
+                ...v,
+                quantity: v.OrderProduct.quantityOrdered,
+                priceCost: terceroCost.brutoCompra,
+            }
             addProduct(v.Product, variationWithQuantity)
         })
     }, [])
@@ -84,15 +93,16 @@ export default function OrderDetail({ order, allProducts }: Props) {
     const handleActualizarOrden = async () => {
         try {
             setLoading(true)
-            const toNewProducts = newProducts.map((p) => p.variation)
+            const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
             const toUpdate = { ...editedOrder, newProducts: toNewProducts }
             await toast.promise(updateOrder(toUpdate), {
                 loading: "Actualizando...",
                 error: "Falló al actualizar",
                 success: "Orden actualizada correctamente",
             })
-        } catch (e: any) {
-            toast.error(e?.message || "Error al actualizar la orden")
+        } catch (e) {
+            console.log(e)
+            toast.error("Error al actualizar la orden")
         } finally {
             setLoading(false)
         }
@@ -107,6 +117,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                 await deleteOrder(order.orderID)
                 router.push("/home/invoices")
                 toast.success("Orden anulada correctamente")
+                clearCart()
             } catch (e) {
                 console.log(e)
                 toast.error("Error al anular la orden")
@@ -144,6 +155,8 @@ export default function OrderDetail({ order, allProducts }: Props) {
                 <StoreInfo store={order.Store} />
                 <div className="space-y-6 pt-6">
                     <OrderMainInfo cantidadTotalProductos={cantidadTotalProductos} fecha={fecha} />
+                    {/* Mientras no se actualicen los precio costo de los productos editados al cambiar markup no se agregará el controlador */}
+                    {/* {user?.role === Role.Admin && <MarkupTerceroAjuste />} */}
 
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">

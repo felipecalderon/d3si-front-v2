@@ -103,21 +103,20 @@ export const useEditOrderStore = create<OrderState>((set, get) => ({
 
         updateQuantity: (sku, quantity) =>
             set((state) => {
-                const updatedProducts = state.newProducts
-                    .map((item) => {
-                        if (item.variation.sku === sku) {
-                            const newQuantity = Math.max(0, quantity)
-                            return {
-                                ...item,
-                                variation: {
-                                    ...item.variation,
-                                    quantity: newQuantity,
-                                },
-                            }
+                const updatedProducts = state.newProducts.map((item) => {
+                    if (item.variation.sku === sku) {
+                        const newQuantity = Math.max(0, quantity)
+                        return {
+                            ...item,
+                            variation: {
+                                ...item.variation,
+                                quantity: newQuantity,
+                            },
                         }
-                        return item
-                    })
-                    .filter((item) => item.variation.quantity > 0)
+                    }
+                    return item
+                })
+                // .filter((item) => item.variation.quantity > 0)
 
                 return {
                     newProducts: updatedProducts,
