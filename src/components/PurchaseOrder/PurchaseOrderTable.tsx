@@ -11,27 +11,21 @@ import { Badge } from "@/components/ui/badge"
 import { MotionItem } from "@/components/Animations/motionItem"
 import { toPrice } from "@/utils/priceFormat"
 import { usePedidoOC } from "@/stores/pedidoOC"
-import { useTerceroProducts } from "@/hooks/useTerceroProducts"
 import { useTienda } from "@/stores/tienda.store"
 import { PurchaseOrderItem } from "@/interfaces/orders/IOrder"
+import { useTerceroProducts } from "@/stores/terceroCost.store"
+import MarkupTerceroAjuste from "../Invoices/AdjustMarkupTer"
 
 export function PurchaseOrderTable({ currentItems }: { currentItems: PurchaseOrderItem[] }) {
     const { user } = useAuth()
     const isAdmin = user?.role === Role.Admin
-    const isTercero = user?.role !== Role.Admin
+    const { storeSelected } = useTienda()
+    const isTercero = storeSelected?.role !== Role.Admin
     const [orderByMarkup, setOrderByMarkup] = useState(false)
     const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null)
     const { addOrUpdatePedido, pedido } = usePedidoOC()
-    const {
-        markupTerceroMin,
-        setMarkupTerceroMin,
-        markupTerceroMax,
-        setMarkupTerceroMax,
-        markupFlotanteMin,
-        setMarkupFlotanteMin,
-        calculateThirdPartyPrice,
-    } = useTerceroProducts(currentItems)
-    const { storeSelected } = useTienda()
+    const { markupTerceroMin, calculateThirdPartyPrice } = useTerceroProducts()
+
     const calculateMarkup = (priceCost: number, priceList: number): number => {
         if (!priceCost) return 0
         return priceList / priceCost
@@ -121,60 +115,7 @@ export function PurchaseOrderTable({ currentItems }: { currentItems: PurchaseOrd
                     productName={selectedImage.name}
                 />
             )}
-            {!isTercero && (
-                <div className="flex gap-4 mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg shadow w-1/2">
-                    <div className="flex-1">
-                        <label
-                            htmlFor="markupMin"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Markup Min Tercero
-                        </label>
-                        <Input
-                            id="markupMin"
-                            type="number"
-                            value={markupTerceroMin}
-                            min={1}
-                            onChange={(e) => setMarkupTerceroMin(parseFloat(e.target.value) || 0)}
-                            className="w-full"
-                            step="0.1"
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <label
-                            htmlFor="markupMax"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Markup Max Tercero
-                        </label>
-                        <Input
-                            id="markupMax"
-                            type="number"
-                            value={markupTerceroMax}
-                            onChange={(e) => setMarkupTerceroMax(parseFloat(e.target.value) || 0)}
-                            className="w-full"
-                            step="0.1"
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <label
-                            htmlFor="MarkupFlotMin"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Markup Min Flotante
-                        </label>
-                        <Input
-                            id="MarkupFlotMin"
-                            type="number"
-                            min={1}
-                            value={markupFlotanteMin}
-                            onChange={(e) => setMarkupFlotanteMin(parseFloat(e.target.value) || 0)}
-                            className="w-full"
-                            step="0.1"
-                        />
-                    </div>
-                </div>
-            )}
+            {user?.role === Role.Admin && <MarkupTerceroAjuste />}
             <div className="flex-1 dark:bg-slate-900 bg-white shadow rounded overflow-hidden">
                 <div className="overflow-x-auto h-full">
                     <Table>
@@ -224,7 +165,7 @@ export function PurchaseOrderTable({ currentItems }: { currentItems: PurchaseOrd
                                 let stockTienda = 0
                                 if (storeSelected && storeSelected.storeID) {
                                     const storeProduct = variation.StoreProducts?.find(
-                                        (sp: any) => sp.storeID === storeSelected.storeID
+                                        (sp) => sp.storeID === storeSelected.storeID
                                     )
                                     stockTienda = storeProduct ? storeProduct.quantity : 0
                                 }
@@ -237,8 +178,8 @@ export function PurchaseOrderTable({ currentItems }: { currentItems: PurchaseOrd
                                 let markupToShow = 0
 
                                 if (isTercero) {
-                                    const third = calculateThirdPartyPrice(variation)
-                                    priceToShow = third.brutoCompra / 1.19
+                                    const { brutoCompra } = calculateThirdPartyPrice(variation)
+                                    priceToShow = brutoCompra / 1.19
                                     markupToShow = variation.priceList / priceToShow
                                 } else {
                                     priceToShow = Number(variation.priceCost)

@@ -1,23 +1,49 @@
 "use client"
 
+import React, { useMemo } from "react"
 import { useAuth } from "@/stores/user.store"
 import { toPrice } from "@/utils/priceFormat"
 import { usePedidoOC } from "@/stores/pedidoOC"
 import { OrderReviewDrawer } from "./OrderReviewDrawer"
+import { useTienda } from "@/stores/tienda.store"
+import { Role } from "@/lib/userRoles"
+import { useTerceroProducts } from "@/stores/terceroCost.store"
 
 export function PurchaseOrderSummary() {
     const { user } = useAuth()
     const { pedido } = usePedidoOC()
+    const { storeSelected } = useTienda()
+    const { calculateThirdPartyPrice } = useTerceroProducts()
+
+    const { totalProducts, neto } = useMemo(() => {
+        const isAdmin = storeSelected?.role === Role.Admin
+
+        const calculatedTotals = pedido.reduce(
+            (acc, curr) => {
+                // Determinar el precio de costo correcto basado en el rol de la tienda
+                const priceCostCorrecto = isAdmin
+                    ? curr.variation.priceCost
+                    : calculateThirdPartyPrice(curr.variation).brutoCompra
+
+                // Aumentar el neto
+                acc.neto += priceCostCorrecto * curr.variation.quantity
+
+                // Aumentar la cantidad total de productos
+                acc.totalProducts += curr.variation.quantity
+
+                return acc
+            },
+            { totalProducts: 0, neto: 0 }
+        )
+
+        return calculatedTotals
+    }, [pedido, storeSelected, calculateThirdPartyPrice])
+
+    // Cálculos derivados simples
+    const iva = neto * 0.19
+    const totalConIva = Math.round(neto * 1.19)
 
     if (!user) return null
-
-    const neto = pedido.reduce((acc, curr) => {
-        return acc + curr.variation.priceCost * curr.variation.quantity
-    }, 0)
-
-    const totalProducts = pedido.reduce((acc, curr) => {
-        return acc + curr.variation.quantity
-    }, 0)
 
     return (
         <>
@@ -32,15 +58,18 @@ export function PurchaseOrderSummary() {
                         </div>
                         <div className="flex flex-col-reverse text-center">
                             <span>Neto:</span>
+                            {/* Usar 'neto' calculado correctamente */}
                             <span className="font-bold">${toPrice(neto)}</span>
                         </div>
                         <div className="flex flex-col-reverse text-center">
                             <span>IVA (19%):</span>
-                            <span className="font-bold">${toPrice(neto * 0.19)}</span>
+                            {/* Usar 'iva' calculado correctamente */}
+                            <span className="font-bold">${toPrice(iva)}</span>
                         </div>
                         <div className="flex justify-between border-t border-white pt-2 mt-2">
                             <span className="font-bold">Total:</span>
-                            <span className="font-bold text-yellow-200">${toPrice(Math.round(neto * 1.19))}</span>
+                            {/* Usar 'totalConIva' calculado correctamente */}
+                            <span className="font-bold text-yellow-200">${toPrice(totalConIva)}</span>
                         </div>
                     </div>
                 </div>

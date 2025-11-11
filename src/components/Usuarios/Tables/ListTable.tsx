@@ -19,12 +19,30 @@ interface ListTableProps {
 }
 
 export default function ListTable({ defaultView = "initial", onViewChange }: ListTableProps) {
-    const { stores, setStores } = useTienda()
+    const { setStores } = useTienda()
     const { users, setUsers } = useAuth()
     const [currentView, setCurrentView] = useState<ViewType>(defaultView)
     const [isLoading, setIsLoading] = useState(false)
     const [showSkeleton, setShowSkeleton] = useState(false)
 
+    const loadData = async (view: ViewType) => {
+        if (view === "initial" || view === "gastos") return
+
+        setIsLoading(true)
+        try {
+            if (view === "users") {
+                const usuarios = await getAllUsers()
+                setUsers(usuarios)
+            } else if (view === "stores") {
+                const tiendas = await getAllStores()
+                setStores(tiendas)
+            }
+        } catch (error) {
+            console.error("Error loading data:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
     /**
      * Controla si se muestra el skeleton solo si tarda en cargar.
      * Mostrar skeleton si tarda más de 300ms.
@@ -45,26 +63,7 @@ export default function ListTable({ defaultView = "initial", onViewChange }: Lis
             setCurrentView(defaultView)
             loadData(defaultView)
         }
-    }, [defaultView])
-
-    const loadData = async (view: ViewType) => {
-        if (view === "initial" || view === "gastos") return
-
-        setIsLoading(true)
-        try {
-            if (view === "users") {
-                const usuarios = await getAllUsers()
-                setUsers(usuarios)
-            } else if (view === "stores") {
-                const tiendas = await getAllStores()
-                setStores(tiendas)
-            }
-        } catch (error) {
-            console.error("Error loading data:", error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    }, [defaultView, loadData])
 
     const handleViewChange = async (view: ViewType) => {
         setCurrentView(view)

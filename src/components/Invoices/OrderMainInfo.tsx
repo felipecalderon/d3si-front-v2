@@ -11,36 +11,11 @@ interface Props {
 }
 
 const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
-    // Si las cuotas coinciden, el estado debe ser 'Pagado' y el select debe estar deshabilitado
-    // React.useEffect(() => {
-    //     if (
-    //         typeof currentQuota === "number" &&
-    //         typeof totalQuotas === "number" &&
-    //         currentQuota > 0 &&
-    //         totalQuotas > 0 &&
-    //         currentQuota === totalQuotas &&
-    //         paymentStatus !== "Pagado"
-    //     ) {
-    //         setPaymentStatus("Pagado")
-    //     }
-    // }, [currentQuota, totalQuotas, setPaymentStatus, paymentStatus])
-
-    // const isPagado =
-    //     typeof currentQuota === "number" &&
-    //     typeof totalQuotas === "number" &&
-    //     currentQuota > 0 &&
-    //     totalQuotas > 0 &&
-    //     currentQuota === totalQuotas
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
-    const [editCurrentQuota, setEditCurrentQuota] = React.useState(false)
-    const [editTotalQuotas, setEditTotalQuotas] = React.useState(false)
     const { user } = useAuth()
     const { actions, ...editedOrder } = useEditOrderStore()
     const { updateOrderStringField } = actions
     const isAdmin = user?.role === Role.Admin
-    // Validaciones
-    // const canEditCurrentQuota = (totalQuotas ?? 0) > 0
-    // const maxCurrentQuota = totalQuotas ?? 0
 
     return (
         <>
@@ -169,12 +144,9 @@ const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
                             if (isNaN(val)) return
                             if (val < 0) return
                             updateOrderStringField("endQuote", e.target.value)
-                            // Si se establece total de cuotas a 0, resetear cuota actual
                             if (!editedOrder.startQuote || Number(editedOrder.startQuote ?? 0) === 0) {
                                 updateOrderStringField("startQuote", "1")
-                            }
-                            // Si la cuota actual es mayor al nuevo total, ajustarla
-                            else if (Number(editedOrder.startQuote ?? 0) > Number(editedOrder.endQuote ?? 0)) {
+                            } else if (Number(editedOrder.startQuote ?? 0) > Number(editedOrder.endQuote ?? 0)) {
                                 updateOrderStringField("startQuote", editedOrder.endQuote)
                             }
                         }}
