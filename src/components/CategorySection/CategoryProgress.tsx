@@ -94,7 +94,7 @@ export function CategoryProgress({ products, categories }: CategoryProgressProps
                                 className="absolute bottom-2 right-2 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg bounce-hover"
                             >
                                 <svg
-                                    className="w-6 h-6 transform rotate-0 transition-transform duration-300"
+                                    className="w-6 h-6 transform -rotate-90 transition-transform duration-300"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -124,7 +124,7 @@ export function CategoryProgress({ products, categories }: CategoryProgressProps
                                     className="absolute bottom-2 right-2 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg bounce-hover"
                                 >
                                     <svg
-                                        className="w-6 h-6 transform rotate-180 transition-transform duration-300"
+                                        className="w-6 h-6 transform rotate-90 transition-transform duration-300"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
