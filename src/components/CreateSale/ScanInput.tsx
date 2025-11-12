@@ -29,7 +29,7 @@ export const ScanInput = ({ initialProducts }: Props) => {
     }
 
     const handleEnterPressed = async (e: KeyboardEvent<HTMLInputElement>) => {
-        const isEnterPress = e.code === "Enter" || e.code === "NumpadEnter"
+        const isEnterPress = e.key === "Enter" || e.key === "NumpadEnter"
         if (isEnterPress) {
             e.preventDefault()
             const productFinded = initialProducts.find((p) => p.ProductVariations.some((v) => v.sku === productInput))
@@ -45,16 +45,19 @@ export const ScanInput = ({ initialProducts }: Props) => {
                         setProductCode("")
                     }
                 }
-                console.log(variationFinded)
             } else {
                 toast.error(`No se encontró sku: ${productInput}`)
             }
-            console.log(productFinded)
         }
     }
     return (
         <>
-            <form className="flex items-center gap-2 mb-6">
+            <form
+                className="flex items-center gap-2 mb-6"
+                onSubmit={(e) => {
+                    e.preventDefault()
+                }}
+            >
                 <Input
                     type="text"
                     value={productInput}
