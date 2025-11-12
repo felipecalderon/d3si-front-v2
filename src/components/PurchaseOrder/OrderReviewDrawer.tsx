@@ -34,7 +34,7 @@ export function OrderReviewDrawer() {
     const { user } = useAuth()
     const { storeSelected } = useTienda()
     const router = useRouter()
-    const { addOrUpdatePedido, pedido } = usePedidoOC()
+    const { clearPedido, addOrUpdatePedido, pedido } = usePedidoOC()
     const { calculateThirdPartyPrice } = useTerceroProducts()
 
     const pedidoConPrecioCalculado = useMemo(() => {
@@ -80,7 +80,7 @@ export function OrderReviewDrawer() {
                 status: "Pendiente",
                 type: "OCD",
             })
-
+            clearPedido()
             toast.success("Orden creada con éxito")
             if (router.push) router.push("/home/invoices")
         } catch {
