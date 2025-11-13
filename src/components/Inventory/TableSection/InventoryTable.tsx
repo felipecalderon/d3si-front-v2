@@ -18,6 +18,9 @@ import Image from "next/image"
 import useQueryParams from "@/hooks/useQueryParams"
 import { getProductById } from "@/actions/products/getProductById"
 import { toPrice } from "@/utils/priceFormat"
+import { PrintbarcodeModal } from "./PrintBarcodeModal"
+import { useState } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -67,7 +70,11 @@ export function InventoryTable({
     const { searchParams } = useQueryParams()
     const storeID = searchParams.get("storeID")
     const products = currentItems.map((p) => p.product)
+    const [openSku, setOpenSku] = useState<string | null>(null)
 
+    const printBarcodeModal = (sku: string | null) => {
+        setOpenSku(sku)
+    }
     const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
 
     return (
@@ -79,6 +86,9 @@ export function InventoryTable({
                             <TableRow>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRODUCTO
+                                </TableHead>
+                                <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    SKU
                                 </TableHead>
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     MARCA
@@ -101,11 +111,6 @@ export function InventoryTable({
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
                                 </TableHead>
-                                {user?.role === Role.Admin && (
-                                    <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
-                                        STOCK AGREGADO
-                                    </TableHead>
-                                )}
                             </TableRow>
                         </TableHeader>
 
@@ -131,128 +136,74 @@ export function InventoryTable({
                                         } text-sm dark:text-gray-300 text-gray-800 h-16`}
                                     >
                                         {isFirst && (
-                                            <TableCell className="py-2 px-3 text-left w-1/4">
-                                                <div className="relative w-full flex items-center gap-3">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="absolute top-0 left-0 z-10 h-8 w-8 p-0 dark:hover:bg-gray-900 hover:bg-gray-100"
-                                                            >
-                                                                <MoreVertical className="w-4 h-4 text-gray-600" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="start">
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    setAddSizeModalProductID(product.productID)
-                                                                }
-                                                            >
-                                                                Agregar talla
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleDeleteProduct(product)}
-                                                                className="text-red-600"
-                                                            >
-                                                                Eliminar producto
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-
-                                                    <AddSizeModal
-                                                        productID={product.productID}
-                                                        name={product.name}
-                                                        image={product.image}
-                                                        genre={product.genre}
-                                                        open={addSizeModalProductID === product.productID}
-                                                        onOpenChange={(open) => {
-                                                            if (!open) setAddSizeModalProductID(null)
-                                                        }}
-                                                        onAddSize={(newSize) => {
-                                                            setRawProducts(
-                                                                rawProducts.map((p) =>
-                                                                    p.productID === product.productID
-                                                                        ? {
-                                                                              ...p,
-                                                                              ProductVariations: [
-                                                                                  ...p.ProductVariations,
-                                                                                  newSize,
-                                                                              ],
-                                                                          }
-                                                                        : p
-                                                                )
-                                                            )
-                                                        }}
-                                                    />
-                                                    {product.image ? (
-                                                        <Image
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            width={200}
-                                                            height={200}
-                                                            className="w-12 h-12 object-cover rounded border"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
-                                                            <span className="text-xs text-gray-400">--</span>
+                                            <TableCell
+                                                className="py-2 px-3 text-left w-1/4"
+                                                rowSpan={product.ProductVariations.length}
+                                            >
+                                                <MotionItem key={`product-${product.productID}`} delay={index + 2}>
+                                                    <div className="flex flex-col relative w-full items-center gap-4">
+                                                        <div className="relative">
+                                                            <div className="relative group transition-transform transform hover:scale-105">
+                                                                <Image
+                                                                    src={product.image || "/placeholder.svg"}
+                                                                    alt={product.name}
+                                                                    width={200}
+                                                                    height={200}
+                                                                    className="w-48 h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                                                    style={{ objectFit: "cover" }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    )}
-
-                                                    <div className="flex-1 min-w-0 space-y-2">
                                                         <div>
-                                                            <span className="font-medium text-sm block truncate">
+                                                            <p className="font-medium text-base text-center">
                                                                 {product.name}
-                                                            </span>
-                                                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium inline-block mt-1">
-                                                                {(() => {
-                                                                    // Determinar el storeID de la tienda seleccionada (o admin)
-                                                                    const storeID = searchParams.get("storeID")
-                                                                    // Sumar la cantidad (quantity) de todas las variaciones de la tienda correspondiente
-                                                                    const total = product.ProductVariations.reduce(
-                                                                        (sum, v) => {
-                                                                            if (!storeID) return sum
-                                                                            const storeProduct = v.StoreProducts?.find(
-                                                                                (sp) => sp.storeID === storeID
-                                                                            )
-                                                                            return (
-                                                                                sum +
-                                                                                (storeProduct
-                                                                                    ? storeProduct.quantity
-                                                                                    : 0)
-                                                                            )
+                                                            </p>
+                                                            <div className="flex justify-center gap-2 mt-2">
+                                                                <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full font-medium">
+                                                                    {product.ProductVariations.reduce(
+                                                                        (prev, variation) => {
+                                                                            return prev + variation.stockQuantity
                                                                         },
                                                                         0
-                                                                    )
-                                                                    return `Stock Total: ${total}`
-                                                                })()}
-                                                            </span>
+                                                                    )}{" "}
+                                                                    productos
+                                                                </span>
+                                                            </div>
                                                         </div>
+                                                    </div>
+                                                </MotionItem>
+                                            </TableCell>
+                                        )}
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <TableCell
+                                                    onClick={() =>
+                                                        printBarcodeModal(
+                                                            openSku === variation.sku ? null : variation.sku
+                                                        )
+                                                    }
+                                                    className="px-3 py-1 text-xs font-medium cursor-pointer"
+                                                >
+                                                    {variation.sku}
+                                                </TableCell>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="left" sideOffset={-10}>
+                                                <p>Imprimir Etiqueta</p>
+                                            </TooltipContent>
+                                        </Tooltip>
 
-                                                        {/* SKU con mejor espaciado y alineación */}
-                                                        <div className="pl-1">
-                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
-                                                                {variation.sku}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
+                                        {productData && (
+                                            <PrintbarcodeModal
+                                                // El modal está abierto SÓLO si el SKU de la variación actual coincide con el estado
+                                                isOpen={openSku === variation.sku}
+                                                // Para cerrar el modal, simplemente pasamos 'null'
+                                                onOpenChange={(newOpenState) =>
+                                                    printBarcodeModal(newOpenState ? variation.sku : null)
+                                                }
+                                                value={productData}
+                                            />
                                         )}
-                                        {!isFirst && (
-                                            <TableCell className="py-2 text-left">
-                                                {/* SKU alineado para filas no-first con el mismo padding/margin que el de arriba */}
-                                                <div className="flex">
-                                                    {/* Espacio equivalente al botón + imagen para alinear */}
-                                                    <div className="w-16 flex-shrink-0"></div>
-                                                    <div>
-                                                        <span className="text-xs font-mono -ml-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
-                                                            {variation.sku}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                        )}
+
                                         {/* Columna MARCA */}
                                         <TableCell
                                             className={`text-center py-2 ${
@@ -461,30 +412,6 @@ export function InventoryTable({
                                                 </Badge>
                                             )}
                                         </TableCell>
-
-                                        {user?.role === Role.Admin && (
-                                            <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                                {/* <MotionItem
-                                                    key={`${product.productID}-${variation.variationID}`}
-                                                    delay={index + 3}
-                                                >
-                                                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                                                        {stockAgregado}
-                                                    </span>
-                                                </MotionItem> */}
-                                                <div className="flex flex-col">
-                                                    {productData?.StoreProducts?.filter(
-                                                        (sp) => sp.Store.role === Role.Vendedor
-                                                    ).map((sp) => (
-                                                        <div className="flex" key={sp.storeProductID}>
-                                                            <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border">
-                                                                {sp.Store.location}: {sp.quantity}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </TableCell>
-                                        )}
                                     </TableRow>
                                 )
                             })}
