@@ -1,0 +1,22 @@
+@media print {
+    /* Clase crítica: Muestra el código de barras */
+    .printOnly {
+        /* Aseguramos la visibilidad */
+        visibility: visible !important;
+
+        /* Lo colocamos en la esquina superior de la página de impresión */
+        position: absolute !important;
+        top: 0;
+        left: 0;
+
+        /* Aseguramos que ocupe todo el espacio de la página de impresión (si lo necesitas) */
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+
+    /* Asegura que los hijos del printOnly también sean visibles */
+    .printOnly * {
+        visibility: visible !important;
+    }
+}
