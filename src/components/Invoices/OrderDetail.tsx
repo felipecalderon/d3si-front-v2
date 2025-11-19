@@ -8,6 +8,7 @@ import OrderMainInfo from "./OrderMainInfo"
 import StoreInfo from "./StoreInfo"
 import ProductsTable from "./ProductsTable"
 import FinancialSummary from "./FinancialSummary"
+import ProductVerification from "./ProductVerification"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
@@ -52,6 +53,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
     })
     // const { calculateThirdPartyPrice } = useTerceroProducts()
     const [showProductSelector, setShowProductSelector] = useState(false)
+    const [showVerification, setShowVerification] = useState(false)
     const { addProduct, updateOrderStringField, clearCart } = actions
     const { activeToastId, setToastId } = useLoadingToaster()
 
@@ -167,14 +169,22 @@ export default function OrderDetail({ order, allProducts }: Props) {
                                 <ShoppingBag className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 Productos ({newProducts.reduce((acc, v) => acc + v.variation.quantity, 0)})
                             </h3>
-                            {isAdmin && (
+                            <div className="flex gap-2">
                                 <button
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
-                                    onClick={() => setShowProductSelector(true)}
+                                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                    onClick={() => setShowVerification(true)}
                                 >
-                                    Agregar más productos
+                                    Verificar Productos
                                 </button>
-                            )}
+                                {isAdmin && (
+                                    <button
+                                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
+                                        onClick={() => setShowProductSelector(true)}
+                                    >
+                                        Agregar más productos
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         {showProductSelector && (
                             <div className="mb-4">
@@ -189,6 +199,13 @@ export default function OrderDetail({ order, allProducts }: Props) {
                         )}
                         <ProductsTable products={newProducts} />
                     </div>
+                    {showVerification && (
+                        <ProductVerification
+                            originalProducts={newProducts}
+                            allProducts={allProducts}
+                            onClose={() => setShowVerification(false)}
+                        />
+                    )}
                     <FinancialSummary total={editedOrder.total} />
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <Button
