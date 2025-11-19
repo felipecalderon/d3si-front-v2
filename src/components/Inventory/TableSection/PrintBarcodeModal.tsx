@@ -36,7 +36,9 @@ export function PrintbarcodeModal({ onOpenChange, isOpen, value }: Props) {
         const printContent = document.getElementById("printBarcode")
 
         if (printContent) {
-            window.print()
+            setTimeout(() => {
+                window.print()
+            }, 600)
         }
     }
 
@@ -44,18 +46,15 @@ export function PrintbarcodeModal({ onOpenChange, isOpen, value }: Props) {
         if (isOpen) {
             setTimeout(() => {
                 window.print()
-            }, 600)
+            }, 1000)
         }
     }, [isOpen])
     if (isOpen)
         return (
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className={`${styles.hideOnPrint} sm:max-w-lg p-6`}>
-                    <DialogHeader>
-                        <DialogTitle>Anular Venta</DialogTitle>
-                        <DialogDescription>
-                            Completa el formulario para procesar la anulación de la venta.
-                        </DialogDescription>
+                    <DialogHeader hidden>
+                        <DialogTitle className="text-center">Imprimir etiqueta</DialogTitle>
                     </DialogHeader>
                     <div className="grid grid-cols-1 place-content-center gap-4 py-4">
                         <div id="printBarcode" className={styles.printOnly}>
@@ -65,7 +64,7 @@ export function PrintbarcodeModal({ onOpenChange, isOpen, value }: Props) {
                             <Ean13Generator value={value.sku} />
                         </div>
 
-                        <Button variant="destructive" onClick={handlePrint}>
+                        <Button variant="destructive" className="px-10 mx-auto" onClick={handlePrint}>
                             Imprimir
                         </Button>
                     </div>
