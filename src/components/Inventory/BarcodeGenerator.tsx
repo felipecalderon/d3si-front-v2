@@ -6,5 +6,5 @@ interface Props {
 }
 
 export default function Ean13Generator({ value }: Props) {
-    return <Barcode className="mx-auto" value={value} format="EAN13" width={2} height={50} displayValue={true} />
+    return <Barcode className="mx-auto" value={value} format="CODE128" width={2} height={50} displayValue={true} />
 }
