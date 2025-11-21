@@ -5,6 +5,7 @@ import Ean13Generator from "../BarcodeGenerator"
 import { Button } from "@/components/ui/button"
 import styles from "@/components/Inventory/TableSection/PrintbarcodeModal.module.css"
 import { useEffect } from "react"
+import { toPrice } from "@/utils/priceFormat"
 
 interface ProductData {
     name: string
@@ -42,6 +43,13 @@ export function PrintbarcodeModal({ onOpenChange, isOpen, value }: Props) {
         }
     }
 
+    const truncateName = (name: string) => {
+        const maxLength = 35
+        if (name.length > maxLength) {
+            return name.substring(0, maxLength) + "..."
+        }
+        return name
+    }
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => {
@@ -59,7 +67,7 @@ export function PrintbarcodeModal({ onOpenChange, isOpen, value }: Props) {
                     <div className="grid grid-cols-1 place-content-center gap-4 py-4">
                         <div id="printBarcode" className={styles.printOnly}>
                             <p className="text-xs text-center">
-                                {value.name} - {value.sizeNumber}
+                                ${toPrice(value.priceList)} | {truncateName(value.name)} {value.sizeNumber}
                             </p>
                             <Ean13Generator value={value.sku} />
                         </div>
