@@ -1,8 +1,10 @@
 "use client"
-import React, { useState, useMemo } from "react"
-import { X, Scan, CheckCircle2, AlertTriangle, XCircle } from "lucide-react"
-import { OrderEditItem } from "@/stores/order.store"
+import React, { useMemo, useState } from "react"
+import { X, Scan, CheckCircle2, AlertTriangle, XCircle, RefreshCcw } from "lucide-react"
+import { OrderEditItem, useEditOrderStore } from "@/stores/order.store"
 import { IProduct } from "@/interfaces/products/IProduct"
+import { updateOrder } from "@/actions/orders/updateOrder"
+import { toast } from "sonner"
 
 interface VerificationItem {
     sku: string
@@ -21,6 +23,8 @@ interface Props {
 export default function ProductVerification({ originalProducts, allProducts, onClose }: Props) {
     const [barcodeSku, setBarcodeSku] = useState("")
     const [scannedProducts, setScannedProducts] = useState<Map<string, number>>(new Map())
+    const [updating, setUpdating] = useState(false)
+    const { actions } = useEditOrderStore()
 
     // Crear un mapa de productos esperados
     const expectedProducts = useMemo(() => {
@@ -40,40 +44,31 @@ export default function ProductVerification({ originalProducts, allProducts, onC
     // Actualizar cantidades escaneadas
     const verificationList = useMemo(() => {
         const list: VerificationItem[] = []
-
-        // Agregar productos esperados con sus cantidades escaneadas
+        // Agregar productos esperados
         expectedProducts.forEach((item) => {
             list.push({
                 ...item,
                 scannedQuantity: scannedProducts.get(item.sku) || 0,
             })
         })
-
-        // Agregar productos escaneados que no estaban en la orden original
+        // Agregar productos escaneados que no estaban en la orden original (si existen en inventario)
         scannedProducts.forEach((quantity, sku) => {
             if (!expectedProducts.has(sku)) {
-                // Buscar información del producto
-                let productInfo = { name: "Producto no encontrado", size: "-" }
                 for (const product of allProducts) {
                     const variation = product.ProductVariations.find((v) => v.sku === sku)
                     if (variation) {
-                        productInfo = {
+                        list.push({
+                            sku,
                             name: product.name,
                             size: variation.sizeNumber,
-                        }
+                            expectedQuantity: 0,
+                            scannedQuantity: quantity,
+                        })
                         break
                     }
                 }
-                list.push({
-                    sku,
-                    name: productInfo.name,
-                    size: productInfo.size,
-                    expectedQuantity: 0,
-                    scannedQuantity: quantity,
-                })
             }
         })
-
         return list
     }, [expectedProducts, scannedProducts, allProducts])
 
@@ -83,7 +78,6 @@ export default function ProductVerification({ originalProducts, allProducts, onC
         let missing = 0
         let extra = 0
         let unexpected = 0
-
         verificationList.forEach((item) => {
             if (item.expectedQuantity === 0) {
                 unexpected += item.scannedQuantity
@@ -105,6 +99,21 @@ export default function ProductVerification({ originalProducts, allProducts, onC
             const sku = barcodeSku.trim()
             if (!sku) return
 
+            // Verificar que el SKU exista en inventario (toda la lista de productos)
+            let existsInInventory = false
+            for (const product of allProducts) {
+                if (product.ProductVariations.some((v) => v.sku === sku)) {
+                    existsInInventory = true
+                    break
+                }
+            }
+
+            if (!existsInInventory) {
+                toast.error("El producto no se encuentra en el inventario")
+                setBarcodeSku("")
+                return
+            }
+
             // Incrementar el conteo de productos escaneados
             setScannedProducts((prev) => {
                 const newMap = new Map(prev)
@@ -114,6 +123,44 @@ export default function ProductVerification({ originalProducts, allProducts, onC
             })
 
             setBarcodeSku("")
+        }
+    }
+
+    // Aplicar cantidades escaneadas al store y actualizar backend
+    const applyAndUpdateOrder = async () => {
+        try {
+            setUpdating(true)
+            // 1) Aplicar al store: actualizar cantidades para SKUs de la orden
+            originalProducts.forEach((item) => {
+                const scanned = scannedProducts.get(item.variation.sku) || 0
+                const newQty = scanned
+                actions.updateQuantity(item.variation.sku, newQty)
+            })
+
+            // 1b) Agregar a la orden los SKUs escaneados que no estaban, si existen en inventario
+            scannedProducts.forEach((quantity, sku) => {
+                if (!expectedProducts.has(sku)) {
+                    for (const product of allProducts) {
+                        const variation = product.ProductVariations.find((v) => v.sku === sku)
+                        if (variation) {
+                            actions.addProduct(product, { ...variation, quantity })
+                            break
+                        }
+                    }
+                }
+            })
+
+            // 2) Tomar el estado actualizado y enviar al backend
+            const { newProducts, ...rest } = useEditOrderStore.getState()
+            const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
+            await updateOrder({ ...rest, newProducts: toNewProducts })
+            toast.success("Orden actualizada con los productos verificados")
+            onClose()
+        } catch (e) {
+            console.error(e)
+            toast.error("No se pudo actualizar la orden")
+        } finally {
+            setUpdating(false)
         }
     }
 
@@ -206,6 +253,11 @@ export default function ProductVerification({ originalProducts, allProducts, onC
                             <div className="text-xs text-gray-600 dark:text-gray-400">No Esperados</div>
                         </div>
                     </div>
+                    <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+                        Nota: Solo se aceptan SKUs existentes en el inventario. Si el SKU no está en la orden pero
+                        existe en inventario, se agregará. Si se escanean más unidades que las ordenadas, la orden
+                        aumentará esas cantidades.
+                    </p>
                 </div>
 
                 {/* Products List */}
@@ -245,7 +297,15 @@ export default function ProductVerification({ originalProducts, allProducts, onC
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                    <button
+                        onClick={applyAndUpdateOrder}
+                        disabled={updating}
+                        className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold rounded shadow inline-flex items-center gap-2"
+                    >
+                        <RefreshCcw className="w-4 h-4" />
+                        {updating ? "Actualizando..." : "Actualizar orden"}
+                    </button>
                     <button
                         onClick={onClose}
                         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow"
