@@ -10,6 +10,7 @@ export interface IVariationWithQuantity extends IProductVariation {
  */
 export interface IVariationWithOrderedQuantity extends IProductVariation {
     quantityOrdered: number
+    Product: IProduct
 }
 
 export interface IOrder {
