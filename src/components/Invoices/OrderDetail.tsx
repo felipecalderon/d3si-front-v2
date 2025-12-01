@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation"
 import { updateOrder } from "@/actions/orders/updateOrder"
 import { Button } from "../ui/button"
 import { useLoadingToaster } from "@/stores/loading.store"
+import { PrintOrderView } from "../Print/PrintOrderView"
 
 interface Props {
     order: ISingleOrderResponse
@@ -51,6 +52,18 @@ export default function OrderDetail({ order, allProducts }: Props) {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
     })
+
+    // Transformar datos para PrintOrderView
+    const printOrderData = useMemo(() => {
+        return {
+            ...order,
+            ProductVariations: order.ProductVariations.map((v) => ({
+                ...v,
+                quantityOrdered: v.OrderProduct.quantityOrdered,
+                priceCost: v.OrderProduct.priceCost,
+            })),
+        }
+    }, [order])
     // const { calculateThirdPartyPrice } = useTerceroProducts()
     const [showProductSelector, setShowProductSelector] = useState(false)
     const [showVerification, setShowVerification] = useState(false)
@@ -134,7 +147,10 @@ export default function OrderDetail({ order, allProducts }: Props) {
 
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
-            <div className="max-w-5xl mx-auto print-container" ref={printRef}>
+            <div style={{ display: "none" }}>
+                <PrintOrderView ref={printRef} order={printOrderData} />
+            </div>
+            <div className="max-w-5xl mx-auto print-container">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
                     <button
                         className="flex items-center gap-2 text-blue-700 dark:text-blue-300 hover:underline text-base font-medium"
