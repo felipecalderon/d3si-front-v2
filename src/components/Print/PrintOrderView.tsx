@@ -75,22 +75,26 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
                         <tr className="bg-gray-100 border-b-2 border-gray-300">
                             <th className="py-2 px-3 text-left font-bold text-gray-700">SKU</th>
                             <th className="py-2 px-3 text-center font-bold text-gray-700">Talla</th>
-                            <th className="py-2 px-3 text-center font-bold text-gray-700">Cant.</th>
-                            <th className="py-2 px-3 text-right font-bold text-gray-700">Precio Unit.</th>
-                            <th className="py-2 px-3 text-right font-bold text-gray-700">Subtotal</th>
+                            <th className="py-2 px-3 text-center font-bold text-gray-700">Cantidad</th>
+                            <th className="py-2 px-3 text-right font-bold text-gray-700">Costo Neto Unitario</th>
+                            <th className="py-2 px-3 text-right font-bold text-gray-700">Subt. Neto</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {order.ProductVariations.map((item) => (
                             <tr key={item.variationID}>
-                                <td className="py-2 px-3 text-gray-800 font-mono">{item.sku}</td>
+                                <td className="py-2 px-3 text-gray-800 font-mono">
+                                    {item.Product.name} ({item.sku})
+                                </td>
                                 <td className="py-2 px-3 text-center text-gray-800">{item.sizeNumber}</td>
                                 <td className="py-2 px-3 text-center text-gray-800 font-medium">
                                     {item.quantityOrdered}
                                 </td>
-                                <td className="py-2 px-3 text-right text-gray-800">${toPrice(item.priceCost)}</td>
+                                <td className="py-2 px-3 text-right text-gray-800">
+                                    ${toPrice(Number(item.priceCost) / 1.19)}
+                                </td>
                                 <td className="py-2 px-3 text-right font-bold text-gray-900">
-                                    ${toPrice(item.priceCost * item.quantityOrdered)}
+                                    ${toPrice((item.priceCost * item.quantityOrdered) / 1.19)}
                                 </td>
                             </tr>
                         ))}
@@ -106,8 +110,16 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
                         <span>${toPrice(order.discount)}</span>
                     </div>
                     <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
-                        <span>Total:</span>
+                        <span>Total Neto:</span>
                         <span>${toPrice(order.total)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
+                        <span>IVA:</span>
+                        <span>${toPrice(order.total * 0.19)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
+                        <span>Total:</span>
+                        <span>${toPrice(order.total * 1.19)}</span>
                     </div>
                 </div>
             </div>

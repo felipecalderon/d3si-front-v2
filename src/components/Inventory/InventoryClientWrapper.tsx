@@ -57,6 +57,12 @@ export default function UnifiedInventoryClientWrapper({ initialProducts, categor
         setCategories(cats)
     }, [])
 
+    useEffect(() => {
+        return () => {
+            clearColumnFilters()
+        }
+    }, [])
+
     function handleDeleteProduct(product: IProduct) {
         const confirm = window.confirm(
             `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede revertir.`
