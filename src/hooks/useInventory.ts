@@ -95,6 +95,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
                 currentPage.push({
                     ...item,
                     isFirst: index === 0,
+                    rowSpan: variationCount, // Use the count of filtered variations for this product
                 })
             })
             currentVariationCount += variationCount
