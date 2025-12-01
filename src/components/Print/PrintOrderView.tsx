@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { toPrice } from "@/utils/priceFormat"
 
@@ -7,7 +8,7 @@ interface Props {
     order: IOrderWithStore
 }
 
-export default function PrintOrderView({ order }: Props) {
+export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }, ref) => {
     const fecha = new Date(order.createdAt).toLocaleDateString("es-MX", {
         day: "2-digit",
         month: "short",
@@ -15,7 +16,7 @@ export default function PrintOrderView({ order }: Props) {
     })
 
     return (
-        <div className="print:block hidden p-6 text-black">
+        <div ref={ref} className="p-6 text-black">
             <h1 className="text-2xl font-bold mb-2">Orden de Compra</h1>
             <p>
                 <strong>Folio:</strong> {order.orderID}
@@ -78,4 +79,6 @@ export default function PrintOrderView({ order }: Props) {
             </table>
         </div>
     )
-}
+})
+
+PrintOrderView.displayName = "PrintOrderView"
