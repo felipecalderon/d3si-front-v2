@@ -154,7 +154,7 @@ export const useEditOrderStore = create<OrderState>((set, get) => ({
 
 const calculateTotal = (products: OrderEditItem[], discount: number): number => {
     const subtotal = products.reduce((acc, item) => {
-        return acc + item.variation.priceCost * item.variation.quantity
+        return acc + Math.round(item.variation.priceCost) * item.variation.quantity
     }, 0)
     return Math.max(0, subtotal - discount)
 }

@@ -43,7 +43,7 @@ export function OrderReviewDrawer() {
         return pedido.map((item) => {
             const priceCostTer = isAdmin
                 ? item.variation.priceCost // Precio de costo normal para TIENDA admin
-                : calculateThirdPartyPrice(item.variation).brutoCompra // Precio de tercero para otros roles de TIENDAS
+                : calculateThirdPartyPrice(item.variation).brutoCompra / 1.19 // Precio NETO de tercero para otros roles de TIENDAS
 
             const subtotal = priceCostTer * item.variation.quantity
 

@@ -23,7 +23,7 @@ export function PurchaseOrderSummary() {
                 // Determinar el precio de costo correcto basado en el rol de la tienda
                 const priceCostCorrecto = isAdmin
                     ? curr.variation.priceCost
-                    : calculateThirdPartyPrice(curr.variation).brutoCompra
+                    : calculateThirdPartyPrice(curr.variation).brutoCompra / 1.19
 
                 // Aumentar el neto
                 acc.neto += priceCostCorrecto * curr.variation.quantity
