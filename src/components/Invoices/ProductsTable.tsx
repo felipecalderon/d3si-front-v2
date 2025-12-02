@@ -106,7 +106,7 @@ const ProductsTable: React.FC<Props> = ({ products }) => {
                                     </div>
                                 </td>
                                 <td className="py-3 px-2 text-right font-bold text-green-600 dark:text-green-400">
-                                    {toPrice((Number(item.variation.priceCost) * item.variation.quantity) / 1.19)}
+                                    {toPrice(Number(item.variation.priceCost) * item.variation.quantity)}
                                 </td>
                             </tr>
                         ))}

@@ -116,7 +116,8 @@ export default function OrderDetail({ order, allProducts }: Props) {
         try {
             setLoading(true)
             const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
-            const toUpdate = { ...editedOrder, newProducts: toNewProducts }
+            const newProductsClean = toNewProducts.map((p) => ({ ...p, priceCost: Math.round(p.priceCost) }))
+            const toUpdate = { ...editedOrder, newProducts: newProductsClean }
             await updateOrder(toUpdate)
         } catch (e) {
             console.log(e)
