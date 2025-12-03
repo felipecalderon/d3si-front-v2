@@ -9,6 +9,8 @@ import { PlusIcon, ChevronDownIcon, CheckIcon } from "lucide-react"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { useEditOrderStore } from "@/stores/order.store"
 import { toast } from "sonner"
+import { useTienda } from "@/stores/tienda.store"
+import { useTerceroProducts } from "@/stores/terceroCost.store"
 
 interface ProductSelectorProps {
     filteredProducts: IProduct[]
@@ -22,6 +24,8 @@ interface ProductWithVariation extends IProduct {
 export function ProductSelector({ filteredProducts }: ProductSelectorProps) {
     const { actions } = useEditOrderStore()
     const { addProduct } = actions
+    const { storeSelected } = useTienda()
+    const { calculateThirdPartyPrice } = useTerceroProducts()
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
     const productBySkuMap = React.useMemo(() => {
@@ -38,12 +42,14 @@ export function ProductSelector({ filteredProducts }: ProductSelectorProps) {
     const productsWithSize: ProductWithVariation[] = React.useMemo(() => {
         return filteredProducts
             .flatMap((product) =>
-                product.ProductVariations.map((v) => ({
-                    ...product,
-                    sizeNumber: v.sizeNumber,
-                    sku: v.sku,
-                    stock: v.stockQuantity,
-                }))
+                product.ProductVariations.map((v) => {
+                    return {
+                        ...product,
+                        sizeNumber: v.sizeNumber,
+                        sku: v.sku,
+                        stock: v.stockQuantity,
+                    }
+                })
             )
             .filter((p) => p.stock > 0)
     }, [filteredProducts])
@@ -56,7 +62,8 @@ export function ProductSelector({ filteredProducts }: ProductSelectorProps) {
         const variationFinded = productFinded.ProductVariations.find((pv) => pv.sku === sku)
 
         if (variationFinded) {
-            addProduct(productFinded, { ...variationFinded, quantity: 1 })
+            const { brutoCompra } = calculateThirdPartyPrice(variationFinded)
+            addProduct(productFinded, { ...variationFinded, quantity: 1, priceCost: brutoCompra / 1.19 })
         }
         setIsPopoverOpen(false)
     }

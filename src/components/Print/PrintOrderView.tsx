@@ -91,10 +91,10 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
                                     {item.quantityOrdered}
                                 </td>
                                 <td className="py-2 px-3 text-right text-gray-800">
-                                    ${toPrice(Number(item.priceCost) / 1.19)}
+                                    ${toPrice(Number(item.priceCost))}
                                 </td>
                                 <td className="py-2 px-3 text-right font-bold text-gray-900">
-                                    ${toPrice((item.priceCost * item.quantityOrdered) / 1.19)}
+                                    ${toPrice(item.priceCost * item.quantityOrdered)}
                                 </td>
                             </tr>
                         ))}
