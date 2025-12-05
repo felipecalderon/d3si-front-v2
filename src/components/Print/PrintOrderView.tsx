@@ -14,7 +14,7 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
         month: "short",
         year: "numeric",
     })
-
+    const totalProducts = order.ProductVariations.reduce((acc, v) => acc + v.quantityOrdered, 0)
     return (
         <div ref={ref} className="p-8 text-black bg-white max-w-4xl mx-auto font-sans">
             {/* Header */}
@@ -103,6 +103,7 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
             </div>
 
             {/* Totals */}
+            <div>Cantitad total de productos: {totalProducts}</div>
             <div className="flex justify-end border-t-2 border-gray-800 pt-4">
                 <div className="w-64 space-y-2">
                     <div className="flex justify-between text-sm text-gray-600">
