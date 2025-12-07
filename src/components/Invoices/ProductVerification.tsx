@@ -151,9 +151,13 @@ export default function ProductVerification({ originalProducts, allProducts, onC
             })
 
             // 2) Tomar el estado actualizado y enviar al backend
-            const { newProducts, ...rest } = useEditOrderStore.getState()
+            const { newProducts, actions, discount, ...rest } = useEditOrderStore.getState()
             const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
-            await updateOrder({ ...rest, newProducts: toNewProducts })
+
+            // Ensure discount is a number
+            const sanitizedDiscount = typeof discount === "number" ? discount : Number(discount) || 0
+
+            await updateOrder({ ...rest, discount: sanitizedDiscount, newProducts: toNewProducts })
             toast.success("Orden actualizada con los productos verificados")
             onClose()
         } catch (e) {

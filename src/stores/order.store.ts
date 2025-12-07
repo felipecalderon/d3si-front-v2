@@ -14,7 +14,7 @@ interface OrderState {
     total: number
     status: string
     type: string
-    discount: number
+    discount: number | string | null
     dte: string | null
     startQuote: string | null
     endQuote: string | null
@@ -63,8 +63,9 @@ export const useEditOrderStore = create<OrderState>((set, get) => ({
 
                 // Si el campo actualizado es 'discount', se recalcula el total
                 if (field === "discount") {
-                    const newDiscount = field === "discount" && typeof value === "number" ? value : state.discount
-                    newState.total = calculateTotal(state.newProducts, newDiscount)
+                    // Permitimos string o number para discount
+                    const newDiscount = value
+                    newState.total = calculateTotal(state.newProducts, newDiscount as number | string | null)
                 }
 
                 return newState
@@ -152,9 +153,10 @@ export const useEditOrderStore = create<OrderState>((set, get) => ({
     },
 }))
 
-const calculateTotal = (products: OrderEditItem[], discount: number): number => {
+const calculateTotal = (products: OrderEditItem[], discount: number | string | null): number => {
     const subtotal = products.reduce((acc, item) => {
         return acc + Math.round(item.variation.priceCost) * item.variation.quantity
     }, 0)
-    return Math.max(0, subtotal - discount)
+    const discountValue = Number(discount) || 0
+    return Math.max(0, subtotal - discountValue)
 }

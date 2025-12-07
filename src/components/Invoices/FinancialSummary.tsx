@@ -4,9 +4,15 @@ import { toPrice } from "@/utils/priceFormat"
 
 interface Props {
     total: number
+    discount: number
 }
 
-const FinancialSummary: React.FC<Props> = ({ total }) => {
+export default function FinancialSummary({ total, discount }: Props) {
+    // Total que llega en props es el NETO (Subtotal - Descuento)
+    const subtotal = total + discount
+    const iva = total * 0.19
+    const grandTotal = total * 1.19
+
     return (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="flex items-center gap-2 text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
@@ -14,34 +20,28 @@ const FinancialSummary: React.FC<Props> = ({ total }) => {
                 Desglose de Totales
             </h3>
 
-            {/* Mostrar información de cuotas si aplica */}
-            {/* {isPayingInInstallments && (
-                <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
-                        Pago en {totalQuotas} cuotas
-                        {currentQuota && ` - Cuota actual: ${currentQuota}/${totalQuotas}`}
-                    </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="text-center">
+                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Subtotal</p>
+                    <p className="text-lg font-medium text-gray-700 dark:text-gray-300">${toPrice(subtotal)}</p>
                 </div>
-            )} */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center">
+                    <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Descuento</p>
+                    <p className="text-lg font-medium text-red-600 dark:text-red-400">-${toPrice(discount)}</p>
+                </div>
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Neto</p>
-
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(total)}</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">${toPrice(total)}</p>
                 </div>
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">IVA (19%)</p>
-
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(total * 0.19)}</p>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(iva)}</p>
                 </div>
                 <div className="text-center">
                     <p className="text-sm text-blue-600 dark:text-blue-300 mb-1">Total</p>
-                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(total * 1.19)}</p>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${toPrice(grandTotal)}</p>
                 </div>
             </div>
         </div>
     )
 }
-
-export default FinancialSummary

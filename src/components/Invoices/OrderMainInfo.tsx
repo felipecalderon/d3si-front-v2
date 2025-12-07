@@ -10,7 +10,7 @@ interface Props {
     fecha: string
 }
 
-const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
+export default function OrderMainInfo({ cantidadTotalProductos, fecha }: Props) {
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
     const { user } = useAuth()
     const { actions, ...editedOrder } = useEditOrderStore()
@@ -76,7 +76,7 @@ const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                         value={editedOrder.status}
                         onChange={(e) => updateOrderStringField("status", e.target.value)}
-                        disabled={editedOrder.status === "Pagado" || !isAdmin}
+                        disabled={!isAdmin}
                     >
                         {paymentStates.map((state) => (
                             <option key={state} value={state}>
@@ -86,46 +86,23 @@ const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
                         <option value="Pagado">Pagado</option>
                     </select>
                 </div>
-                {/* Llegada de mercadería */}
+                {/* Descuento */}
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Llegada de mercadería
+                        Descuento ($)
                     </label>
                     <Input
-                        type="date"
+                        type="number"
+                        min={0}
                         className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                        // value={arrivalDate}
-                        // onChange={(e) => setArrivalDate(e.target.value)}
-                        disabled
+                        value={editedOrder.discount ?? ""}
+                        onChange={(e) => updateOrderStringField("discount", e.target.value)}
+                        disabled={!isAdmin}
                     />
                 </div>
             </div>
             {/* Inputs de cuotas */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Cuota actual
-                        </label>
-                    </div>
-                    <input
-                        type="number"
-                        min={1}
-                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                        max={Number(editedOrder.endQuote ?? 0)}
-                        value={Number(editedOrder.startQuote ?? 0)}
-                        placeholder={editedOrder.startQuote ? "Sin cuota" : "Pago único"}
-                        disabled={!isAdmin}
-                        onChange={(e) => {
-                            const val = Number(e.target.value)
-                            if (val < 0 || val > Number(editedOrder.endQuote ?? 0)) return
-                            updateOrderStringField("startQuote", e.target.value)
-                        }}
-                    />
-                    {/* {editCurrentQuota && canEditCurrentQuota && (
-                        <p className="text-xs text-gray-500 mt-1">Máximo: {maxCurrentQuota} cuotas</p>
-                    )} */}
-                </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center mb-2">
                         <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -152,9 +129,28 @@ const OrderMainInfo: React.FC<Props> = ({ cantidadTotalProductos, fecha }) => {
                         }}
                     />
                 </div>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Cuota actual
+                        </label>
+                    </div>
+                    <input
+                        type="number"
+                        min={1}
+                        className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                        max={Number(editedOrder.endQuote ?? 0)}
+                        value={editedOrder.startQuote ?? ""}
+                        placeholder={editedOrder.startQuote ? "Sin cuota" : "Pago único"}
+                        disabled={!isAdmin}
+                        onChange={(e) => {
+                            const val = Number(e.target.value)
+                            if (val < 0 || val > Number(editedOrder.endQuote ?? 0)) return
+                            updateOrderStringField("startQuote", e.target.value)
+                        }}
+                    />
+                </div>
             </div>
         </>
     )
 }
-
-export default OrderMainInfo

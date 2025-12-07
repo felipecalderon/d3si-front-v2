@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useRef, useEffect, useMemo } from "react"
+import React, { useState, useRef, useMemo, useCallback } from "react"
 import { toast } from "sonner"
 import { ProductSelector } from "@/components/Quotes/Products/ProductSelectorOrderDetail"
 import type { IProduct } from "@/interfaces/products/IProduct"
@@ -18,15 +18,19 @@ import { useEditOrderStore } from "@/stores/order.store"
 import { useRouter } from "next/navigation"
 import { updateOrder } from "@/actions/orders/updateOrder"
 import { Button } from "../ui/button"
-import { useLoadingToaster } from "@/stores/loading.store"
-import { PrintOrderView } from "../Print/PrintOrderView"
+import { PrintOrderView } from "./PrintOrderView"
+import { useOrderInitialization } from "@/hooks/useOrderInitialization"
+
+// Memoize components to prevent unnecessary re-renders
+const MemoizedStoreInfo = React.memo(StoreInfo)
+const MemoizedProductsTable = React.memo(ProductsTable)
 
 interface Props {
     order: ISingleOrderResponse
     allProducts: IProduct[]
 }
 
-type typeField =
+export type typeField =
     | "userID"
     | "createdAt"
     | "updatedAt"
@@ -44,16 +48,29 @@ type typeField =
 export default function OrderDetail({ order, allProducts }: Props) {
     const router = useRouter()
     const { user } = useAuth()
-    const { actions, newProducts, ...editedOrder } = useEditOrderStore()
+
+    // Select specific state from store to minimize re-renders
+    const discount = useEditOrderStore((s) => s.discount)
+    const total = useEditOrderStore((s) => s.total)
+    const status = useEditOrderStore((s) => s.status)
+    const newProducts = useEditOrderStore((s) => s.newProducts)
+
+    // Actions don't change, but good to be explicit/consistent
+    const clearCart = useEditOrderStore((s) => s.actions.clearCart)
+
+    // Initialize store
+    useOrderInitialization(order)
+
     const userRole = user?.role ?? Role.Tercero
     const isAdmin = userRole === Role.Admin
     const printRef = useRef<HTMLDivElement>(null)
     const [loading, setLoading] = useState(false)
+
     const handlePrint = useReactToPrint({
         contentRef: printRef,
     })
 
-    // Transformar datos para PrintOrderView
+    // Transformar datos para PrintOrderView - memoized dependent on incoming order prop
     const printOrderData = useMemo(() => {
         return {
             ...order,
@@ -64,71 +81,51 @@ export default function OrderDetail({ order, allProducts }: Props) {
             })),
         }
     }, [order])
-    // const { calculateThirdPartyPrice } = useTerceroProducts()
+
     const [showProductSelector, setShowProductSelector] = useState(false)
     const [showVerification, setShowVerification] = useState(false)
-    const { addProduct, updateOrderStringField, clearCart } = actions
-    const { activeToastId, setToastId } = useLoadingToaster()
 
-    // Carga la orden en el store global de zustand para modificarlo posteriormente
-    useEffect(() => {
-        clearCart()
-        const { ProductVariations, newProducts, Store, ...restOrder } = order
-        const arrFields = Object.entries(restOrder)
-
-        arrFields.forEach(([field, value]) => {
-            updateOrderStringField(field as typeField, value)
-        })
-        order.ProductVariations.forEach((v) => {
-            // const terceroCost = Store.role !== Role.Admin ? calculateThirdPartyPrice(v) : { brutoCompra: v.priceCost }
-            const variationWithQuantity = {
-                ...v,
-                quantity: v.OrderProduct.quantityOrdered,
-                priceCost: v.OrderProduct.priceCost,
-            }
-            addProduct(v.Product, variationWithQuantity)
-        })
-    }, [])
-
-    useEffect(() => {
-        if (activeToastId) {
-            console.log(activeToastId)
-            toast.success("Orden cargada!", { id: activeToastId })
-            setToastId(null)
-        }
-    }, [activeToastId])
-
-    // Mostrar fecha de emisión en UTC (sin ajuste de zona horaria local)
-    const createdAtDate = new Date(order.createdAt)
-    const fecha = createdAtDate.toLocaleDateString("es-MX", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        timeZone: "UTC",
-    })
-
+    // Memoize quantities
     const cantidadTotalProductos = useMemo(() => {
         return newProducts.reduce((acc, prod) => acc + prod.variation.quantity, 0)
     }, [newProducts])
 
-    // guardar cambios en la orden
-    const handleActualizarOrden = async () => {
+    // Mostrar fecha de emisión en UTC
+    const fecha = useMemo(() => {
+        const createdAtDate = new Date(order.createdAt)
+        return createdAtDate.toLocaleDateString("es-MX", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            timeZone: "UTC",
+        })
+    }, [order.createdAt])
+
+    // Handler para actualizar orden
+    const handleActualizarOrden = useCallback(async () => {
         try {
             setLoading(true)
+            // Access current state directly to avoid subscription in render cycle
+            const currentState = useEditOrderStore.getState()
+            const { actions, newProducts, ...editedOrder } = currentState
+
             const toNewProducts = newProducts.map((p) => p.variation).filter((v) => v.quantity > 0)
             const newProductsClean = toNewProducts.map((p) => ({ ...p, priceCost: Math.round(p.priceCost) }))
-            const toUpdate = { ...editedOrder, newProducts: newProductsClean }
+            const discountVal = Number(editedOrder.discount) || 0
+            const toUpdate = { ...editedOrder, discount: discountVal, newProducts: newProductsClean }
+
             await updateOrder(toUpdate)
+            toast.success("Orden actualizada correctamente")
         } catch (e) {
             console.log(e)
             toast.error("Error al actualizar la orden")
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
 
     // Handler para eliminar la orden
-    const handleDelete = async () => {
+    const handleDelete = useCallback(async () => {
         if (!order) return
         if (confirm("¿Estás seguro de que quieres anular esta orden?")) {
             try {
@@ -144,7 +141,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                 setLoading(false)
             }
         }
-    }
+    }, [order, router, clearCart])
 
     return (
         <div className="bg-white min-h-screen dark:bg-slate-900 text-gray-900 dark:text-gray-100 p-4">
@@ -174,11 +171,11 @@ export default function OrderDetail({ order, allProducts }: Props) {
                         Detalles de la Orden de Compra
                     </h1>
                 </div>
-                <StoreInfo store={order.Store} />
+
+                <MemoizedStoreInfo store={order.Store} />
+
                 <div className="space-y-6 pt-6">
                     <OrderMainInfo cantidadTotalProductos={cantidadTotalProductos} fecha={fecha} />
-                    {/* Mientras no se actualicen los precio costo de los productos editados al cambiar markup no se agregará el controlador */}
-                    {/* {user?.role === Role.Admin && <MarkupTerceroAjuste />} */}
 
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">
@@ -214,8 +211,9 @@ export default function OrderDetail({ order, allProducts }: Props) {
                                 </button>
                             </div>
                         )}
-                        <ProductsTable products={newProducts} />
+                        <MemoizedProductsTable products={newProducts} />
                     </div>
+
                     {showVerification && (
                         <ProductVerification
                             originalProducts={newProducts}
@@ -223,7 +221,9 @@ export default function OrderDetail({ order, allProducts }: Props) {
                             onClose={() => setShowVerification(false)}
                         />
                     )}
-                    <FinancialSummary total={editedOrder.total} />
+
+                    <FinancialSummary total={total} discount={Number(discount) || 0} />
+
                     <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                         <Button
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
@@ -244,7 +244,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                         )}
                         {isAdmin && (
                             <Button
-                                disabled={loading || editedOrder.status === "Pagado"}
+                                disabled={loading || status === "Pagado"}
                                 className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
                                 onClick={handleDelete}
                             >
