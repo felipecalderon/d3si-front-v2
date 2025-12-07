@@ -7,7 +7,7 @@ interface Props {
     discount: number
 }
 
-const FinancialSummary: React.FC<Props> = React.memo(({ total, discount }) => {
+export default function FinancialSummary({ total, discount }: Props) {
     // Total que llega en props es el NETO (Subtotal - Descuento)
     const subtotal = total + discount
     const iva = total * 0.19
@@ -44,6 +44,4 @@ const FinancialSummary: React.FC<Props> = React.memo(({ total, discount }) => {
             </div>
         </div>
     )
-})
-
-export default FinancialSummary
+}

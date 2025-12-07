@@ -10,7 +10,7 @@ interface Props {
     fecha: string
 }
 
-const OrderMainInfo: React.FC<Props> = React.memo(({ cantidadTotalProductos, fecha }) => {
+export default function OrderMainInfo({ cantidadTotalProductos, fecha }: Props) {
     const paymentStates = ["Pendiente", "Enviado", "Anulado"]
     const { user } = useAuth()
     const { actions, ...editedOrder } = useEditOrderStore()
@@ -153,6 +153,4 @@ const OrderMainInfo: React.FC<Props> = React.memo(({ cantidadTotalProductos, fec
             </div>
         </>
     )
-})
-
-export default OrderMainInfo
+}
