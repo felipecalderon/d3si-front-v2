@@ -21,11 +21,12 @@ import { toPrice } from "@/utils/priceFormat"
 import { PrintbarcodeModal } from "./PrintBarcodeModal"
 import { useState } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { IProductVariation } from "@/interfaces/products/IProductVariation"
 
 interface InventoryTableProps {
     currentItems: Array<{
         product: IProduct
-        variation: any
+        variation: IProductVariation
         isFirst: boolean
         totalStock: number
     }>
@@ -111,6 +112,9 @@ export function InventoryTable({
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
                                 </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    Stock agregado
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
 
@@ -118,10 +122,12 @@ export function InventoryTable({
                             {currentItems.map(({ product, variation, isFirst, totalStock }, index) => {
                                 const productData = getProductById([product], storeID!, variation.sku)
                                 // Stock agregado = suma de StoreProducts en sucursales (no admin)
+                                const storeFilter = variation.StoreProducts?.filter((sp) => !sp.Store.isAdminStore)
                                 const stockAgregado =
-                                    variation.StoreProducts?.filter(
-                                        (sp: any) => !adminStoreIDs.includes(sp.storeID)
-                                    ).reduce((sum: number, sp: any) => sum + sp.quantity, 0) ?? 0
+                                    variation.StoreProducts?.reduce((sum: number, sp) => {
+                                        if (sp.storeID !== storeID) return sum + sp.quantity
+                                        return sum
+                                    }, 0) ?? 0
                                 const profitMargin =
                                     variation.priceList > 0
                                         ? ((variation.priceList - variation.priceCost) / variation.priceList) * 100
@@ -138,16 +144,7 @@ export function InventoryTable({
                                         {isFirst && (
                                             <TableCell
                                                 className="py-2 px-3 text-left w-1/4"
-                                                rowSpan={
-                                                    variation.rowSpan ||
-                                                    (
-                                                        currentItems.find(
-                                                            (i) =>
-                                                                i.product.productID === product.productID && i.isFirst
-                                                        ) as any
-                                                    )?.rowSpan ||
-                                                    product.ProductVariations.length
-                                                }
+                                                rowSpan={product.ProductVariations.length}
                                             >
                                                 <MotionItem key={`product-${product.productID}`} delay={index + 2}>
                                                     <div className="flex flex-col relative w-full items-center gap-4">
@@ -420,6 +417,27 @@ export function InventoryTable({
                                                         : productData?.quantity}
                                                 </Badge>
                                             )}
+                                        </TableCell>
+
+                                        <TableCell
+                                            className={`w-32 text-center py-3 transition-colors cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50`}
+                                        >
+                                            <Tooltip>
+                                                <TooltipTrigger className="bg-white px-2 py-1 rounded-full text-gray-800">
+                                                    {stockAgregado}
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    {storeFilter && storeFilter.length > 0 ? (
+                                                        storeFilter.map((sp) => (
+                                                            <p key={sp.storeID}>
+                                                                {sp.Store.name}: {sp.quantity}
+                                                            </p>
+                                                        ))
+                                                    ) : (
+                                                        <p>No hay stock en ninguna tienda</p>
+                                                    )}
+                                                </TooltipContent>
+                                            </Tooltip>
                                         </TableCell>
                                     </TableRow>
                                 )

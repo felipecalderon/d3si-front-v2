@@ -14,6 +14,7 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
         month: "short",
         year: "numeric",
     })
+    const discount = Number(order.discount || 0)
     const totalProducts = order.ProductVariations.reduce((acc, v) => acc + v.quantityOrdered, 0)
     return (
         <div ref={ref} className="p-8 text-black bg-white max-w-4xl mx-auto font-sans">
@@ -103,13 +104,9 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
             </div>
 
             {/* Totals */}
-            <div>Cantitad total de productos: {totalProducts}</div>
+            <div className="text-end">Cantitad total de productos: {totalProducts}</div>
             <div className="flex justify-end border-t-2 border-gray-800 pt-4">
                 <div className="w-64 space-y-2">
-                    <div className="flex justify-between text-sm text-gray-600">
-                        <span>Descuento:</span>
-                        <span>${toPrice(order.discount)}</span>
-                    </div>
                     <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
                         <span>Total Neto:</span>
                         <span>${toPrice(order.total)}</span>
@@ -119,15 +116,23 @@ export const PrintOrderView = React.forwardRef<HTMLDivElement, Props>(({ order }
                         <span>${toPrice(order.total * 0.19)}</span>
                     </div>
                     <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
-                        <span>Total:</span>
+                        <span>SubTotal:</span>
                         <span>${toPrice(order.total * 1.19)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
+                        <span>Descuento:</span>
+                        <span>${toPrice(order.discount)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-300 pt-2">
+                        <span>Total:</span>
+                        <span>${toPrice(order.total * 1.19 - order.discount)}</span>
                     </div>
                 </div>
             </div>
 
             {/* Footer */}
             <div className="mt-12 text-center text-xs text-gray-400 border-t border-gray-200 pt-4">
-                <p>Este documento es un comprobante de orden de compra generado por el sistema.</p>
+                <p>Este documento es un comprobante de orden de compra generado por el sistema Betty ERP by D3SI.</p>
             </div>
         </div>
     )
