@@ -144,7 +144,14 @@ export function InventoryTable({
                                         {isFirst && (
                                             <TableCell
                                                 className="py-2 px-3 text-left w-1/4"
-                                                rowSpan={product.ProductVariations.length}
+                                                rowSpan={
+                                                    (
+                                                        currentItems.find(
+                                                            (i) =>
+                                                                i.product.productID === product.productID && i.isFirst
+                                                        ) as any
+                                                    )?.rowSpan || product.ProductVariations.length
+                                                }
                                             >
                                                 <MotionItem key={`product-${product.productID}`} delay={index + 2}>
                                                     <div className="flex flex-col relative w-full items-center gap-4">
@@ -314,7 +321,7 @@ export function InventoryTable({
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <span className="font-semibold text-sm">
+                                                    <span className="font-semibold text-sm blur-sm hover:blur-0 transition-[filter] duration-300 ease-out">
                                                         ${toPrice(variation.priceCost)}
                                                     </span>
                                                 )}
