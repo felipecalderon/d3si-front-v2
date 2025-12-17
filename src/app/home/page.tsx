@@ -16,6 +16,8 @@ import SalesAndResumeSkeleton from "@/components/skeletons/SalesAndResume"
 import { totalDebitoCredito } from "@/utils/totalsDebitoCredito"
 import { getAllOrders } from "@/actions/orders/getAllOrders"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { ChartBarIcon } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -66,11 +68,20 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 <div className="space-y-6 sm:space-y-8 lg:space-y-10">
                     {/* Resúmenes y gráfico */}
                     <Suspense fallback={<SalesAndResumeSkeleton />}>
-                        <div className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                            <ResumeLeftSideChart resume={resume} />
-                            <TotalSalesResumeGraph resume={resume} />
-                            <ResumeRightSideChart sales={allSalesResume} />
-                        </div>
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>
+                                    <div className="flex gap-3 items-center">
+                                        <ChartBarIcon /> Panel de estadísticas globales
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                                    <ResumeLeftSideChart resume={resume} />
+                                    <TotalSalesResumeGraph resume={resume} />
+                                    <ResumeRightSideChart sales={allSalesResume} />
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </Suspense>
 
                     {/* Tabla */}

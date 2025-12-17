@@ -8,7 +8,6 @@ import OrderMainInfo from "./OrderMainInfo"
 import StoreInfo from "./StoreInfo"
 import ProductsTable from "./ProductsTable"
 import FinancialSummary from "./FinancialSummary"
-import ProductVerification from "./ProductVerification"
 import { deleteOrder } from "@/actions/orders/deleteOrder"
 import { useAuth } from "@/stores/user.store"
 import { Role } from "@/lib/userRoles"
@@ -83,7 +82,6 @@ export default function OrderDetail({ order, allProducts }: Props) {
     }, [order])
 
     const [showProductSelector, setShowProductSelector] = useState(false)
-    const [showVerification, setShowVerification] = useState(false)
 
     // Memoize quantities
     const cantidadTotalProductos = useMemo(() => {
@@ -186,7 +184,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                             <div className="flex gap-2">
                                 <button
                                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow text-sm"
-                                    onClick={() => setShowVerification(true)}
+                                    onClick={() => router.push(`/home/order/${order.orderID}/verify`)}
                                 >
                                     Verificar Productos
                                 </button>
@@ -213,14 +211,6 @@ export default function OrderDetail({ order, allProducts }: Props) {
                         )}
                         <MemoizedProductsTable products={newProducts} />
                     </div>
-
-                    {showVerification && (
-                        <ProductVerification
-                            originalProducts={newProducts}
-                            allProducts={allProducts}
-                            onClose={() => setShowVerification(false)}
-                        />
-                    )}
 
                     <FinancialSummary total={total} discount={Number(discount) || 0} />
 
