@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, Trash2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { AddSizeModal } from "@/components/Modals/AddSizeModal"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -22,6 +22,9 @@ import { PrintbarcodeModal } from "./PrintBarcodeModal"
 import { useState } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { IProductVariation } from "@/interfaces/products/IProductVariation"
+import { toast } from "sonner"
+import { deleteVariation } from "@/actions/products/deleteProduct"
+import { useRouter } from "next/navigation"
 
 interface InventoryTableProps {
     currentItems: Array<{
@@ -50,33 +53,32 @@ const getCategoryFullNameFromProduct = (product: IProduct, categories: ICategory
     return parent ? `${parent.name} / ${cat.name}` : cat.name
 }
 
-export function InventoryTable({
-    currentItems,
-    handleSaveEdit,
-    handleDeleteProduct,
-    adminStoreIDs,
-    categories,
-}: InventoryTableProps) {
+export function InventoryTable({ currentItems, handleSaveEdit, categories }: InventoryTableProps) {
     const { user } = useAuth()
-    const {
-        rawProducts,
-        editingField,
-        setEditingField,
-        editValue,
-        setEditValue,
-        setRawProducts,
-        setAddSizeModalProductID,
-        addSizeModalProductID,
-    } = inventoryStore()
+    const { editingField, setEditingField, editValue, setEditValue } = inventoryStore()
     const { searchParams } = useQueryParams()
     const storeID = searchParams.get("storeID")
-    const products = currentItems.map((p) => p.product)
     const [openSku, setOpenSku] = useState<string | null>(null)
+    const router = useRouter()
 
     const printBarcodeModal = (sku: string | null) => {
         setOpenSku(sku)
     }
     const isEditable = user?.role !== Role.Vendedor && user?.role !== Role.Tercero
+
+    const handleDeleteVariation = async (sku: string) => {
+        const confirm = window.confirm("Estás seguro de eliminar esta variación?")
+        if (confirm) {
+            const confirm2 = window.confirm("¡Esta acción no se puede deshacer!")
+            if (confirm2) {
+                await deleteVariation(sku)
+                toast.success("Eliminado exitosamente")
+                router.refresh()
+            }
+        } else {
+            toast.error("Operación cancelada")
+        }
+    }
 
     return (
         <div className="flex-1 flex flex-col">
@@ -427,7 +429,7 @@ export function InventoryTable({
                                         </TableCell>
 
                                         <TableCell
-                                            className={`w-32 text-center py-3 transition-colors cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50`}
+                                            className={`group relative w-32 text-center py-3 transition-colors cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-50`}
                                         >
                                             <Tooltip>
                                                 <TooltipTrigger className="bg-white px-2 py-1 rounded-full text-gray-800">
@@ -445,6 +447,14 @@ export function InventoryTable({
                                                     )}
                                                 </TooltipContent>
                                             </Tooltip>
+
+                                            <div
+                                                title="Eliminar talla"
+                                                className="hidden group-hover:block absolute right-0 top-1/2 -translate-y-1/2"
+                                                onClick={() => handleDeleteVariation(variation.sku)}
+                                            >
+                                                <Trash2 />
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )
