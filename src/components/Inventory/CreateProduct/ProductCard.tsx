@@ -22,6 +22,19 @@ interface ProductCardProps {
 export function ProductCard({ productIndex, product, categories, error }: ProductCardProps) {
     const { handleProductChange, removeProduct, addSize } = useProductFormStore()
 
+    const lastSizeRef = React.useRef<HTMLDivElement | null>(null)
+    const previousSizesCountRef = React.useRef(product.sizes.length)
+
+    React.useEffect(() => {
+        if (product.sizes.length > previousSizesCountRef.current) {
+            window.setTimeout(() => {
+                lastSizeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }, 50)
+        }
+
+        previousSizesCountRef.current = product.sizes.length
+    }, [product.sizes.length])
+
     return (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-700 via-purple-500 to-indigo-600 px-8 py-6">
@@ -162,6 +175,7 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                                 productIndex={productIndex}
                                 sizeIndex={sIndex}
                                 size={size}
+                                innerRef={sIndex === product.sizes.length - 1 ? lastSizeRef : undefined}
                                 error={error?.sizes[sIndex]}
                             />
                         ))}
