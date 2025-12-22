@@ -86,6 +86,7 @@ export default function ProductVerification({ orderId, originalProducts, allProd
     const [barcodeSku, setBarcodeSku] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState<"all" | ItemStatus>("all")
+    const [verificationMode, setVerificationMode] = useState<"individual" | "masiva">("individual")
     const [scannedProducts, setScannedProducts] = useState<Map<string, number>>(new Map())
     const [updating, setUpdating] = useState(false)
     const { actions: storeActions } = useEditOrderStore()
@@ -197,6 +198,14 @@ export default function ProductVerification({ orderId, originalProducts, allProd
         [extendedList.length, stats.statusByItems]
     )
 
+    const inventorySkuSet = useMemo(() => {
+        const set = new Set<string>()
+        allProducts.forEach((product) => {
+            product.ProductVariations.forEach((v) => set.add(v.sku))
+        })
+        return set
+    }, [allProducts])
+
     const filteredList = useMemo(() => {
         const term = searchTerm.trim().toLowerCase()
 
@@ -217,31 +226,57 @@ export default function ProductVerification({ orderId, originalProducts, allProd
     const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             e.preventDefault()
-            const sku = barcodeSku.trim()
-            if (!sku) return
+            const value = barcodeSku.trim()
+            if (!value) return
 
-            // Verificar que el SKU exista en inventario (toda la lista de productos)
-            let existsInInventory = false
-            for (const product of allProducts) {
-                if (product.ProductVariations.some((v) => v.sku === sku)) {
-                    existsInInventory = true
-                    break
+            if (verificationMode === "individual") {
+                const sku = value
+
+                if (!inventorySkuSet.has(sku)) {
+                    toast.error("El producto no se encuentra en el inventario")
+                    setBarcodeSku("")
+                    return
+                }
+
+                setScannedProducts((prev) => {
+                    const newMap = new Map(prev)
+                    const currentCount = newMap.get(sku) || 0
+                    newMap.set(sku, currentCount + 1)
+                    return newMap
+                })
+            } else {
+                const skus = value
+                    .split(/[\s,;]+/)
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+
+                if (skus.length === 0) return
+
+                const notFound: string[] = []
+
+                setScannedProducts((prev) => {
+                    const newMap = new Map(prev)
+                    skus.forEach((sku) => {
+                        if (!inventorySkuSet.has(sku)) {
+                            if (!notFound.includes(sku)) {
+                                notFound.push(sku)
+                            }
+                            return
+                        }
+                        const currentCount = newMap.get(sku) || 0
+                        newMap.set(sku, currentCount + 1)
+                    })
+                    return newMap
+                })
+
+                if (notFound.length > 0) {
+                    toast.error(
+                        `Los siguientes SKUs no se encontraron en el inventario: ${notFound.slice(0, 5).join(", ")}${
+                            notFound.length > 5 ? "..." : ""
+                        }`
+                    )
                 }
             }
-
-            if (!existsInInventory) {
-                toast.error("El producto no se encuentra en el inventario")
-                setBarcodeSku("")
-                return
-            }
-
-            // Incrementar el conteo de productos escaneados
-            setScannedProducts((prev) => {
-                const newMap = new Map(prev)
-                const currentCount = newMap.get(sku) || 0
-                newMap.set(sku, currentCount + 1)
-                return newMap
-            })
 
             setBarcodeSku("")
         }
@@ -358,8 +393,33 @@ export default function ProductVerification({ orderId, originalProducts, allProd
                                         Escanear códigos
                                     </h2>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        Usa la pistola de códigos de barras o escribe el SKU y presiona Enter.
+                                        Usa la pistola de códigos de barras o escribe el SKU y presiona Enter. Puedes
+                                        alternar entre verificación individual o masiva.
                                     </p>
+                                </div>
+                                <div className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1 text-xs dark:border-slate-700 dark:bg-slate-950">
+                                    <button
+                                        type="button"
+                                        onClick={() => setVerificationMode("individual")}
+                                        className={`px-3 py-1.5 rounded-md font-medium transition ${
+                                            verificationMode === "individual"
+                                                ? "bg-white text-blue-600 shadow-sm dark:bg-slate-800 dark:text-blue-300"
+                                                : "text-gray-600 hover:text-gray-900 hover:bg-white/60 dark:text-gray-300 dark:hover:bg-slate-800"
+                                        }`}
+                                    >
+                                        Verificación individual
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVerificationMode("masiva")}
+                                        className={`ml-1 px-3 py-1.5 rounded-md font-medium transition ${
+                                            verificationMode === "masiva"
+                                                ? "bg-white text-blue-600 shadow-sm dark:bg-slate-800 dark:text-blue-300"
+                                                : "text-gray-600 hover:text-gray-900 hover:bg-white/60 dark:text-gray-300 dark:hover:bg-slate-800"
+                                        }`}
+                                    >
+                                        Verificación masiva
+                                    </button>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row">
@@ -367,7 +427,11 @@ export default function ProductVerification({ orderId, originalProducts, allProd
                                     <input
                                         type="text"
                                         className="h-12 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 text-base text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-950 dark:text-gray-100 dark:focus:border-blue-400"
-                                        placeholder="Escanea o escribe el SKU..."
+                                        placeholder={
+                                            verificationMode === "individual"
+                                                ? "Escanea o escribe el SKU y presiona Enter..."
+                                                : "Pega o escanea varios SKUs separados por Enter y presiona Enter para procesar todos..."
+                                        }
                                         value={barcodeSku}
                                         onChange={(e) => setBarcodeSku(e.target.value)}
                                         onKeyDown={handleBarcodeScan}
