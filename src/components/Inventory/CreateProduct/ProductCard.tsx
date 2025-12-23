@@ -1,26 +1,39 @@
 "use client"
 
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Shirt, ImageIcon, Users, Package, Trash2, Plus, Hash } from "lucide-react";
-import { useProductFormStore } from "@/stores/product-form.store";
-import { CategorySelector } from "./CategorySelector";
-import { SizeForm } from "./SizeForm";
-import type { CreateProductFormData } from "@/interfaces/products/ICreateProductForm";
-import type { ICategory } from "@/interfaces/categories/ICategory";
+import React from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Shirt, ImageIcon, Users, Package, Trash2, Plus, Hash } from "lucide-react"
+import { useProductFormStore } from "@/stores/product-form.store"
+import { CategorySelector } from "./CategorySelector"
+import { SizeForm } from "./SizeForm"
+import type { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
+import type { ICategory } from "@/interfaces/categories/ICategory"
 
 interface ProductCardProps {
-    productIndex: number;
-    product: CreateProductFormData;
-    categories: ICategory[];
-    error?: any;
+    productIndex: number
+    product: CreateProductFormData
+    categories: ICategory[]
+    error?: any
 }
 
 export function ProductCard({ productIndex, product, categories, error }: ProductCardProps) {
-    const { handleProductChange, removeProduct, addSize } = useProductFormStore();
+    const { handleProductChange, removeProduct, addSize } = useProductFormStore()
+
+    const lastSizeRef = React.useRef<HTMLDivElement | null>(null)
+    const previousSizesCountRef = React.useRef(product.sizes.length)
+
+    React.useEffect(() => {
+        if (product.sizes.length > previousSizesCountRef.current) {
+            window.setTimeout(() => {
+                lastSizeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }, 50)
+        }
+
+        previousSizesCountRef.current = product.sizes.length
+    }, [product.sizes.length])
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
@@ -61,7 +74,11 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             value={product.name}
                             onChange={(e) => handleProductChange(productIndex, "name", e.target.value)}
                             placeholder="Ej: Zapatillas deportivas"
-                            className={`h-12 text-base border-2 transition-all duration-200 ${error?.name ? "border-red-300 focus:border-red-500 focus:ring-red-500" : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"}`}
+                            className={`h-12 text-base border-2 transition-all duration-200 ${
+                                error?.name
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                            }`}
                         />
                         {error?.name && (
                             <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
@@ -80,7 +97,11 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             value={product.image}
                             onChange={(e) => handleProductChange(productIndex, "image", e.target.value)}
                             placeholder="https://ejemplo.com/imagen.jpg"
-                            className={`h-12 text-base border-2 transition-all duration-200 ${error?.image ? "border-red-300 focus:border-red-500 focus:ring-red-500" : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"}`}
+                            className={`h-12 text-base border-2 transition-all duration-200 ${
+                                error?.image
+                                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                                    : "border-gray-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+                            }`}
                         />
                         {error?.image && (
                             <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
@@ -145,14 +166,6 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             </div>
                             Tallas y Precios
                         </h4>
-                        <Button
-                            type="button"
-                            onClick={() => addSize(productIndex)}
-                            className="flex lg:mt-0 mt-3 items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Agregar talla
-                        </Button>
                     </div>
 
                     <div className="space-y-6">
@@ -162,12 +175,23 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                                 productIndex={productIndex}
                                 sizeIndex={sIndex}
                                 size={size}
+                                innerRef={sIndex === product.sizes.length - 1 ? lastSizeRef : undefined}
                                 error={error?.sizes[sIndex]}
                             />
                         ))}
                     </div>
+                    <div className="flex justify-end">
+                        <Button
+                            type="button"
+                            onClick={() => addSize(productIndex)}
+                            className="flex lg:mt-0 mt-3 items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Agregar talla
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
-    );
+    )
 }
