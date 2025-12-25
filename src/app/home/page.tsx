@@ -31,7 +31,8 @@ interface SearchParams {
 const HomePage = async ({ searchParams }: SearchParams) => {
     const { storeID = "", date = "" } = await searchParams
     const [year, month, day] = date.split("-").map(Number)
-    const newDate = day ? new Date(year, month - 1, day) : new Date()
+    const now = new Date()
+    const newDate = day ? new Date(year, month - 1, day) : new Date(now.getTime() - 3 * 60 * 60 * 1000)
     const yyyyDate = formatDateToYYYYMMDD(newDate)
 
     if (!storeID) return null
