@@ -77,13 +77,19 @@ export const useProductFormStore = create<ProductFormState>((set, get) => ({
             const basePriceCost = sizes[0]?.priceCost ?? 0
             const basePriceList = sizes[0]?.priceList ?? 0
 
-            newProducts[productIndex].sizes.push({
-                sizeNumber: "",
-                priceCost: basePriceCost,
-                priceList: basePriceList,
-                sku: generateRandomSku(),
-                stockQuantity: 0,
-            })
+            newProducts[productIndex] = {
+                ...newProducts[productIndex],
+                sizes: [
+                    {
+                        sizeNumber: "",
+                        priceCost: basePriceCost,
+                        priceList: basePriceList,
+                        sku: generateRandomSku(),
+                        stockQuantity: 0,
+                    },
+                    ...sizes,
+                ],
+            }
             return { products: newProducts }
         })
         get().validate()
