@@ -2,7 +2,6 @@
 import { useSaleStore } from "@/stores/sale.store"
 import { IProduct } from "@/interfaces/products/IProduct"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { ChangeEvent, KeyboardEvent, useMemo, useState } from "react"
 import { IStoreProduct } from "@/interfaces/products/IProductVariation"
 import { IVariationWithQuantity } from "@/interfaces/orders/IOrder"
@@ -14,14 +13,19 @@ interface Props {
 }
 
 export const ScanInput = ({ initialProducts }: Props) => {
-    const { addProduct } = useSaleStore((state) => state.actions)
+    const { addProduct, updateQuantity } = useSaleStore((state) => state.actions)
     const { storeSelected } = useTienda()
     const [productInput, setProductCode] = useState("")
 
     const parentProductFinded = useMemo(() => {
-        const filterProducts = initialProducts.filter((p) => p.name.toLowerCase().includes(productInput))
-        return filterProducts
-    }, [productInput])
+        const inputTokens = productInput.toLowerCase().trim().split(/\s+/)
+
+        return initialProducts.filter((p) => {
+            const nameTokens = p.name.toLowerCase().split(/\s+/)
+
+            return inputTokens.every((inputToken) => nameTokens.some((nameToken) => nameToken.includes(inputToken)))
+        })
+    }, [productInput, initialProducts])
 
     const handleSetInputValue = (e: ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
@@ -32,9 +36,11 @@ export const ScanInput = ({ initialProducts }: Props) => {
         const isEnterPress = e.key === "Enter" || e.key === "NumpadEnter"
         if (isEnterPress) {
             e.preventDefault()
-            const productFinded = initialProducts.find((p) => p.ProductVariations.some((v) => v.sku === productInput))
+            const productFinded = initialProducts.find((p) =>
+                p.ProductVariations.some((v) => v.sku === productInput.trim())
+            )
             if (productFinded) {
-                const variationFinded = productFinded.ProductVariations.find((v) => v.sku === productInput)
+                const variationFinded = productFinded.ProductVariations.find((v) => v.sku === productInput.trim())
                 if (variationFinded) {
                     const variationWithQuantity = { ...variationFinded, quantity: 1 }
                     const storeProduct = variationFinded.StoreProducts?.find(
@@ -43,6 +49,19 @@ export const ScanInput = ({ initialProducts }: Props) => {
                     if (storeProduct) {
                         addProduct(productFinded, variationWithQuantity, storeProduct)
                         setProductCode("")
+                    } else {
+                        const storeProduct: IStoreProduct = {
+                            createdAt: variationFinded.createdAt,
+                            priceCostStore: variationFinded.priceCost.toString(),
+                            quantity: 0,
+                            Store: storeSelected!,
+                            storeID: storeSelected!.storeID,
+                            storeProductID: "",
+                            updatedAt: variationFinded.updatedAt,
+                            variationID: variationFinded.variationID,
+                        }
+                        addProduct(productFinded, { ...variationWithQuantity, quantity: 0 }, storeProduct)
+                        // updateQuantity(variationFinded.sku, 0)
                     }
                 }
             } else {
@@ -74,11 +93,24 @@ export const ScanInput = ({ initialProducts }: Props) => {
                         productInput !== "" &&
                         parentProductFinded.map((product) =>
                             product.ProductVariations.map((variation) => {
-                                const storeID = storeSelected?.storeID ?? ""
-                                const storeProduct = variation.StoreProducts?.find(
-                                    (p) => p.storeID === storeID && p.variationID === variation.variationID
+                                let storeProduct: IStoreProduct = {
+                                    createdAt: variation.createdAt,
+                                    priceCostStore: variation.priceCost.toString(),
+                                    quantity: 0,
+                                    Store: storeSelected!,
+                                    storeID: storeSelected!.storeID,
+                                    storeProductID: "",
+                                    updatedAt: variation.updatedAt,
+                                    variationID: variation.variationID,
+                                }
+                                const storeProductf = variation.StoreProducts?.find(
+                                    (p) =>
+                                        p.storeID === storeSelected!.storeID && p.variationID === variation.variationID
                                 )
-                                if (!storeProduct) return null
+                                if (storeProductf) {
+                                    console.log(storeProductf)
+                                    storeProduct = storeProductf
+                                }
                                 const variationWithQuantity: IVariationWithQuantity = { ...variation, quantity: 1 }
                                 return (
                                     <li
@@ -86,6 +118,9 @@ export const ScanInput = ({ initialProducts }: Props) => {
                                         onClick={() => {
                                             addProduct(product, variationWithQuantity, storeProduct)
                                             setProductCode("")
+                                            if (storeProduct.quantity === 0) {
+                                                updateQuantity(variation.sku, 0)
+                                            }
                                         }}
                                         className="p-2 hover:bg-blue-400 cursor-pointer transition"
                                     >

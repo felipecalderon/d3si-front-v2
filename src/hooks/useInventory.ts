@@ -29,8 +29,8 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
     }, [initialProducts, user?.role, userStoreID])
 
     useEffect(() => {
-        setRawProducts(filteredInitialProducts)
-    }, [filteredInitialProducts, setRawProducts])
+        setRawProducts(initialProducts)
+    }, [setRawProducts])
 
     const adminStoreIDs = useMemo(() => stores.filter((s) => s.isAdminStore).map((s) => s.storeID), [stores])
 
@@ -169,7 +169,7 @@ export function useInventory(initialProducts: IProduct[], stores: IStore[]) {
         currentPage,
         uniqueProductsInCurrentPage,
         totalStockShown,
-        filteredProducts,
+        filteredProducts: initialProducts,
         flattenedProducts,
         adminStoreIDs,
         getVisiblePages,

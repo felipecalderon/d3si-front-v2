@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useTransition } from "react";
+import React, { useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,13 @@ import type { ICategory } from "@/interfaces/categories/ICategory";
 export default function CreateProductForm({ categories }: { categories: ICategory[] }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const { products, errors, addProduct, setProducts } = useProductFormStore();
+    const { products, errors, addProduct, setProducts, resetForm } = useProductFormStore();
+
+    useEffect(() => {
+        return () => {
+            resetForm();
+        }
+    }, [resetForm]);
 
     const hasErrors = (errs: any[]) => {
         return errs.some(

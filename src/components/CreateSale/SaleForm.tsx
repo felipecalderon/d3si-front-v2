@@ -28,6 +28,10 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
 
     const handleSubmit = async () => {
         try {
+            const hasEmptyProducts = cartItems.filter((item) => item.variation.quantity === 0)
+            if (hasEmptyProducts) {
+                return toast.error("Por favor elimina los productos sin stock")
+            }
             setLoading(true)
             if (!storeSelected) return toast.error("No hay una tienda elegida")
             const toSubmitSale: ISaleRequest = {
