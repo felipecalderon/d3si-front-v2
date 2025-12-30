@@ -13,9 +13,10 @@ interface ProductFormState {
     removeSize: (productIndex: number, sizeIndex: number) => void
     handleSizeChange: (productIndex: number, sizeIndex: number, field: keyof Size, value: unknown) => void
     validate: () => void
+    resetForm: () => void
 }
 
-const initialProduct: CreateProductFormData = {
+const getInitialProduct = (): CreateProductFormData => ({
     name: "",
     image: "",
     categoryID: "",
@@ -30,16 +31,16 @@ const initialProduct: CreateProductFormData = {
             stockQuantity: 0,
         },
     ],
-}
+})
 
-const initialErrors: ErrorState = {
+const getInitialErrors = (): ErrorState => ({
     sizes: [{}],
     category: "",
-}
+})
 
 export const useProductFormStore = create<ProductFormState>((set, get) => ({
-    products: [initialProduct],
-    errors: [initialErrors],
+    products: [getInitialProduct()],
+    errors: [getInitialErrors()],
 
     setProducts: (products) => {
         set({ products })
@@ -48,8 +49,8 @@ export const useProductFormStore = create<ProductFormState>((set, get) => ({
 
     addProduct: () => {
         set((state) => ({
-            products: [...state.products, initialProduct],
-            errors: [...state.errors, initialErrors],
+            products: [...state.products, getInitialProduct()],
+            errors: [...state.errors, getInitialErrors()],
         }))
     },
 
@@ -139,5 +140,12 @@ export const useProductFormStore = create<ProductFormState>((set, get) => ({
             return productErrors
         })
         set({ errors: newErrors })
+    },
+
+    resetForm: () => {
+        set({
+            products: [getInitialProduct()],
+            errors: [getInitialErrors()],
+        })
     },
 }))

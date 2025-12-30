@@ -91,10 +91,10 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             }`}
                         />
                         {error?.image && (
-                            <p className="text-red-500 text-sm flex items-center gap-2 mt-2">
+                            <div className="text-red-500 text-sm flex items-center gap-2 mt-2">
                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                                 {error.image}
-                            </p>
+                            </div>
                         )}
                     </div>
 
