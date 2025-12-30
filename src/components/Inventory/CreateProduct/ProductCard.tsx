@@ -167,7 +167,16 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             Tallas y Precios
                         </h4>
                     </div>
-
+<div className="flex justify-end">
+                        <Button
+                            type="button"
+                            onClick={() => addSize(productIndex)}
+                            className="flex lg:mt-0 mt-3 items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Agregar talla
+                        </Button>
+                    </div>
                     <div className="space-y-6">
                         {product.sizes.map((size, sIndex) => (
                             <SizeForm
@@ -180,16 +189,7 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             />
                         ))}
                     </div>
-                    <div className="flex justify-end">
-                        <Button
-                            type="button"
-                            onClick={() => addSize(productIndex)}
-                            className="flex lg:mt-0 mt-3 items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Agregar talla
-                        </Button>
-                    </div>
+                    
                 </div>
             </div>
         </div>

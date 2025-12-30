@@ -65,7 +65,7 @@ export function SizeForm({ productIndex, sizeIndex, size, error, innerRef }: Siz
                     <Input
                         type="number"
                         placeholder="0.00"
-                        value={size.priceCost}
+                        value={size.priceCost || ""}
                         onWheel={(e) => e.currentTarget.blur()}
                         onChange={(e) => handleSizeChange(productIndex, sizeIndex, "priceCost", Number(e.target.value))}
                         className={`h-11 text-base border-2 transition-all duration-200 ${
@@ -85,7 +85,7 @@ export function SizeForm({ productIndex, sizeIndex, size, error, innerRef }: Siz
                     <Input
                         type="number"
                         placeholder="0.00"
-                        value={size.priceList}
+                        value={size.priceList || ""}
                         onWheel={(e) => e.currentTarget.blur()}
                         onChange={(e) => handleSizeChange(productIndex, sizeIndex, "priceList", Number(e.target.value))}
                         className={`h-11 text-base border-2 transition-all duration-200 ${
@@ -129,7 +129,7 @@ export function SizeForm({ productIndex, sizeIndex, size, error, innerRef }: Siz
                     <Input
                         type="number"
                         placeholder="0"
-                        value={size.stockQuantity}
+                        value={size.stockQuantity || ""}
                         onWheel={(e) => e.currentTarget.blur()}
                         onChange={(e) =>
                             handleSizeChange(productIndex, sizeIndex, "stockQuantity", Number(e.target.value))
