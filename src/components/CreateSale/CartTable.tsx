@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Input } from "../ui/input"
 import { toPrice } from "@/utils/priceFormat"
 import { Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 export const CartTable = () => {
     const { cartItems, actions } = useSaleStore()
@@ -58,7 +59,12 @@ export const CartTable = () => {
                                         onWheel={(e) => {
                                             e.currentTarget.blur()
                                         }}
-                                        onChange={(e) => updateQuantity(item.variation.sku, Number(e.target.value))}
+                                        onChange={(e) => {
+                                            if (item.storeProduct.quantity === 0) {
+                                                return toast.error("Stock agotado, solicite a central")
+                                            }
+                                            updateQuantity(item.variation.sku, Number(e.target.value))
+                                        }}
                                         className="w-16 text-center rounded border border-gray-300 p-1"
                                     />
 
