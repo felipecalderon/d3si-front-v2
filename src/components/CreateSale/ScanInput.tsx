@@ -55,7 +55,7 @@ export const ScanInput = ({ initialProducts }: Props) => {
                             priceCostStore: variationFinded.priceCost.toString(),
                             quantity: 0,
                             Store: storeSelected!,
-                            storeID: storeSelected?.storeID!,
+                            storeID: storeSelected!.storeID,
                             storeProductID: "",
                             updatedAt: variationFinded.updatedAt,
                             variationID: variationFinded.variationID,
@@ -98,14 +98,14 @@ export const ScanInput = ({ initialProducts }: Props) => {
                                     priceCostStore: variation.priceCost.toString(),
                                     quantity: 0,
                                     Store: storeSelected!,
-                                    storeID: storeSelected?.storeID!,
+                                    storeID: storeSelected!.storeID,
                                     storeProductID: "",
                                     updatedAt: variation.updatedAt,
                                     variationID: variation.variationID,
                                 }
                                 const storeProductf = variation.StoreProducts?.find(
                                     (p) =>
-                                        p.storeID === storeSelected?.storeID! && p.variationID === variation.variationID
+                                        p.storeID === storeSelected!.storeID && p.variationID === variation.variationID
                                 )
                                 if (storeProductf) {
                                     console.log(storeProductf)
