@@ -47,13 +47,12 @@ export const useSaleStore = create<SaleState>((set, get) => ({
             }
 
             if (existingItem) {
-                // El producto YA existe, aumentamos la cantidad en 1.
                 const newCartItems = cartItems.map((item) => {
                     if (item.variation.sku === variation.sku) {
                         return {
                             ...item,
                             variation: {
-                                ...item.variation, // **AQUÍ ESTÁ EL CAMBIO CLAVE:** Aumentar la cantidad dentro de `variation`
+                                ...item.variation,
                                 quantity: item.variation.quantity + 1,
                             },
                         }
@@ -85,7 +84,6 @@ export const useSaleStore = create<SaleState>((set, get) => ({
                 const newCartItems = state.cartItems.map((item) =>
                     item.variation.sku === sku ? { ...item, variation: { ...item.variation, quantity } } : item
                 )
-                console.log(newCartItems)
                 return { cartItems: newCartItems }
             })
         },

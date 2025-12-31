@@ -18,6 +18,8 @@ import { getAllOrders } from "@/actions/orders/getAllOrders"
 import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ChartBarIcon } from "lucide-react"
+import { SaleForm } from "@/components/CreateSale/SaleForm"
+import { getAllProducts } from "@/actions/products/getAllProducts"
 
 export const dynamic = "force-dynamic"
 
@@ -37,11 +39,12 @@ const HomePage = async ({ searchParams }: SearchParams) => {
 
     if (!storeID) return null
 
-    const [sales, wooOrders, resume, allOrders] = await Promise.all([
+    const [sales, wooOrders, resume, allOrders, allProducts] = await Promise.all([
         getSales(storeID, yyyyDate),
         getWooCommerceOrders(newDate),
         getResume(storeID, yyyyDate),
         getAllOrders(),
+        getAllProducts(),
     ])
     const wooSales = wooOrders.map(mapWooOrderToSale)
     const allSales = [...sales, ...wooSales]
@@ -60,37 +63,37 @@ const HomePage = async ({ searchParams }: SearchParams) => {
                 {/* Seccion superior */}
 
                 <div className="flex flex-col sm:flex-row flex-wrap item-center sm:items-start justify-between gap-2">
-                    <SellButton />
+                    {/* <SellButton /> */}
                     <FilterControls />
                     <ResumeDebitCreditPayment resume={resume} />
                 </div>
 
-                {/* Sección de estadísticas + tabla (se sincroniza con filtros) */}
-                <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-                    {/* Resúmenes y gráfico */}
-                    <Suspense fallback={<SalesAndResumeSkeleton />}>
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger>
-                                    <div className="flex gap-3 items-center">
-                                        <ChartBarIcon /> Panel de estadísticas globales
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
-                                    <ResumeLeftSideChart resume={resume} />
-                                    <TotalSalesResumeGraph resume={resume} />
-                                    <ResumeRightSideChart sales={allSalesResume} />
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
-                    </Suspense>
+                {/* Resúmenes y gráfico */}
+                <Suspense fallback={<SalesAndResumeSkeleton />}>
+                    <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="item-1">
+                            <AccordionTrigger>
+                                <div className="flex gap-3 items-center">
+                                    <ChartBarIcon /> Panel de estadísticas globales
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="block space-y-6 sm:space-y-0 lg:grid lg:grid-cols-3 lg:gap-4 xl:gap-4 lg:items-start">
+                                <ResumeLeftSideChart resume={resume} />
+                                <TotalSalesResumeGraph resume={resume} />
+                                <ResumeRightSideChart sales={allSalesResume} />
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                </Suspense>
 
-                    {/* Tabla */}
-                    <div>
-                        <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                            <SalesTable items={items} />
-                        </div>
-                    </div>
+                {/* Modulo para vender */}
+                <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <SaleForm initialProducts={allProducts} />
+                </div>
+
+                {/* Tabla de ventas*/}
+                <div className="overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <SalesTable items={items} />
                 </div>
             </div>
         </>
