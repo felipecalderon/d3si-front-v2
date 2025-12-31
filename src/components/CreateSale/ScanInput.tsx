@@ -42,12 +42,19 @@ export const ScanInput = ({ initialProducts }: Props) => {
             if (productFinded) {
                 const variationFinded = productFinded.ProductVariations.find((v) => v.sku === productInput.trim())
                 if (variationFinded) {
-                    const variationWithQuantity = { ...variationFinded, quantity: 1 }
+                    const variationWithQuantity: IVariationWithQuantity = {
+                        ...variationFinded,
+                        quantity: 1,
+                    }
                     const storeProduct = variationFinded.StoreProducts?.find(
                         (p) => p.storeID === storeSelected?.storeID && p.variationID === variationFinded.variationID
                     )
                     if (storeProduct) {
-                        addProduct(productFinded, variationWithQuantity, storeProduct)
+                        const storeQty: IVariationWithQuantity = {
+                            ...variationWithQuantity,
+                            stockQuantity: storeProduct.quantity,
+                        }
+                        addProduct(productFinded, storeQty, storeProduct)
                         setProductCode("")
                     } else {
                         const storeProduct: IStoreProduct = {
@@ -107,11 +114,14 @@ export const ScanInput = ({ initialProducts }: Props) => {
                                     (p) =>
                                         p.storeID === storeSelected!.storeID && p.variationID === variation.variationID
                                 )
+                                let variationWithQuantity: IVariationWithQuantity = { ...variation, quantity: 1 }
                                 if (storeProductf) {
-                                    console.log(storeProductf)
+                                    variationWithQuantity = {
+                                        ...variationWithQuantity,
+                                        stockQuantity: storeProductf.quantity,
+                                    }
                                     storeProduct = storeProductf
                                 }
-                                const variationWithQuantity: IVariationWithQuantity = { ...variation, quantity: 1 }
                                 return (
                                     <li
                                         key={variation.variationID}

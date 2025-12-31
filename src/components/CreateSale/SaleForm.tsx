@@ -29,7 +29,7 @@ export const SaleForm = ({ initialProducts }: { initialProducts: IProduct[] }) =
     const handleSubmit = async () => {
         try {
             const hasEmptyProducts = cartItems.filter((item) => item.variation.quantity === 0)
-            if (hasEmptyProducts) {
+            if (hasEmptyProducts.length > 0) {
                 return toast.error("Por favor elimina los productos sin stock")
             }
             setLoading(true)

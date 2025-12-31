@@ -36,7 +36,7 @@ const FilterControls = () => {
 
     return (
         <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 lg:flex-1">
-            <Select
+            {/* <Select
                 value={storeIDFil}
                 onValueChange={(val: string) => {
                     setStoreFilter(val)
@@ -52,7 +52,7 @@ const FilterControls = () => {
                         </SelectItem>
                     ))}
                 </SelectContent>
-            </Select>
+            </Select> */}
             <Select>
                 <SelectTrigger>
                     <SelectValue placeholder={format(date, "dd-MM-yyyy")}>
@@ -79,7 +79,7 @@ const FilterControls = () => {
                     setStoreFilter(undefined)
                 }}
             >
-                Limpiar filtros ✨
+                Resetear fecha ✨
             </Button>
         </div>
     )
