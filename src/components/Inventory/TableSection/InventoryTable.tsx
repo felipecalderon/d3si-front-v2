@@ -99,9 +99,6 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                 <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
                                     CATEGORÍA
                                 </TableHead>
-                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
-                                    TALLA
-                                </TableHead>
                                 {/* PRECIO COSTO se muestra solo si es admin */}
                                 {user?.role === Role.Admin && (
                                     <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
@@ -110,6 +107,9 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                 )}
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     PRECIO PLAZA
+                                </TableHead>
+                                <TableHead className="whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-200">
+                                    TALLA
                                 </TableHead>
                                 <TableHead className="whitespace text-center font-semibold text-gray-700 dark:text-gray-200">
                                     {user?.role === Role.Admin ? "STOCK CENTRAL" : "STOCK TIENDA"}
@@ -255,42 +255,6 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                             {getCategoryFullNameFromProduct(product, categories)}
                                         </TableCell>
 
-                                        {/* Columna TALLA */}
-                                        <TableCell
-                                            className={`text-center py-2 ${
-                                                isEditable
-                                                    ? "cursor-pointer dark:hover:bg-gray-900 hover:bg-gray-100"
-                                                    : ""
-                                            }`}
-                                            onClick={() => {
-                                                if (!isEditable) return
-                                                setEditingField({ sku: variation.sku, field: "sizeNumber" })
-                                                setEditValue(variation.sizeNumber)
-                                            }}
-                                        >
-                                            {editingField?.sku === variation.sku &&
-                                            editingField?.field === "sizeNumber" ? (
-                                                <div className="flex justify-center">
-                                                    <Input
-                                                        value={editValue}
-                                                        onChange={(e) => setEditValue(e.target.value)}
-                                                        onBlur={() => handleSaveEdit(product, variation.variationID)}
-                                                        className="w-16 h-8 px-2 py-1 text-center text-xs"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <MotionItem
-                                                        key={`${product.productID}-${variation.variationID}`}
-                                                        delay={index + 3}
-                                                    >
-                                                        <span className="font-medium">{variation.sizeNumber}</span>
-                                                    </MotionItem>
-                                                </div>
-                                            )}
-                                        </TableCell>
-
                                         {/* Columna PRECIO COSTO se muestra solo si es admin */}
                                         {user?.role === Role.Admin && (
                                             <TableCell
@@ -378,16 +342,43 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                 </div>
                                             )}
                                         </TableCell>
-                                        {/* OFERTAS */}
-                                        {/* <TableCell className="text-center dark:hover:bg-gray-900 hover:bg-gray-100 py-2">
-                                            {variation.offerPrice ? (
-                                                <span className="font-semibold text-green-600">
-                                                    ${formatCurrency(variation.offerPrice)}
-                                                </span>
+
+                                        {/* Columna TALLA */}
+                                        <TableCell
+                                            className={`text-center py-2 ${
+                                                isEditable
+                                                    ? "cursor-pointer dark:hover:bg-gray-900 hover:bg-gray-100"
+                                                    : ""
+                                            }`}
+                                            onClick={() => {
+                                                if (!isEditable) return
+                                                setEditingField({ sku: variation.sku, field: "sizeNumber" })
+                                                setEditValue(variation.sizeNumber)
+                                            }}
+                                        >
+                                            {editingField?.sku === variation.sku &&
+                                            editingField?.field === "sizeNumber" ? (
+                                                <div className="flex justify-center">
+                                                    <Input
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        onBlur={() => handleSaveEdit(product, variation.variationID)}
+                                                        className="w-16 h-8 px-2 py-1 text-center text-xs"
+                                                        autoFocus
+                                                    />
+                                                </div>
                                             ) : (
-                                                <span className="text-gray-400">-</span>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <MotionItem
+                                                        key={`${product.productID}-${variation.variationID}`}
+                                                        delay={index + 3}
+                                                    >
+                                                        <span className="font-medium">{variation.sizeNumber}</span>
+                                                    </MotionItem>
+                                                </div>
                                             )}
-                                        </TableCell> */}
+                                        </TableCell>
+
                                         {/* Columna STOCK CENTRAL */}
                                         <TableCell
                                             className={`w-32 text-center py-3 transition-colors ${
