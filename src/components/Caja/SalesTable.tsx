@@ -36,10 +36,10 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                     <TableRow>
                         <TableHead align="center">Origen</TableHead>
                         <TableHead align="center">Fecha</TableHead>
-                        <TableHead align="center">Monto</TableHead>
                         <TableHead align="center">Productos</TableHead>
                         <TableHead align="center">Estado</TableHead>
                         <TableHead align="center">Tipo de pago</TableHead>
+                        <TableHead align="center">Monto</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="max-h-96 overflow-y-auto">
@@ -61,9 +61,6 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                         <TableCell align="left">{storeName}</TableCell>
                                         <TableCell align="left">
                                             <DateCell date={item.createdAt} />
-                                        </TableCell>
-                                        <TableCell align="left">
-                                            {typeof item.total === "number" ? `$${toPrice(item.total)}` : "Sin dato"}
                                         </TableCell>
                                         <TableCell align="left" className="max-w-96">
                                             {item.SaleProducts.map((sp) => {
@@ -90,6 +87,9 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                             {item.status}
                                         </TableCell>
                                         <TableCell align="center">{item.paymentType}</TableCell>
+                                        <TableCell align="left">
+                                            {typeof item.total === "number" ? `$${toPrice(item.total)}` : "Sin dato"}
+                                        </TableCell>
                                     </TableRow>
                                 )
                             } else {
@@ -109,9 +109,6 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                         <TableCell align="left">
                                             <DateCell date={item.createdAt} />
                                         </TableCell>
-                                        <TableCell align="left">
-                                            {item.total ? `$${toPrice(Number(item.total))}` : "Sin dato"}
-                                        </TableCell>
                                         <TableCell align="left" className="max-w-96">
                                             {itemsOrdered} unidades
                                         </TableCell>
@@ -127,6 +124,9 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                             {item.status}
                                         </TableCell>
                                         <TableCell align="center">{item.type}</TableCell>
+                                        <TableCell align="left">
+                                            {item.total ? `$${toPrice(Number(item.total))}` : "Sin dato"}
+                                        </TableCell>
                                     </TableRow>
                                 )
                             }
