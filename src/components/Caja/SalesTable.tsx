@@ -7,6 +7,7 @@ import { IOrderWithStore } from "@/interfaces/orders/IOrderWithStore"
 import DateCell from "../DateCell"
 import { useRouter } from "next/navigation"
 import { toPrice } from "@/utils/priceFormat"
+import { getAnulatedProducts } from "@/lib/getAnulatedProducts"
 
 type TableItem = ISaleResponse | IOrderWithStore
 
@@ -36,10 +37,10 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                     <TableRow>
                         <TableHead align="center">Origen</TableHead>
                         <TableHead align="center">Fecha</TableHead>
-                        <TableHead align="center">Monto</TableHead>
                         <TableHead align="center">Productos</TableHead>
                         <TableHead align="center">Estado</TableHead>
                         <TableHead align="center">Tipo de pago</TableHead>
+                        <TableHead align="center">Monto</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="max-h-96 overflow-y-auto">
@@ -52,6 +53,13 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                             // Venta
                             if ("saleID" in item) {
                                 const storeName = item.Store?.name || "Sucursal"
+                                const nulledProducts = getAnulatedProducts(item)
+                                const totalNulledAmount = nulledProducts.reduce(
+                                    (acc, p) => acc + p.quantitySold * p.unitPrice,
+                                    0
+                                )
+                                const totalNulledUnits = nulledProducts.reduce((acc, p) => acc + p.quantitySold, 0)
+
                                 return (
                                     <TableRow
                                         key={item.saleID}
@@ -62,21 +70,30 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                         <TableCell align="left">
                                             <DateCell date={item.createdAt} />
                                         </TableCell>
-                                        <TableCell align="left">
-                                            {typeof item.total === "number" ? `$${toPrice(item.total)}` : "Sin dato"}
-                                        </TableCell>
                                         <TableCell align="left" className="max-w-96">
                                             {item.SaleProducts.map((sp) => {
-                                                const { quantitySold } = sp
+                                                const nulled = nulledProducts.find(
+                                                    (np) => np.storeProductID === sp.storeProductID
+                                                )
+                                                const actualQuantity = sp.quantitySold - (nulled?.quantitySold || 0)
+
+                                                if (actualQuantity <= 0) return null
+
                                                 const { name } =
                                                     sp?.StoreProduct?.ProductVariation?.Product ?? "Producto"
                                                 const { sizeNumber } = sp?.StoreProduct?.ProductVariation
                                                 return (
                                                     <p key={sp.SaleProductID}>
-                                                        {quantitySold} x {name} - {sizeNumber}
+                                                        {actualQuantity} x {name} - {sizeNumber}
                                                     </p>
                                                 )
                                             })}
+                                            {item.SaleProducts.every((sp) => {
+                                                const nulled = nulledProducts.find(
+                                                    (np) => np.storeProductID === sp.storeProductID
+                                                )
+                                                return sp.quantitySold - (nulled?.quantitySold || 0) <= 0
+                                            }) && <p className="text-rose-600 italic">Venta anulada por completo</p>}
                                         </TableCell>
                                         <TableCell
                                             className={`font-medium ${
@@ -87,9 +104,18 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                                     : "text-rose-700"
                                             }`}
                                         >
-                                            {item.status}
+                                            {item.status === "Anulado" && totalNulledUnits > 0
+                                                ? `Anulado (${totalNulledUnits} ${
+                                                      totalNulledUnits === 1 ? "producto" : "productos"
+                                                  })`
+                                                : item.status}
                                         </TableCell>
                                         <TableCell align="center">{item.paymentType}</TableCell>
+                                        <TableCell align="left">
+                                            {typeof item.total === "number"
+                                                ? `$${toPrice(item.total - totalNulledAmount)}`
+                                                : "Sin dato"}
+                                        </TableCell>
                                     </TableRow>
                                 )
                             } else {
@@ -109,9 +135,6 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                         <TableCell align="left">
                                             <DateCell date={item.createdAt} />
                                         </TableCell>
-                                        <TableCell align="left">
-                                            {item.total ? `$${toPrice(Number(item.total))}` : "Sin dato"}
-                                        </TableCell>
                                         <TableCell align="left" className="max-w-96">
                                             {itemsOrdered} unidades
                                         </TableCell>
@@ -127,6 +150,9 @@ const SalesTable: React.FC<Props> = ({ items }) => {
                                             {item.status}
                                         </TableCell>
                                         <TableCell align="center">{item.type}</TableCell>
+                                        <TableCell align="left">
+                                            {item.total ? `$${toPrice(Number(item.total))}` : "Sin dato"}
+                                        </TableCell>
                                     </TableRow>
                                 )
                             }
