@@ -55,6 +55,41 @@ const HomePage = async ({ searchParams }: SearchParams) => {
     const items = [...allSales, ...purchaseOrders]
 
     const wooResume = salesToResume(wooSales, newDate)
+
+    const localSalesResume = salesToResume(sales, newDate)
+    const patchedSalesResume = { ...resume.totales.sales }
+
+    // Corregimos discrepancias en los totales del backend (que a veces ignora ventas anuladas parcialmente)
+    // usando nuestra lógica local para la fecha seleccionada.
+    const diffAmount = localSalesResume.today.total.amount - patchedSalesResume.today.total.amount
+    const diffCount = localSalesResume.today.total.count - patchedSalesResume.today.total.count
+    const diffEfectivoAmount = localSalesResume.today.efectivo.amount - patchedSalesResume.today.efectivo.amount
+    const diffEfectivoCount = localSalesResume.today.efectivo.count - patchedSalesResume.today.efectivo.count
+    const diffDebitoAmount = localSalesResume.today.debitoCredito.amount - patchedSalesResume.today.debitoCredito.amount
+    const diffDebitoCount = localSalesResume.today.debitoCredito.count - patchedSalesResume.today.debitoCredito.count
+
+    if (diffAmount !== 0 || diffCount !== 0) {
+        patchedSalesResume.today = localSalesResume.today
+
+        // Aplicamos la diferencia al mes
+        patchedSalesResume.month.total.amount += diffAmount
+        patchedSalesResume.month.total.count += diffCount
+        patchedSalesResume.month.efectivo.amount += diffEfectivoAmount
+        patchedSalesResume.month.efectivo.count += diffEfectivoCount
+        patchedSalesResume.month.debitoCredito.amount += diffDebitoAmount
+        patchedSalesResume.month.debitoCredito.count += diffDebitoCount
+
+        // Aplicamos la diferencia a los últimos 7 días
+        patchedSalesResume.last7.total.amount += diffAmount
+        patchedSalesResume.last7.total.count += diffCount
+        patchedSalesResume.last7.efectivo.amount += diffEfectivoAmount
+        patchedSalesResume.last7.efectivo.count += diffEfectivoCount
+        patchedSalesResume.last7.debitoCredito.amount += diffDebitoAmount
+        patchedSalesResume.last7.debitoCredito.count += diffDebitoCount
+
+        resume.totales.sales = patchedSalesResume
+    }
+
     const allSalesResume = totalDebitoCredito([resume.totales.sales, wooResume])
 
     return (
