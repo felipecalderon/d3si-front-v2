@@ -20,6 +20,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ChartBarIcon } from "lucide-react"
 import { SaleForm } from "@/components/CreateSale/SaleForm"
 import { getAllProducts } from "@/actions/products/getAllProducts"
+import { getAllStores } from "@/actions/stores/getAllStores"
 
 export const dynamic = "force-dynamic"
 
@@ -39,24 +40,65 @@ const HomePage = async ({ searchParams }: SearchParams) => {
 
     if (!storeID) return null
 
+    const allStores = await getAllStores()
+    const isSpecialFilter = ["all", "propias", "consignadas"].includes(storeID)
+
+    // Determinar qué tienda usar para los gráficos (por defecto la primera si es un filtro especial)
+    const chartStoreID = isSpecialFilter ? allStores[0]?.storeID : storeID
+    // Determinar qué tienda usar para la API de ventas (vacío para traer todas si es especial)
+    const apiSalesStoreID = isSpecialFilter ? "" : storeID
+
     const [sales, wooOrders, resume, allOrders, allProducts] = await Promise.all([
-        getSales(storeID, yyyyDate),
+        getSales(apiSalesStoreID || "", yyyyDate),
         getWooCommerceOrders(newDate),
-        getResume(storeID, yyyyDate),
+        getResume(chartStoreID || "", yyyyDate),
         getAllOrders(),
         getAllProducts(),
     ])
     const wooSales = wooOrders.map(mapWooOrderToSale)
-    const allSales = [...sales, ...wooSales]
+
+    // Filtrar las ventas para la tabla según el filtro especial
+    const tableSales = sales.filter((sale) => {
+        if (storeID === "all") return true
+        if (storeID === "propias") {
+            const store = allStores.find((s) => s.storeID === sale.storeID)
+            return store?.isAdminStore === true
+        }
+        if (storeID === "consignadas") {
+            const store = allStores.find((s) => s.storeID === sale.storeID)
+            return store?.isAdminStore === false
+        }
+        return sale.storeID === storeID
+    })
+
+    // Las ventas Web (WooCommerce) se consideran "propias"
+    const filteredWooSales = storeID === "all" || storeID === "propias" ? wooSales : []
+
+    const allSales = [...tableSales, ...filteredWooSales]
     const purchaseOrders: (IOrderWithStore & { isOrder: true })[] = allOrders
-        .filter((order) => order.storeID === storeID && order.type !== "OCC")
+        .filter((order) => {
+            if (storeID === "all") return true
+            const store = allStores.find((s) => s.storeID === order.storeID)
+            if (storeID === "propias") return store?.isAdminStore === true
+            if (storeID === "consignadas") return store?.isAdminStore === false
+            return order.storeID === storeID
+        })
+        .filter((order) => {
+            // Si es filtro "all" o "consignadas", incluimos todo.
+            // Si es "propias", evitamos las de consignación pura si es necesario.
+            // Por defecto, permitimos todas las OC en la vista global.
+            return true
+        })
         .map((order) => ({ ...order, isOrder: true }))
 
     const items = [...allSales, ...purchaseOrders]
 
     const wooResume = salesToResume(wooSales, newDate)
 
-    const localSalesResume = salesToResume(sales, newDate)
+    // Importante: para los gráficos (resume), usamos solo las ventas de la tienda seleccionada (o la default)
+    const chartSales = isSpecialFilter ? sales.filter((s) => s.storeID === chartStoreID) : sales
+
+    const localSalesResume = salesToResume(chartSales, newDate)
     const patchedSalesResume = { ...resume.totales.sales }
 
     // Corregimos discrepancias en los totales del backend (que a veces ignora ventas anuladas parcialmente)
