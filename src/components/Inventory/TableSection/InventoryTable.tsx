@@ -150,7 +150,7 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                     (
                                                         currentItems.find(
                                                             (i) =>
-                                                                i.product.productID === product.productID && i.isFirst
+                                                                i.product.productID === product.productID && i.isFirst,
                                                         ) as any
                                                     )?.rowSpan || product.ProductVariations.length
                                                 }
@@ -179,7 +179,7 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                                         (prev, variation) => {
                                                                             return prev + variation.stockQuantity
                                                                         },
-                                                                        0
+                                                                        0,
                                                                     )}{" "}
                                                                     productos
                                                                 </span>
@@ -194,7 +194,7 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                 <TableCell
                                                     onClick={() =>
                                                         printBarcodeModal(
-                                                            openSku === variation.sku ? null : variation.sku
+                                                            openSku === variation.sku ? null : variation.sku,
                                                         )
                                                     }
                                                     className="px-3 py-1 text-xs font-medium cursor-pointer"
@@ -234,7 +234,10 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                         >
                                             {editingField?.sku === product.productID &&
                                             editingField?.field === "brand" ? (
-                                                <div className="flex justify-center">
+                                                <div
+                                                    className="flex justify-center"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
                                                     <Input
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
@@ -271,7 +274,10 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                             >
                                                 {editingField?.sku === variation.sku &&
                                                 editingField?.field === "priceCost" ? (
-                                                    <div className="flex justify-center">
+                                                    <div
+                                                        className="flex justify-center"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
                                                         <Input
                                                             type="number"
                                                             value={editValue}
@@ -309,7 +315,10 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                         >
                                             {editingField?.sku === variation.sku &&
                                             editingField?.field === "priceList" ? (
-                                                <div className="flex justify-center">
+                                                <div
+                                                    className="flex justify-center"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
                                                     <Input
                                                         type="number"
                                                         value={editValue}
@@ -332,8 +341,8 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                             profitMargin > 30
                                                                 ? "text-green-600"
                                                                 : profitMargin > 15
-                                                                ? "text-yellow-600"
-                                                                : "text-red-600"
+                                                                  ? "text-yellow-600"
+                                                                  : "text-red-600"
                                                         }`}
                                                     >
                                                         Markup:{" "}
@@ -358,7 +367,10 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                         >
                                             {editingField?.sku === variation.sku &&
                                             editingField?.field === "sizeNumber" ? (
-                                                <div className="flex justify-center">
+                                                <div
+                                                    className="flex justify-center"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
                                                     <Input
                                                         value={editValue}
                                                         onChange={(e) => setEditValue(e.target.value)}
@@ -394,7 +406,10 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                         >
                                             {editingField?.sku === variation.sku &&
                                             editingField?.field === "stockQuantity" ? (
-                                                <div className="flex justify-center">
+                                                <div
+                                                    className="flex justify-center"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
                                                     <Input
                                                         type="number"
                                                         value={editValue}
