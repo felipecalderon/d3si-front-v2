@@ -424,7 +424,7 @@ export function InventoryTable({ currentItems, handleSaveEdit, categories }: Inv
                                                 </div>
                                             ) : (
                                                 <Badge
-                                                    variant={variation.stockQuantity < 20 ? "destructive" : "default"}
+                                                    variant={variation.stockQuantity <= 9 ? "destructive" : "default"}
                                                     className="font-bold text-sm"
                                                 >
                                                     {user?.role === Role.Admin
