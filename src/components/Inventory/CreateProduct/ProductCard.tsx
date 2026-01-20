@@ -154,7 +154,7 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             Tallas y Precios
                         </h4>
                     </div>
-<div className="flex justify-end">
+                    <div className="flex justify-end">
                         <Button
                             type="button"
                             onClick={() => addSize(productIndex)}
@@ -167,7 +167,7 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                     <div className="space-y-6">
                         {product.sizes.map((size, sIndex) => (
                             <SizeForm
-                                key={sIndex}
+                                key={size.tempId || sIndex}
                                 productIndex={productIndex}
                                 sizeIndex={sIndex}
                                 size={size}
@@ -175,7 +175,6 @@ export function ProductCard({ productIndex, product, categories, error }: Produc
                             />
                         ))}
                     </div>
-                    
                 </div>
             </div>
         </div>

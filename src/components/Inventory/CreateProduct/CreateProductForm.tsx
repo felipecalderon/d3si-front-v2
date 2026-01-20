@@ -1,53 +1,51 @@
 "use client"
 
-import React, { useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, Plus, Package } from "lucide-react";
-import { useProductFormStore } from "@/stores/product-form.store";
-import { createMassiveProducts } from "@/actions/products/createMassiveProducts";
-import { ExcelImporter } from "./ExcelImporter";
-import { ProductCard } from "./ProductCard";
-import type { ICategory } from "@/interfaces/categories/ICategory";
+import React, { useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, Save, Plus, Package } from "lucide-react"
+import { useProductFormStore } from "@/stores/product-form.store"
+import { createMassiveProducts } from "@/actions/products/createMassiveProducts"
+import { ExcelImporter } from "./ExcelImporter"
+import { ProductCard } from "./ProductCard"
+import type { ICategory } from "@/interfaces/categories/ICategory"
 
 export default function CreateProductForm({ categories }: { categories: ICategory[] }) {
-    const router = useRouter();
-    const [isPending, startTransition] = useTransition();
-    const { products, errors, addProduct, setProducts, resetForm } = useProductFormStore();
+    const router = useRouter()
+    const [isPending, startTransition] = useTransition()
+    const { products, errors, addProduct, setProducts, resetForm } = useProductFormStore()
 
     useEffect(() => {
         return () => {
-            resetForm();
+            resetForm()
         }
-    }, [resetForm]);
+    }, [resetForm])
 
     const hasErrors = (errs: any[]) => {
-        return errs.some(
-            (err) => err.name || err.category || err.sizes.some((e: any) => Object.keys(e).length > 0)
-        );
-    };
+        return errs.some((err) => err.name || err.category || err.sizes.some((e: any) => Object.keys(e).length > 0))
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        useProductFormStore.getState().validate(); // Run validation
-        const currentErrors = useProductFormStore.getState().errors;
+        e.preventDefault()
+        useProductFormStore.getState().validate() // Run validation
+        const currentErrors = useProductFormStore.getState().errors
 
         if (hasErrors(currentErrors)) {
-            toast.error("Corrige los errores antes de guardar.");
-            return;
+            toast.error("Corrige los errores antes de guardar.")
+            return
         }
 
         startTransition(async () => {
-            const result = await createMassiveProducts({ products });
+            const result = await createMassiveProducts({ products })
             if (result.success) {
-                toast.success("Productos guardados correctamente.");
-                router.push("/home/inventory");
+                toast.success("Productos guardados correctamente.")
+                router.push("/home/inventory")
             } else {
-                toast.error(result.error || "Error al guardar productos.");
+                toast.error(result.error || "Error al guardar productos.")
             }
-        });
-    };
+        })
+    }
 
     return (
         <div className="lg:p-8">
@@ -147,7 +145,7 @@ export default function CreateProductForm({ categories }: { categories: ICategor
                 <div className="space-y-8 overflow-y-auto mt-8" style={{ maxHeight: "60vh", minHeight: "200px" }}>
                     {products.map((product, pIndex) => (
                         <ProductCard
-                            key={pIndex}
+                            key={product.tempId || pIndex}
                             productIndex={pIndex}
                             product={product}
                             categories={categories}
@@ -193,5 +191,5 @@ export default function CreateProductForm({ categories }: { categories: ICategor
                 </div>
             </div>
         </div>
-    );
+    )
 }
