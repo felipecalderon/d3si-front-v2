@@ -36,23 +36,29 @@ const FilterControls = () => {
 
     return (
         <div className="flex flex-col sm:flex-row gap-3 lg:gap-1 lg:flex-1">
-            {/* <Select
-                value={storeIDFil}
+            <Select
+                value={storeIDParam || ""}
                 onValueChange={(val: string) => {
-                    setStoreFilter(val)
+                    const newParams = new URLSearchParams(params.toString())
+                    newParams.set("storeID", val)
+                    router.push(`${path}?${newParams.toString()}`)
                 }}
             >
-                <SelectTrigger className="dark:bg-slate-900 bg-white">
-                    <SelectValue placeholder="Tienda" />
+                <SelectTrigger className="w-full sm:w-[200px] dark:bg-slate-900 bg-white">
+                    <SelectValue placeholder="Seleccionar Tienda" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="all">Todas las tiendas</SelectItem>
+                    <SelectItem value="propias">Tiendas Propias</SelectItem>
+                    <SelectItem value="consignadas">Tiendas Consignadas</SelectItem>
+                    <hr className="my-2 border-gray-100 dark:border-gray-800" />
                     {stores.map((store) => (
                         <SelectItem key={store.storeID} value={store.storeID}>
                             {store.name}
                         </SelectItem>
                     ))}
                 </SelectContent>
-            </Select> */}
+            </Select>
             <Select>
                 <SelectTrigger>
                     <SelectValue placeholder={format(date, "dd-MM-yyyy")}>

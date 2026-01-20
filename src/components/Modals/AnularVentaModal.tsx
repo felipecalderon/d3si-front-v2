@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AnularSale, anularSale } from "@/actions/sales/anularSale"
 
@@ -50,6 +50,26 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
     const [isPending, startTransition] = useTransition()
     const router = useRouter()
 
+    // Sincronizar el estado del formulario con los datos de la venta si ya tiene devoluciones
+    useEffect(() => {
+        if (isOpen) {
+            if (sale.Return) {
+                setFormState({
+                    clientEmail: sale.Return.clientEmail || "",
+                    reason: sale.Return.reason || "",
+                    type: sale.Return.type || "DEVOLUCION",
+                    processedBy: sale.Return.processedBy || "",
+                    additionalNotes: sale.Return.additionalNotes || "",
+                    ProductAnulations: [], // No lo usamos directamente en el submit
+                })
+            } else {
+                setFormState(initialState)
+            }
+            setSelectedProducts([])
+            setError(null)
+        }
+    }, [isOpen, sale])
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target
         setFormState((prev) => ({ ...prev, [id]: value }))
@@ -64,7 +84,7 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
      * Si se selecciona, se añade al estado con la cantidad máxima vendida como cantidad a devolver.
      * Si se deselecciona, se elimina del estado.
      */
-    const handleToggleProduct = (product: ISaleProduct) => {
+    const handleToggleProduct = (product: ISaleProduct, availableQty: number) => {
         const key = product.storeProductID // Usamos storeProductID como clave única
         setSelectedProducts((prev) => {
             const isSelected = prev.some((p) => p.storeProductID === key)
@@ -72,8 +92,8 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
                 // Deseleccionar: eliminar el producto
                 return prev.filter((p) => p.storeProductID !== key)
             } else {
-                // Seleccionar: añadir con la cantidad máxima vendida como valor inicial [VER QUE DICE ALE]
-                const qty = product.quantitySold || 1
+                // Seleccionar: añadir con la cantidad disponible como valor inicial si es mayor a 0
+                const qty = Math.min(1, availableQty)
                 return [...prev, { ...product, quantityToReturn: qty }]
             }
         })
@@ -82,17 +102,21 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
     /**
      * 🔢 Maneja el cambio de cantidad a anular para un producto seleccionado.
      */
-    const handleProductQuantityChange = (product: ISaleProduct, newQuantity: number | string | null) => {
-        const qtySold = product.quantitySold || 1
+    const handleProductQuantityChange = (
+        product: ISaleProduct,
+        newQuantity: number | string | null,
+        availableQty: number,
+    ) => {
         let finalQuantity: number
 
         // Validación y ajuste de la cantidad
         if (newQuantity === null || newQuantity === "" || Number(newQuantity) === 0) {
             setSelectedProducts((prev) => prev.filter((p) => p.storeProductID !== product.storeProductID))
+            return
         } else {
-            // Aseguramos que la cantidad esté entre 1 y la cantidad vendida
+            // Aseguramos que la cantidad esté entre 0 y la cantidad disponible
             const v = Number(newQuantity)
-            finalQuantity = Math.max(1, Math.min(v, qtySold))
+            finalQuantity = Math.max(0, Math.min(v, availableQty))
         }
 
         setSelectedProducts((prev) => {
@@ -107,31 +131,37 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
                     quantityToReturn: finalQuantity,
                 }
                 return updatedProducts
-            } else {
-                // Si no estaba seleccionado (esto no debería ocurrir si se usa el checkbox correctamente),
-                // lo añadimos y lo marcamos como seleccionado
+            } else if (finalQuantity > 0) {
+                // Si no estaba seleccionado lo añadimos
                 return [...prev, { ...product, quantityToReturn: finalQuantity }]
             }
+            return prev
         })
     }
 
     // Función para manejar el valor del input, permitiendo valores intermedios (ej. un usuario escribiendo "2")
-    const handleQuantityInput = (product: ISaleProduct, rawValue: string) => {
-        const v = rawValue === "" ? null : Number(rawValue)
-        // Solo llamamos a la función de cambio si es un número válido o un string vacío (permitiendo entrada parcial)
-        if (v) {
-            handleProductQuantityChange(product, rawValue)
-        } else {
-            setSelectedProducts((prev) => prev.filter((p) => p.storeProductID !== product.storeProductID))
+    const handleQuantityInput = (product: ISaleProduct, rawValue: string, availableQty: number) => {
+        if (rawValue === "") {
+            setSelectedProducts((prev) => {
+                const updated = [...prev]
+                const idx = updated.findIndex((p) => p.storeProductID === product.storeProductID)
+                if (idx !== -1) updated[idx].quantityToReturn = 0
+                return updated
+            })
+            return
+        }
+
+        const v = Number(rawValue)
+        if (!isNaN(v)) {
+            handleProductQuantityChange(product, v, availableQty)
         }
     }
 
-    const handleQuantityBlur = (product: ISaleProduct, rawValue: string) => {
-        const qtySold = product.quantitySold || 1
+    const handleQuantityBlur = (product: ISaleProduct, rawValue: string, availableQty: number) => {
         const v = Number(rawValue)
-        // Validación final (entre 1 y qtySold)
-        const clamped = Math.max(1, Math.min(v, qtySold))
-        handleProductQuantityChange(product, clamped)
+        // Validación final (entre 0 y availableQty)
+        const clamped = isNaN(v) ? 0 : Math.max(0, Math.min(v, availableQty))
+        handleProductQuantityChange(product, clamped, availableQty)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -148,16 +178,23 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
 
         const nullNoteData = { ...formState }
 
-        const returnedProducts = selectedProducts
-            .filter((p) => p.quantityToReturn > 0)
-            .map((p) => ({
-                storeProductID: p.storeProductID,
-                quantity: p.quantityToReturn,
-            }))
+        // Calculamos el total de productos devueltos sumando los ya existentes + los nuevos seleccionados
+        const returnedProducts = sale.SaleProducts.map((p) => {
+            const key = p.storeProductID
+            const alreadyReturned =
+                sale.Return?.ProductAnulations?.find((a) => a.storeProductID === key)?.returnedQuantity || 0
+
+            const newlySelected = selectedProducts.find((sp) => sp.storeProductID === key)?.quantityToReturn || 0
+
+            return {
+                storeProductID: key,
+                quantity: alreadyReturned + newlySelected,
+            }
+        }).filter((p) => p.quantity > 0)
 
         if (returnedProducts.length === 0) {
-            setError("Los productos seleccionados deben tener una cantidad a anular mayor a cero.")
-            toast.error("Ajusta la cantidad a anular de los productos seleccionados.")
+            setError("Debes seleccionar al menos un producto para anular o devolver.")
+            toast.error("Selecciona al menos un producto.")
             return
         }
 
@@ -227,48 +264,83 @@ export function AnularVentaModal({ isOpen, setIsOpen, sale }: AnularVentaModalPr
                             <Label>Productos a anular</Label>
                             <div className="max-h-56 overflow-auto border rounded-md p-2">
                                 {sale.SaleProducts.map((p) => {
-                                    // Usamos un identificador único para el producto
                                     const key = p.storeProductID
-                                    const qty = p.quantitySold || 1
+                                    const soldQty = p.quantitySold || 1
+
+                                    // Cantidad ya anulada previamente
+                                    const returnedQty =
+                                        sale.Return?.ProductAnulations?.find((a) => a.storeProductID === key)
+                                            ?.returnedQuantity || 0
+
+                                    const availableQty = soldQty - returnedQty
                                     const name =
                                         p.StoreProduct?.ProductVariation?.Product?.name || "Producto Desconocido"
 
-                                    // Lógica de estado para el producto
                                     const selectedProduct = selectedProducts.find((sp) => sp.storeProductID === key)
                                     const selected = !!selectedProduct
-                                    // Si está seleccionado, usamos quantityToReturn; si no, 1 o el valor que quieras
+
                                     const quantityValue = selected
                                         ? selectedProduct.quantityToReturn === 0
                                             ? ""
                                             : selectedProduct.quantityToReturn
-                                        : qty
+                                        : 0
 
                                     return (
-                                        <div key={key} className="flex items-center justify-between gap-2 py-1">
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    id={`chk_${key}`}
-                                                    type="checkbox"
-                                                    className="w-4 h-4"
-                                                    checked={selected}
-                                                    onChange={() => handleToggleProduct(p)}
-                                                />
-                                                <label htmlFor={`chk_${key}`} className="text-sm">
-                                                    {`${name} (${qty})`}
-                                                </label>
+                                        <div
+                                            key={key}
+                                            className="flex flex-col gap-1 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        id={`chk_${key}`}
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-30"
+                                                        checked={selected}
+                                                        onChange={() => handleToggleProduct(p, availableQty)}
+                                                        disabled={availableQty <= 0}
+                                                    />
+                                                    <label
+                                                        htmlFor={`chk_${key}`}
+                                                        className={`text-sm font-medium ${availableQty <= 0 ? "text-gray-400" : "text-gray-700 dark:text-gray-200"}`}
+                                                    >
+                                                        {name}
+                                                    </label>
+                                                </div>
+                                                <div className="w-24">
+                                                    <input
+                                                        aria-label={`Cantidad a anular para ${name}`}
+                                                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-gray-50 dark:disabled:bg-gray-900"
+                                                        type="number"
+                                                        min={0}
+                                                        max={availableQty}
+                                                        value={quantityValue}
+                                                        onChange={(e) =>
+                                                            handleQuantityInput(p, e.target.value, availableQty)
+                                                        }
+                                                        onBlur={(e) =>
+                                                            handleQuantityBlur(p, e.target.value, availableQty)
+                                                        }
+                                                        disabled={!selected || availableQty <= 0}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="w-28">
-                                                <input
-                                                    aria-label={`Cantidad a anular para ${name}`}
-                                                    className="w-full rounded-md border px-2 py-1 text-sm bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    type="number"
-                                                    min={0}
-                                                    max={qty}
-                                                    value={quantityValue}
-                                                    onChange={(e) => handleQuantityInput(p, e.target.value)}
-                                                    onBlur={(e) => handleQuantityBlur(p, e.target.value)}
-                                                    disabled={!selected}
-                                                />
+                                            <div className="flex justify-between text-[11px] text-gray-500 px-6 mt-1">
+                                                <span>
+                                                    Total: <span className="font-semibold">{soldQty}</span>
+                                                </span>
+                                                <span className="text-red-500">
+                                                    Anulados: <span className="font-semibold">{returnedQty}</span>
+                                                </span>
+                                                <span
+                                                    className={
+                                                        availableQty > 0
+                                                            ? "text-emerald-600 font-semibold"
+                                                            : "text-gray-400"
+                                                    }
+                                                >
+                                                    Disponibles: {availableQty}
+                                                </span>
                                             </div>
                                         </div>
                                     )

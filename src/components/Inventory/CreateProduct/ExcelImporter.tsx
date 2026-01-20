@@ -1,15 +1,15 @@
 "use client"
 
-import * as XLSX from "xlsx";
-import React, { useRef, useEffect, useCallback } from "react";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useProductFormStore } from "@/stores/product-form.store";
-import { findCategoryIdByName, generateRandomSku } from "@/utils/product-form.utils";
-import type { CreateProductFormData } from "@/interfaces/products/ICreateProductForm";
-import type { ICategory } from "@/interfaces/categories/ICategory";
-import { Brand, Genre } from "@/interfaces/products/IProduct";
+import * as XLSX from "xlsx"
+import React, { useRef, useEffect, useCallback } from "react"
+import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useProductFormStore } from "@/stores/product-form.store"
+import { findCategoryIdByName, generateRandomSku } from "@/utils/product-form.utils"
+import type { CreateProductFormData } from "@/interfaces/products/ICreateProductForm"
+import type { ICategory } from "@/interfaces/categories/ICategory"
+import { Brand, Genre } from "@/interfaces/products/IProduct"
 
 const REQUIRED_COLUMNS = [
     "Producto",
@@ -21,68 +21,68 @@ const REQUIRED_COLUMNS = [
     "Precio Plaza",
     "Código EAN",
     "Cantidad",
-];
+]
 
 function validateExcelRows(rows: any[]): string | null {
-    if (!rows.length) return "El archivo está vacío.";
-    const cols = Object.keys(rows[0]);
+    if (!rows.length) return "El archivo está vacío."
+    const cols = Object.keys(rows[0])
     for (const col of REQUIRED_COLUMNS) {
-        if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`;
+        if (!cols.includes(col)) return `Falta la columna obligatoria: ${col}`
     }
-    const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "Talla", "Código EAN"];
+    const ALLOW_EMPTY = ["Género", "Marca", "Categoría", "Talla", "Código EAN"]
     for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
+        const row = rows[i]
         for (const col of REQUIRED_COLUMNS) {
-            if (ALLOW_EMPTY.includes(col)) continue;
+            if (ALLOW_EMPTY.includes(col)) continue
             if (row[col] === undefined || row[col] === null || row[col] === "") {
-                return `Fila ${i + 2}: Falta valor en columna "${col}".`;
+                return `Fila ${i + 2}: Falta valor en columna "${col}".`
             }
         }
         if (isNaN(Number(row["Precio Costo Neto"])) || isNaN(Number(row["Precio Plaza"]))) {
-            return `Fila ${i + 2}: Precio inválido.`;
+            return `Fila ${i + 2}: Precio inválido.`
         }
         if (isNaN(Number(row["Cantidad"]))) {
-            return `Fila ${i + 2}: Stock central inválido.`;
+            return `Fila ${i + 2}: Stock central inválido.`
         }
     }
-    return null;
+    return null
 }
 
 export function ExcelImporter({ categories }: { categories: ICategory[] }) {
-    const setProducts = useProductFormStore((state) => state.setProducts);
-    const dropRef = useRef<HTMLDivElement>(null);
+    const setProducts = useProductFormStore((state) => state.setProducts)
+    const dropRef = useRef<HTMLDivElement>(null)
 
     const handleExcelImport = useCallback(
         async (file: File) => {
             try {
-                const data = await file.arrayBuffer();
-                const workbook = XLSX.read(data);
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                const data = await file.arrayBuffer()
+                const workbook = XLSX.read(data)
+                const sheetName = workbook.SheetNames[0]
+                const worksheet = workbook.Sheets[sheetName]
+                const json: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" })
 
-                const error = validateExcelRows(json);
+                const error = validateExcelRows(json)
                 if (error) {
-                    toast.error(error);
-                    return;
+                    toast.error(error)
+                    return
                 }
 
-                const productMap = new Map<string, CreateProductFormData>();
+                const productMap = new Map<string, CreateProductFormData>()
 
                 for (const row of json) {
-                    const genre: Genre = !row["Género"] ? "Unisex" : row["Género"];
-                    const brand: Brand = !row["Marca"] ? "Otro" : row["Marca"];
-                    let categoryName: string = row["Categoría"]?.trim() || "Calzado";
-                    let catId = findCategoryIdByName(categories, categoryName);
+                    const genre: Genre = !row["Género"] ? "Unisex" : row["Género"]
+                    const brand: Brand = !row["Marca"] ? "Otro" : row["Marca"]
+                    let categoryName: string = row["Categoría"]?.trim() || "Calzado"
+                    let catId = findCategoryIdByName(categories, categoryName)
                     if (!catId) {
-                        categoryName = "Otro";
-                        catId = findCategoryIdByName(categories, "Otro");
+                        categoryName = "Otro"
+                        catId = findCategoryIdByName(categories, "Otro")
                     }
 
-                    const defaultImage = "";
-                    const image = row["Imagen"]?.trim() || defaultImage;
-                    const productName = row["Producto"].replace(/\s+/g, " ").trim();
-                    const key = `${productName}|${image}|${catId}|${genre}|${brand}`;
+                    const defaultImage = ""
+                    const image = row["Imagen"]?.trim() || defaultImage
+                    const productName = row["Producto"].replace(/\s+/g, " ").trim()
+                    const key = `${productName}|${image}|${catId}|${genre}|${brand}`
 
                     const size = {
                         sizeNumber: String(row["Talla"]),
@@ -90,10 +90,11 @@ export function ExcelImporter({ categories }: { categories: ICategory[] }) {
                         priceCost: Number(row["Precio Costo Neto"]),
                         sku: !!row["Código EAN"] ? row["Código EAN"] : generateRandomSku(),
                         stockQuantity: Number(row["Cantidad"]),
-                    };
+                        tempId: Math.random().toString(36).substring(7),
+                    }
 
                     if (productMap.has(key)) {
-                        productMap.get(key)!.sizes.push(size);
+                        productMap.get(key)!.sizes.push(size)
                     } else {
                         productMap.set(key, {
                             name: productName,
@@ -102,55 +103,56 @@ export function ExcelImporter({ categories }: { categories: ICategory[] }) {
                             genre,
                             brand,
                             sizes: [size],
-                        });
+                            tempId: Math.random().toString(36).substring(7),
+                        })
                     }
                 }
 
-                const importedProducts: CreateProductFormData[] = Array.from(productMap.values());
-                setProducts(importedProducts);
+                const importedProducts: CreateProductFormData[] = Array.from(productMap.values())
+                setProducts(importedProducts)
 
-                toast.success("Productos importados desde Excel.");
+                toast.success("Productos importados desde Excel.")
             } catch (err) {
-                console.log(err);
-                toast.error("Error al procesar el archivo Excel.");
+                console.log(err)
+                toast.error("Error al procesar el archivo Excel.")
             }
         },
-        [categories, setProducts]
-    );
+        [categories, setProducts],
+    )
 
     const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) handleExcelImport(file);
-    };
+        const file = e.target.files?.[0]
+        if (file) handleExcelImport(file)
+    }
 
     useEffect(() => {
-        const drop = dropRef.current;
-        if (!drop) return;
+        const drop = dropRef.current
+        if (!drop) return
 
         const handleDrop = (e: DragEvent) => {
-            e.preventDefault();
+            e.preventDefault()
             if (e.dataTransfer?.files?.length) {
-                const file = e.dataTransfer.files[0];
+                const file = e.dataTransfer.files[0]
                 if (file.name.endsWith(".xlsx")) {
-                    handleExcelImport(file);
+                    handleExcelImport(file)
                 } else {
-                    toast.error("Solo se permiten archivos .xlsx");
+                    toast.error("Solo se permiten archivos .xlsx")
                 }
             }
-        };
+        }
 
         const handleDragOver = (e: DragEvent) => {
-            e.preventDefault();
-        };
+            e.preventDefault()
+        }
 
-        drop.addEventListener("drop", handleDrop);
-        drop.addEventListener("dragover", handleDragOver);
+        drop.addEventListener("drop", handleDrop)
+        drop.addEventListener("dragover", handleDragOver)
 
         return () => {
-            drop.removeEventListener("drop", handleDrop);
-            drop.removeEventListener("dragover", handleDragOver);
-        };
-    }, [handleExcelImport]);
+            drop.removeEventListener("drop", handleDrop)
+            drop.removeEventListener("dragover", handleDragOver)
+        }
+    }, [handleExcelImport])
 
     return (
         <div
@@ -174,5 +176,5 @@ export function ExcelImporter({ categories }: { categories: ICategory[] }) {
                 style={{ display: "block" }}
             />
         </div>
-    );
+    )
 }

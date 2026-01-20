@@ -1,5 +1,6 @@
 import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { ISalesResume, ITotals } from "@/interfaces/sales/ISalesResume"
+import { getAnulatedProducts } from "@/lib/getAnulatedProducts"
 
 export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume => {
     const resume: ISalesResume = {
@@ -40,13 +41,26 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
     const monthStart = startOfDay(new Date(ref.getFullYear(), ref.getMonth(), 1))
 
     for (const sale of sales) {
-        if (sale.status !== "Pagado") continue
+        if (sale.status !== "Pagado" && sale.status !== "Anulado") continue
+
+        const nulledProducts = getAnulatedProducts(sale)
+        const totalNulledAmount = nulledProducts.reduce((acc, p) => acc + p.quantitySold * p.unitPrice, 0)
+        const amount = sale.total - totalNulledAmount
+
+        // Si el monto resultante es 0 o menor, no la contamos (anulación total)
+        if (amount <= 0 && sale.status === "Anulado") continue
+
         const saleDate = new Date(sale.createdAt)
-        const amount = sale.total
 
         const addSale = (period: keyof ITotals["sales"]) => {
-            resume[period].debitoCredito.count += 1
-            resume[period].debitoCredito.amount += amount
+            const isEfectivo = sale.paymentType === "Efectivo"
+            if (isEfectivo) {
+                resume[period].efectivo.count += 1
+                resume[period].efectivo.amount += amount
+            } else {
+                resume[period].debitoCredito.count += 1
+                resume[period].debitoCredito.amount += amount
+            }
             resume[period].total.count += 1
             resume[period].total.amount += amount
         }

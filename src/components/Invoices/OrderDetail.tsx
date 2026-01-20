@@ -232,7 +232,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                                 {loading ? `Actualizando...` : `Actualizar Orden`}
                             </Button>
                         )}
-                        {isAdmin && (
+                        {/* {isAdmin && (
                             <Button
                                 disabled={loading || status === "Pagado"}
                                 className=" bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow"
@@ -240,7 +240,7 @@ export default function OrderDetail({ order, allProducts }: Props) {
                             >
                                 Eliminar OC
                             </Button>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </div>

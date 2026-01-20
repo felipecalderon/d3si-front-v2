@@ -22,6 +22,7 @@ const getInitialProduct = (): CreateProductFormData => ({
     categoryID: "",
     genre: "Unisex",
     brand: "Otro",
+    tempId: Math.random().toString(36).substring(7),
     sizes: [
         {
             sizeNumber: "",
@@ -29,6 +30,7 @@ const getInitialProduct = (): CreateProductFormData => ({
             priceCost: 0,
             sku: generateRandomSku(),
             stockQuantity: 0,
+            tempId: Math.random().toString(36).substring(7),
         },
     ],
 })
@@ -87,6 +89,7 @@ export const useProductFormStore = create<ProductFormState>((set, get) => ({
                         priceList: basePriceList,
                         sku: generateRandomSku(),
                         stockQuantity: 0,
+                        tempId: Math.random().toString(36).substring(7),
                     },
                     ...sizes,
                 ],

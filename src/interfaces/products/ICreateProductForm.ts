@@ -1,6 +1,7 @@
 // src/interfaces/products/ICreateProductForm.ts
 
 export interface Size {
+    tempId?: string
     sizeNumber: string
     priceList: number
     priceCost: number
@@ -9,6 +10,7 @@ export interface Size {
 }
 
 export interface CreateProductFormData {
+    tempId?: string
     name: string
     image: string
     categoryID: string
