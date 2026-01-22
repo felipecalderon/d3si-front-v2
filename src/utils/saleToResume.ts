@@ -2,6 +2,44 @@ import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { ISalesResume, ITotals } from "@/interfaces/sales/ISalesResume"
 import { getAnulatedProducts } from "@/lib/getAnulatedProducts"
 
+const CHILE_TZ = "America/Santiago"
+const chileFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: CHILE_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+})
+
+const toChileTime = (date: Date) => {
+    const parts = chileFormatter.formatToParts(date).reduce<Record<string, string>>((acc, part) => {
+        if (
+            part.type === "year" ||
+            part.type === "month" ||
+            part.type === "day" ||
+            part.type === "hour" ||
+            part.type === "minute" ||
+            part.type === "second"
+        ) {
+            acc[part.type] = part.value
+        }
+        return acc
+    }, {})
+    const toNumber = (value?: string) => Number(value ?? 0)
+    return new Date(
+        toNumber(parts.year),
+        toNumber(parts.month) - 1,
+        toNumber(parts.day),
+        toNumber(parts.hour),
+        toNumber(parts.minute),
+        toNumber(parts.second),
+        0,
+    )
+}
+
 export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume => {
     const resume: ISalesResume = {
         today: {
@@ -26,19 +64,33 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
         },
     }
 
-    const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
-    const endOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
+    const startOfDay = (date: Date) => {
+        const zoned = new Date(date)
+        zoned.setHours(0, 0, 0, 0)
+        return zoned
+    }
+    const endOfDay = (date: Date) => {
+        const zoned = new Date(date)
+        zoned.setHours(23, 59, 59, 999)
+        return zoned
+    }
 
-    const todayStart = startOfDay(ref)
-    const todayEnd = endOfDay(ref)
+    const chileRef = toChileTime(ref)
+    const todayStart = startOfDay(chileRef)
+    const todayEnd = endOfDay(chileRef)
 
-    const yesterday = new Date(ref)
-    yesterday.setDate(ref.getDate() - 1)
-    const yesterdayStart = startOfDay(yesterday)
-    const yesterdayEnd = endOfDay(yesterday)
+    const yesterdayRef = new Date(chileRef)
+    yesterdayRef.setDate(yesterdayRef.getDate() - 1)
+    const yesterdayStart = startOfDay(yesterdayRef)
+    const yesterdayEnd = endOfDay(yesterdayRef)
 
-    const last7Start = startOfDay(new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - 6))
-    const monthStart = startOfDay(new Date(ref.getFullYear(), ref.getMonth(), 1))
+    const last7Ref = new Date(chileRef)
+    last7Ref.setDate(last7Ref.getDate() - 6)
+    const last7Start = startOfDay(last7Ref)
+
+    const monthRef = new Date(chileRef)
+    monthRef.setDate(1)
+    const monthStart = startOfDay(monthRef)
 
     for (const sale of sales) {
         if (sale.status !== "Pagado" && sale.status !== "Anulado") continue
@@ -50,7 +102,7 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
         // Si el monto resultante es 0 o menor, no la contamos (anulación total)
         if (amount <= 0 && sale.status === "Anulado") continue
 
-        const saleDate = new Date(sale.createdAt)
+        const saleDate = toChileTime(new Date(sale.createdAt))
 
         const addSale = (period: keyof ITotals["sales"]) => {
             const isEfectivo = sale.paymentType === "Efectivo"
