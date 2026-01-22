@@ -30,7 +30,7 @@ export default function DailyResumeCards({ resume }: { resume: IResume }) {
                         <p className="font-medium text-sm sm:text-base">Efectivo</p>
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                             {resume.totales.sales.today.efectivo.count} Productos - $
-                            {toPrice(resume.totales.sales.today.efectivo.count)}
+                            {toPrice(resume.totales.sales.today.efectivo.amount)}
                         </p>
                     </div>
                 </div>
