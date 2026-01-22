@@ -2,6 +2,32 @@ import { ISaleResponse } from "@/interfaces/sales/ISale"
 import { ISalesResume, ITotals } from "@/interfaces/sales/ISalesResume"
 import { getAnulatedProducts } from "@/lib/getAnulatedProducts"
 
+const CHILE_TZ = "America/Santiago"
+const chileDateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: CHILE_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+})
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const getChileDateMeta = (date: Date) => {
+    const parts = chileDateFormatter.formatToParts(date).reduce<Record<string, string>>((acc, part) => {
+        if (part.type === "year" || part.type === "month" || part.type === "day") acc[part.type] = part.value
+        return acc
+    }, {})
+    const year = Number(parts.year)
+    const month = Number(parts.month) - 1
+    const day = Number(parts.day)
+    return {
+        year,
+        month,
+        day,
+        dayNumber: Date.UTC(year, month, day),
+    }
+}
+
 export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume => {
     const resume: ISalesResume = {
         today: {
@@ -26,19 +52,9 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
         },
     }
 
-    const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
-    const endOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
-
-    const todayStart = startOfDay(ref)
-    const todayEnd = endOfDay(ref)
-
-    const yesterday = new Date(ref)
-    yesterday.setDate(ref.getDate() - 1)
-    const yesterdayStart = startOfDay(yesterday)
-    const yesterdayEnd = endOfDay(yesterday)
-
-    const last7Start = startOfDay(new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - 6))
-    const monthStart = startOfDay(new Date(ref.getFullYear(), ref.getMonth(), 1))
+    const refMeta = getChileDateMeta(ref)
+    const yesterdayDayNumber = refMeta.dayNumber - DAY_MS
+    const last7StartDayNumber = refMeta.dayNumber - 6 * DAY_MS
 
     for (const sale of sales) {
         if (sale.status !== "Pagado" && sale.status !== "Anulado") continue
@@ -51,6 +67,7 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
         if (amount <= 0 && sale.status === "Anulado") continue
 
         const saleDate = new Date(sale.createdAt)
+        const saleMeta = getChileDateMeta(saleDate)
 
         const addSale = (period: keyof ITotals["sales"]) => {
             const isEfectivo = sale.paymentType === "Efectivo"
@@ -65,10 +82,10 @@ export const salesToResume = (sales: ISaleResponse[], ref: Date): ISalesResume =
             resume[period].total.amount += amount
         }
 
-        if (saleDate >= todayStart && saleDate <= todayEnd) addSale("today")
-        if (saleDate >= yesterdayStart && saleDate <= yesterdayEnd) addSale("yesterday")
-        if (saleDate >= last7Start && saleDate <= todayEnd) addSale("last7")
-        if (saleDate >= monthStart && saleDate <= todayEnd) addSale("month")
+        if (saleMeta.dayNumber === refMeta.dayNumber) addSale("today")
+        if (saleMeta.dayNumber === yesterdayDayNumber) addSale("yesterday")
+        if (saleMeta.dayNumber >= last7StartDayNumber && saleMeta.dayNumber <= refMeta.dayNumber) addSale("last7")
+        if (saleMeta.year === refMeta.year && saleMeta.month === refMeta.month) addSale("month")
     }
 
     return resume
